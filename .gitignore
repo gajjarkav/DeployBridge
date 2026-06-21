@@ -1,0 +1,72 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python / backend
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.eggs/
+*.egg
+*.egg-info/
+pip-wheel-metadata/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs / temp
+*.log
+logs/
+tmp/
+temp/
+
+# Local databases / runtime data
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+celerybeat-schedule
+dump.rdb
+redis-data/
+mongo-data/
+postgres-data/
+mysql-data/
+uploads/
+media/
+staticfiles/
+instance/
+
+# Frontend build / package manager artifacts
+node_modules/
+dist/
+build/
+coverage/
+.parcel-cache/
+.next/
+.nuxt/
+.svelte-kit/
+.cache/
+vite.svg
+*.tsbuildinfo
+
+# Notebook / misc
+.ipynb_checkpoints/
