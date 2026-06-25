@@ -1,5 +1,8 @@
-body{
-    background-color: #444545;
+body {
+    background-image: url("../asset/marble.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 body {
@@ -18,33 +21,35 @@ body {
   padding: 5px 10px;
   gap: 15px;
   background-color: #181717;
-  outline: 3px #181717 solid;
-  outline-offset: -3px;
-  border-radius: 5px;
   border: none;
   cursor: pointer;
   transition: 400ms;
 }
 
-.button .text {
-  color: white;
-  font-weight: 700;
-  font-size: 1em;
-  transition: 400ms;
+.svg {
+    align-items: center;
+    size: 150px;
 }
 
 .button svg path {
   transition: 350ms;
 }
 
-.button:hover svg path {
-    fill: black;
+
+#login-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
 }
 
-.button:hover .text {
-    color: black;
+.github-icon {
+    width: 200px;
+    height: 200px;
+    color: rgb(0, 0, 0);
+    transition: all 0.3s ease;
 }
 
-.button:hover {
-    background-color: #c9c9c9;
+#login-btn:hover .github-icon {
+    color: #85b5c1;
+    transform: scale(1.15);
 }
