@@ -37,7 +37,11 @@ class GitHubService:
                     detail=f"github OAuth error: {response_data.get('error_description', "Unknown error")}"                    
                 )
 
-            return response_data["access_token"]
+            return {
+                "access_token": response_data["access_token"],
+                "token_type": response_data.get("token_type"),
+                "scope": response_data.get("scope"),
+            }
 
     
     @classmethod

@@ -47,23 +47,6 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     }
 });
 
-async function handleGitHubCallback(code) {
-    try {
-        window.history.replaceState({}, document.title, window.location.pathname);
-
-        const response = await fetch(`${BACKEND_API_URL}/auth/callback?code=${code}`);
-        const data = await response.json();
-
-        localStorage.setItem("gh_access_token", data.github_access_token);
-        localStorage.setItem("gh_username", data.user.username);
-        localStorage.setItem("gh_avatar", data.user.avatar_url);
-
-        showDashboard();
-    } catch (error) {
-        console.error("Failed to complete login callback:", error);
-    }
-}
-
 function checkExistingSession() {
     const token = localStorage.getItem("gh_access_token");
     if (token) {

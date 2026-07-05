@@ -1,50 +1,158 @@
-body{
-    background-color: #444545;
-}
-
 body {
     margin: 0;
     min-height: 100vh;
-
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 5px 10px;
-  gap: 15px;
-  background-color: #181717;
-  outline: 3px #181717 solid;
-  outline-offset: -3px;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  transition: 400ms;
+body:has(#auth-section) {
+    background-color: #444545;
 }
 
-.button .text {
-  color: white;
-  font-weight: 700;
-  font-size: 1em;
-  transition: 400ms;
+body:has(#auth-section) #auth-section {
+    width: min(420px, calc(100vw - 32px));
+    padding: 28px 24px;
+    text-align: center;
 }
 
-.button svg path {
-  transition: 350ms;
+body:has(#auth-section) #auth-section > p:first-child {
+    margin: 0 0 28px;
+    color: #f2f2f2;
+    font-size: 1rem;
+    line-height: 1.7;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
-.button:hover svg path {
-    fill: black;
+body:has(#auth-section) #login-btn.button {
+    background-color: transparent;
+    border: 2px solid #ffffff;
+    border-radius: 0;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin: 0;
+    outline: none;
+    overflow: visible;
+    padding: 1.1em 2.2em;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    text-transform: none;
+    transition: all 0.3s ease-in-out;
+    user-select: none;
+    font-size: 13px;
+    float: none;
+    min-width: 290px;
 }
 
-.button:hover .text {
-    color: black;
+body:has(#auth-section) #login-btn.button::before,
+body:has(#auth-section) #login-btn.button::after {
+    content: "";
+    height: 2px;
+    position: absolute;
+    background: #444545;
+    transition: width 0.5s ease-out, left 0.3s ease-out, right 0.3s ease-out, background 0.3s linear;
 }
 
-.button:hover {
-    background-color: #c9c9c9;
+body:has(#auth-section) #login-btn.button::before {
+    width: 1.5625rem;
+    top: -2px;
+    left: 0.625rem;
+}
+
+body:has(#auth-section) #login-btn.button::after {
+    width: 1.5625rem;
+    right: 1.875rem;
+    bottom: -2px;
+}
+
+body:has(#auth-section) #login-btn.button .text {
+    margin: 0;
+    font-size: 1.125em;
+    line-height: 1.33333em;
+    display: block;
+    text-align: left;
+    transition: all 0.3s ease-in-out;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #ffffff;
+}
+
+body:has(#auth-section) #login-btn.button svg {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+}
+
+body:has(#auth-section) #login-btn.button svg path {
+    fill: #ffffff;
+    transition: fill 0.3s ease-in-out;
+}
+
+body:has(#auth-section) #login-btn.button .text::before,
+body:has(#auth-section) #login-btn.button .text::after {
+    content: "";
+    position: absolute;
+    height: 2px;
+    transition: all 0.3s ease-in-out;
+}
+
+body:has(#auth-section) #login-btn.button .text::before {
+    width: 1.5625rem;
+    background: #ffffff;
+    top: 50%;
+    left: -2.55rem;
+    transform: translateY(-50%);
+    transform-origin: center;
+}
+
+body:has(#auth-section) #login-btn.button .text::after {
+    width: 0.625rem;
+    right: -1.35rem;
+    bottom: -1.35rem;
+    background: #444545;
+}
+
+body:has(#auth-section) #login-btn.button:hover {
+    background: #ffffff;
+}
+
+body:has(#auth-section) #login-btn.button:hover svg path {
+    fill: #000000;
+}
+
+body:has(#auth-section) #login-btn.button:hover .text {
+    color: #000000;
+    transform: translateX(-0.25em);
+}
+
+body:has(#auth-section) #login-btn.button:hover .text::before {
+    width: 0.9375rem;
+    background: #000000;
+}
+
+body:has(#auth-section) #login-btn.button:hover::before {
+    left: -2px;
+    width: 0;
+}
+
+body:has(#auth-section) #login-btn.button:hover::after,
+body:has(#auth-section) #login-btn.button:hover .text::after {
+    right: 0;
+    width: 0;
+}
+
+body:has(#auth-section) #loading-text {
+    margin: 18px 0 0;
+    color: #d7d7d7;
+    font-size: 0.92rem;
+    letter-spacing: 0.03em;
 }

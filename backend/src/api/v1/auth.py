@@ -38,21 +38,24 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
     the frontend sends that code here to compelete the login.
     """
 
-    access_token = await GitHubService.get_access_token(code)
+    token_data = await GitHubService.get_access_token(code)
 
-    github_user = await GitHubService.get_user_profile(access_token)
+    github_user = await GitHubService.get_user_profile(token_data["access_token"])
 
     query = select(User).where(User.github_id == github_user["github_id"])
     result = await db.execute(query)
     db_user = result.scalar_one_or_none()
 
 
-    if not db_user:
+    if db_user:
         db_user = User(
             github_id=github_user["github_id"],
             username=github_user["username"],
             email=github_user["email"],
-            avatar_url=github_user["avatar_url"]
+            avatar_url=github_user["avatar_url"],
+            github_token=token_data["access_token"],
+            github_token_type=token_data["token_type"],
+            github_scope=token_data["scope"],
         )
         db.add(db_user)
         await db.commit()
@@ -66,5 +69,5 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
             "email": db_user.email,
             "avatar_url": db_user.avatar_url
         },
-        "github_access_token": access_token,
+        "github_access_token": token_data["access_token"]
     }
