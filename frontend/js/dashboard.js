@@ -89,13 +89,22 @@ async function fetchAndRenderRepos(token) {
                 </td>
                 <td style="padding: 8px;">
                     <div style="display: flex; gap: 8px;">
-                        <button onclick="analyzeRepo('${repo.name}')" style="cursor: pointer; padding: 4px 12px; background-color: #6c757d; color: white; border: none; border-radius: 4px; font-size: 12px;">
-                            Analyze
-                        </button>
-                        <button onclick="selectRepo('${repo.name}')" style="cursor: pointer; padding: 4px 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; font-size: 12px;">
-                            Select
-                        </button>
-                    </div>
+
+                <button
+                    onclick="analyzeRepo('${repo.name}')"
+                    style="cursor:pointer;padding:4px 12px;background:#6c757d;color:white;border:none;border-radius:4px;font-size:12px;"
+                >
+                    Analyze
+                </button>
+
+                <button
+                    onclick="deployGitHubPages('${repo.owner.login}','${repo.name}')"
+                    style="cursor:pointer;padding:4px 12px;background:#7c3aed;color:white;border:none;border-radius:4px;font-size:12px;"
+                >
+                    GitHub Pages
+                </button>
+
+            </div>
                 </td>
             `;
             tableBody.appendChild(tr);
@@ -110,6 +119,51 @@ async function fetchAndRenderRepos(token) {
 window.analyzeRepo = (repoName) => {
     alert(`Initalitiong deep scan for: ${repoName}...\n\n(Backend hit!!)`);
     console.log(`Scan triggered for ${repoName}`);
+}
+
+window.deployGitHubPages = async (owner, repository) => {
+
+    const confirmed = confirm(
+        `Deploy "${repository}" to GitHub Pages?`
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    const token = localStorage.getItem("gh_access_token");
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/v1/github-pages/deploy",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+
+                body: JSON.stringify({
+                    owner,
+                    repository,
+                }),
+            }
+        );
+
+        const data = await response.json();
+
+        alert(data.message);
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Deployment failed.");
+
+    }
+
 }
 
 document.getElementById("logout-btn").addEventListener("click", () => {

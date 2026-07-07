@@ -23,7 +23,7 @@ async def get_github_login_url():
     url = (
         f"https://github.com/login/oauth/authorize"
         f"?client_id={settings.GITHUB_CLIENT_ID}"
-        f"&scope=read:user%20user:email%20repo"
+        f"&scope=read:user%20user:email%20repo%20workflow"
     )
 
     return {
@@ -42,12 +42,14 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
 
     github_user = await GitHubService.get_user_profile(token_data["access_token"])
 
+    print("TOKEN SCOPES:", token_data["scope"])
+
     query = select(User).where(User.github_id == github_user["github_id"])
     result = await db.execute(query)
     db_user = result.scalar_one_or_none()
 
 
-    if db_user:
+    if not db_user:
         db_user = User(
             github_id=github_user["github_id"],
             username=github_user["username"],
@@ -58,8 +60,16 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
             github_scope=token_data["scope"],
         )
         db.add(db_user)
-        await db.commit()
-        await db.refresh(db_user)
+    else:
+        db_user.username = github_user["username"]
+        db_user.email = github_user["email"]
+        db_user.avatar_url = github_user["avatar_url"]
+        db_user.github_token = token_data["access_token"]
+        db_user.github_token_type = token_data["token_type"]
+        db_user.github_scope = token_data["scope"]
+
+    await db.commit()
+    await db.refresh(db_user)
 
     return {
         "message": "Login successful",
