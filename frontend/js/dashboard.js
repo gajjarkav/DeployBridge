@@ -1,9 +1,9 @@
-
+const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
 window.onload = async () => {
     const token = localStorage.getItem("gh_access_token");
 
     if (!token) {
-        window.location.href = '../templates/auth.html';
+        window.location.href = "../templates/auth.html";
         return;
     }
 
@@ -20,57 +20,33 @@ async function fetchAndRenderRepos(token) {
     try {
         const response = await fetch("https://api.github.com/user/repos", {
             headers: {
-                "Authorization": `Bearer ${token}`            }
+                "Authorization": `Bearer ${token}`,
+            },
         });
 
         if (!response.ok) {
-            throw new Error("Failed to fetch repos, Token might be expired.");
+            throw new Error("Failed to fetch repositories. Your GitHub token may be expired.");
         }
 
         const repos = await response.json();
-        const getStatus = (repo) => {
-            if (repo.archived) return "Archived";
-            if (repo.disabled) return "Disabled";
-            return "Active";
-        }
-        
-        const getRelativeTime = (dateString) => {
-            const date = new Date(dateString);
-            const now = new Date();
-            const seconds = Math.floor((now - date) / 1000);
-
-            if (seconds < 60) return 'Just now';
-            const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return `${minutes}m ago`;
-            const hours = Math.floor(minutes / 60);
-            if (hours < 24) return `${hours}h ago`;
-            const days = Math.floor(hours / 24);
-            if (days < 30) return `${days}d ago`;
-            const months = Math.floor(days / 30);
-            if (months / 12) return `${months}mo ago`;
-            const years = Math.floor(months / 12);
-            return `${year}y ago`;
-        }
         const tableBody = document.getElementById("repo-table-body");
-        tableBody.innerHTML = '';
+        tableBody.innerHTML = "";
 
         repos.forEach((repo, index) => {
-            const tr =document.createElement("tr");
-
+            const tr = document.createElement("tr");
             const updatedAt = new Date(repo.updated_at).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "short",
-                day: "numeric"
+                day: "numeric",
             });
-
             const status = repo.archived ? "Archived" : (repo.disabled ? "Disabled" : "Active");
-            const statusColor = repo.archived ? '#ffebee' : '#e0ece4';
-            const statusTextColor = repo.archived ? '#c62828' : '#2e7d32';
+            const statusColor = repo.archived ? "#ffebee" : "#e0ece4";
+            const statusTextColor = repo.archived ? "#c62828" : "#2e7d32";
 
             tr.innerHTML = `
                 <td style="padding: 8px;">${index + 1}</td>
-                <td style="padding: 8px;"><a href="${repo.url}" target="_blank" style="text-decoration: none; color: blue;">${repo.name}</a></td>
-                <td style="padding: 8px;">${repo.language}</td>
+                <td style="padding: 8px;"><a href="${repo.html_url}" target="_blank" style="text-decoration: none; color: blue;">${repo.name}</a></td>
+                <td style="padding: 8px;">${repo.language || "Unknown"}</td>
                 <td style="padding: 8px;">${repo.visibility}</td>
                 <td style="padding: 8px;">
                     <span style="background-color: ${statusColor}; color: ${statusTextColor}; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
@@ -89,81 +65,126 @@ async function fetchAndRenderRepos(token) {
                 </td>
                 <td style="padding: 8px;">
                     <div style="display: flex; gap: 8px;">
-
-                <button
-                    onclick="analyzeRepo('${repo.name}')"
-                    style="cursor:pointer;padding:4px 12px;background:#6c757d;color:white;border:none;border-radius:4px;font-size:12px;"
-                >
-                    Analyze
-                </button>
-
-                <button
-                    onclick="deployGitHubPages('${repo.owner.login}','${repo.name}')"
-                    style="cursor:pointer;padding:4px 12px;background:#7c3aed;color:white;border:none;border-radius:4px;font-size:12px;"
-                >
-                    GitHub Pages
-                </button>
-
-            </div>
+                        <button
+                            onclick="analyzeRepo('${repo.name}')"
+                            style="cursor:pointer;padding:4px 12px;background:#6c757d;color:white;border:none;border-radius:4px;font-size:12px;"
+                        >
+                            Analyze
+                        </button>
+                        <button
+                            onclick="deployGitHubPages('${repo.owner.login}','${repo.name}')"
+                            style="cursor:pointer;padding:4px 12px;background:#7c3aed;color:white;border:none;border-radius:4px;font-size:12px;"
+                        >
+                            GitHub Pages
+                        </button>
+                    </div>
                 </td>
             `;
             tableBody.appendChild(tr);
         });
-
     } catch (error) {
-        console.error("Error: ", error);
-        document.getElementById("repo-table-body").innerHTML = '<tr><td colspan="6" style="color:red; text-align: center; padding: 8px;">Error loading repositories.</td></tr>';
+        console.error("Error:", error);
+        document.getElementById("repo-table-body").innerHTML = '<tr><td colspan="8" style="color:red; text-align: center; padding: 8px;">Error loading repositories.</td></tr>';
     }
+}
+
+function getRelativeTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months}mo ago`;
+    const years = Math.floor(months / 12);
+    return `${years}y ago`;
 }
 
 window.analyzeRepo = (repoName) => {
-    alert(`Initalitiong deep scan for: ${repoName}...\n\n(Backend hit!!)`);
+    alert(`Initializing deep scan for: ${repoName}...\n\n(Backend hit!!)`);
     console.log(`Scan triggered for ${repoName}`);
-}
+};
 
 window.deployGitHubPages = async (owner, repository) => {
+    const token = localStorage.getItem("gh_access_token");
 
-    const confirmed = confirm(
-        `Deploy "${repository}" to GitHub Pages?`
-    );
-
-    if (!confirmed) {
+    if (!token) {
+        alert("GitHub login session is missing. Please sign in again.");
         return;
     }
 
-    const token = localStorage.getItem("gh_access_token");
-
     try {
+        const detectData = await postGitHubPagesRequest("/github-pages/detect", token, {
+            owner,
+            repository,
+        });
 
-        const response = await fetch(
-            "http://127.0.0.1:8000/v1/github-pages/deploy",
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-
-                body: JSON.stringify({
-                    owner,
-                    repository,
-                }),
-            }
+        const overrideInput = window.prompt(
+            [
+                `Detected profile for "${repository}": ${detectData.detected_profile}`,
+                `Reason: ${detectData.reason}`,
+                "",
+                `Supported options: ${detectData.supported_profiles.join(", ")}`,
+                'Type a profile name to override, or leave blank to use "auto".',
+            ].join("\n"),
+            "auto"
         );
 
-        const data = await response.json();
+        if (overrideInput === null) {
+            return;
+        }
 
-        alert(data.message);
+        const selectedProfile = (overrideInput.trim() || "auto").toLowerCase();
+        if (!detectData.supported_profiles.includes(selectedProfile)) {
+            alert(`Unsupported deployment profile: ${selectedProfile}`);
+            return;
+        }
 
+        const confirmed = window.confirm(
+            `Deploy "${repository}" to GitHub Pages using "${selectedProfile === "auto" ? detectData.detected_profile : selectedProfile}"?`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        const deployData = await postGitHubPagesRequest("/github-pages/deploy", token, {
+            owner,
+            repository,
+            deployment_profile: selectedProfile,
+        });
+
+        alert(
+            `${deployData.message}\n\nResolved profile: ${deployData.resolved_profile}\nWorkflow: ${deployData.workflow_template}`
+        );
     } catch (error) {
-
         console.error(error);
+        alert(error.message || "Deployment failed.");
+    }
+};
 
-        alert("Deployment failed.");
+async function postGitHubPagesRequest(path, token, body) {
+    const response = await fetch(`${BACKEND_API_URL}${path}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+    });
 
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(data.detail || "GitHub Pages request failed.");
     }
 
+    return data;
 }
 
 document.getElementById("logout-btn").addEventListener("click", () => {
@@ -172,4 +193,4 @@ document.getElementById("logout-btn").addEventListener("click", () => {
     localStorage.removeItem("gh_avatar");
 
     window.location.href = "../templates/auth.html";
-})
+});

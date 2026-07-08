@@ -1,0 +1,83 @@
+name: Deploy Next.js Static Export to GitHub Pages
+
+on:
+  push:
+    branches:
+      - "__DEFAULT_BRANCH__"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Resolve Next.js export commands
+        id: next-commands
+        run: |
+          COMMANDS=$(node -e "const pkg=require('./package.json'); const scripts=pkg.scripts || {}; const commands=[]; if (!scripts.build) process.exit(1); commands.push('npm run build'); if (scripts.export) commands.push('npm run export'); process.stdout.write(commands.join('\n'));")
+          if [ -z "$COMMANDS" ]; then
+            echo "No build script found in package.json"
+            exit 1
+          fi
+          {
+            echo "command<<EOF"
+            echo "$COMMANDS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build static export
+        run: ${{ steps.next-commands.outputs.command }}
+
+      - name: Verify export output
+        id: artifact
+        run: |
+          if [ ! -d out ]; then
+            echo "Static export output was not found at ./out."
+            echo "Make sure Next.js is configured with output: 'export' or that your export script generates ./out."
+            exit 1
+          fi
+          echo "path=out" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ steps.artifact.outputs.path }}
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

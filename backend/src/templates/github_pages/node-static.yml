@@ -1,0 +1,91 @@
+name: Deploy Node Static Site to GitHub Pages
+
+on:
+  push:
+    branches:
+      - "__DEFAULT_BRANCH__"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Resolve build command
+        id: build-command
+        run: |
+          BUILD_COMMAND=$(node -e "const pkg=require('./package.json'); if (pkg.scripts?.generate) { process.stdout.write('npm run generate'); } else if (pkg.scripts?.build) { process.stdout.write('npm run build'); } else { process.exit(1); }")
+          if [ -z "$BUILD_COMMAND" ]; then
+            echo "No supported build command was found."
+            exit 1
+          fi
+          echo "command=$BUILD_COMMAND" >> "$GITHUB_OUTPUT"
+
+      - name: Build static site
+        run: ${{ steps.build-command.outputs.command }}
+
+      - name: Resolve artifact path
+        id: artifact
+        run: |
+          PACKAGE_NAME=$(node -e "const pkg=require('./package.json'); process.stdout.write((pkg.name || '').replace(/^@/, '').replace(/\//g, '-'));")
+          CANDIDATES="dist build out public .output/public"
+
+          for candidate in $CANDIDATES; do
+            if [ -d "$candidate" ]; then
+              echo "path=$candidate" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+
+          if [ -n "$PACKAGE_NAME" ] && [ -d "dist/$PACKAGE_NAME/browser" ]; then
+            echo "path=dist/$PACKAGE_NAME/browser" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "No supported static build output directory was found."
+          echo "Checked: dist, build, out, public, .output/public, dist/<package-name>/browser"
+          exit 1
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ steps.artifact.outputs.path }}
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
