@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeployBridge Repositories</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="app-body sidebar-collapsed">
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand-lockup">
+                <div class="brand-mark">DB</div>
+                <div class="brand-copy">
+                    <strong>DeployBridge</strong>
+                    <span>GitHub Pages control room</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" type="button" data-sidebar-toggle>Toggle sidebar</button>
+            <nav class="sidebar-nav">
+                <a class="nav-link" data-nav="dashboard" href="/templates/dashboard.html">
+                    <span class="nav-icon">◫</span>
+                    <span>Overview</span>
+                </a>
+                <a class="nav-link" data-nav="repositories" href="/templates/repositories.html">
+                    <span class="nav-icon">▤</span>
+                    <span>Repositories</span>
+                </a>
+                <a class="nav-link" data-nav="deployments" href="/templates/deployments.html">
+                    <span class="nav-icon">↗</span>
+                    <span>Deployments</span>
+                </a>
+                <a class="nav-link" data-nav="settings" href="/templates/settings.html">
+                    <span class="nav-icon">⚙</span>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            <div class="sidebar-panel">
+                <h3>Deploy flow</h3>
+                <p class="info-chip">Detect first, allow override, then write the matching GitHub Actions workflow into the repository.</p>
+            </div>
+            <div class="sidebar-footer">
+                <button class="ghost-button" type="button" data-theme-toggle><span data-theme-label>Dark mode</span></button>
+                <div class="sidebar-footer-copy">This page is the live deployment workspace for GitHub repositories.</div>
+            </div>
+        </aside>
+
+        <main class="main-shell">
+            <div class="mobile-topbar">
+                <button class="mobile-menu-button" type="button" data-sidebar-toggle>Menu</button>
+                <button class="ghost-button" type="button" data-theme-toggle><span data-theme-label>Dark mode</span></button>
+            </div>
+
+            <header class="topbar">
+                <div class="page-heading">
+                    <div class="section-kicker">Repositories</div>
+                    <h1>Scan, review, and deploy your repositories.</h1>
+                    <p>The table below is the operational surface for GitHub Pages. Each repository can be inspected, analyzed, or deployed with the correct static-site profile.</p>
+                </div>
+                <div class="topbar-actions">
+                    <div class="user-card">
+                        <img data-user-avatar src="" alt="User avatar">
+                        <div>
+                            <strong data-user-name>GitHub User</strong>
+                            <span><span id="repo-count">0</span> repos visible</span>
+                        </div>
+                    </div>
+                    <button class="logout-button" type="button" data-logout>Logout</button>
+                </div>
+            </header>
+
+            <section class="content-grid">
+                <article class="panel-card tight">
+                    <div class="panel-header" style="padding:22px 22px 0;">
+                        <div>
+                            <h2>Your GitHub repositories</h2>
+                            <p class="panel-subtitle">DeployBridge will detect framework type and offer a manual override before it starts a GitHub Pages deployment.</p>
+                        </div>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="repo-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Repository</th>
+                                    <th>Language</th>
+                                    <th>Visibility</th>
+                                    <th>Status</th>
+                                    <th>Updated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="repo-table-body">
+                                <tr>
+                                    <td colspan="7" style="text-align:center;">Loading repositories...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/app-shell.js"></script>
+    <script src="../js/repositories.js"></script>
+</body>
+</html>

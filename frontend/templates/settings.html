@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeployBridge Settings</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="app-body sidebar-collapsed">
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand-lockup">
+                <div class="brand-mark">DB</div>
+                <div class="brand-copy">
+                    <strong>DeployBridge</strong>
+                    <span>GitHub Pages control room</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" type="button" data-sidebar-toggle>Toggle sidebar</button>
+            <nav class="sidebar-nav">
+                <a class="nav-link" data-nav="dashboard" href="/templates/dashboard.html">
+                    <span class="nav-icon">◫</span>
+                    <span>Overview</span>
+                </a>
+                <a class="nav-link" data-nav="repositories" href="/templates/repositories.html">
+                    <span class="nav-icon">▤</span>
+                    <span>Repositories</span>
+                </a>
+                <a class="nav-link" data-nav="deployments" href="/templates/deployments.html">
+                    <span class="nav-icon">↗</span>
+                    <span>Deployments</span>
+                </a>
+                <a class="nav-link" data-nav="settings" href="/templates/settings.html">
+                    <span class="nav-icon">⚙</span>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            <div class="sidebar-panel">
+                <h3>Need next?</h3>
+                <p class="info-chip">This page is a clean place to grow app preferences, workspace options, and user help without crowding the deployment screen.</p>
+            </div>
+            <div class="sidebar-footer">
+                <button class="ghost-button" type="button" data-theme-toggle><span data-theme-label>Dark mode</span></button>
+                <div class="sidebar-footer-copy">Settings and guidance now live separately from repositories and deployment actions.</div>
+            </div>
+        </aside>
+
+        <main class="main-shell">
+            <div class="mobile-topbar">
+                <button class="mobile-menu-button" type="button" data-sidebar-toggle>Menu</button>
+                <button class="ghost-button" type="button" data-theme-toggle><span data-theme-label>Dark mode</span></button>
+            </div>
+
+            <header class="topbar">
+                <div class="page-heading">
+                    <div class="section-kicker">Settings</div>
+                    <h1>Control the workspace and understand the current session.</h1>
+                    <p>This page separates app preferences and session details from the operational deployment pages so the dashboard stays focused.</p>
+                </div>
+                <div class="topbar-actions">
+                    <div class="user-card">
+                        <img data-user-avatar src="" alt="User avatar">
+                        <div>
+                            <strong data-user-name>GitHub User</strong>
+                            <span>Connected operator</span>
+                        </div>
+                    </div>
+                    <button class="logout-button" type="button" data-logout>Logout</button>
+                </div>
+            </header>
+
+            <section class="settings-grid">
+                <article class="settings-card">
+                    <h2>Session details</h2>
+                    <ul class="settings-list">
+                        <li>Signed in as: <strong id="settings-username">GitHub User</strong></li>
+                        <li>Local token state: <strong id="settings-token-status">Unknown</strong></li>
+                        <li>Current theme: <strong id="settings-theme">light</strong></li>
+                    </ul>
+                </article>
+
+                <article class="settings-card">
+                    <h2>Quick actions</h2>
+                    <div class="button-row" style="margin-top:16px;">
+                        <button class="action-button" type="button" data-theme-toggle><span data-theme-label>Dark mode</span></button>
+                        <button class="ghost-button" type="button" data-logout>Logout</button>
+                    </div>
+                    <div class="accent-box" style="margin-top:18px;">
+                        DeployBridge currently supports GitHub Pages flows for HTML, Jekyll, generic Node static builds, and static-exportable Next.js projects.
+                    </div>
+                </article>
+
+                <article class="settings-card">
+                    <h2>How to use this dashboard</h2>
+                    <ul class="settings-list">
+                        <li>Use <strong>Overview</strong> for repo and deployment snapshots.</li>
+                        <li>Use <strong>Repositories</strong> to detect framework type and start deployment.</li>
+                        <li>Use <strong>Deployments</strong> to review recent launches in this browser.</li>
+                    </ul>
+                </article>
+
+                <article class="settings-card">
+                    <h2>Planned growth</h2>
+                    <ul class="settings-list">
+                        <li>Persistent deployment history from the backend.</li>
+                        <li>Framework-specific deploy forms instead of prompt-based overrides.</li>
+                        <li>Workspace-level docs, logs, and deployment analytics pages.</li>
+                    </ul>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/app-shell.js"></script>
+    <script src="../js/settings.js"></script>
+</body>
+</html>

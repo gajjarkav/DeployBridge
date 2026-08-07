@@ -3,7 +3,7 @@ const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
 window.onload = async () => {
 
     if (localStorage.getItem("gh_access_token")) {
-        window.location.href = '/templates/dashboard.html';
+        window.location.href = "../templates/dashboard.html";
         return;
     }
 
@@ -50,7 +50,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
 function checkExistingSession() {
     const token = localStorage.getItem("gh_access_token");
     if (token) {
-        showDashboard();
+        window.location.href = "../templates/dashboard.html";
     } else {
         document.getElementById("auth-section").style.display = "block";
         document.getElementById("dashboard-section").style.display = "none";

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeployBridge Deployments</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="app-body sidebar-collapsed">
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand-lockup">
+                <div class="brand-mark">DB</div>
+                <div class="brand-copy">
+                    <strong>DeployBridge</strong>
+                    <span>GitHub Pages control room</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" type="button" data-sidebar-toggle>Toggle sidebar</button>
+            <nav class="sidebar-nav">
+                <a class="nav-link" data-nav="dashboard" href="/templates/dashboard.html">
+                    <span class="nav-icon">◫</span>
+                    <span>Overview</span>
+                </a>
+                <a class="nav-link" data-nav="repositories" href="/templates/repositories.html">
+                    <span class="nav-icon">▤</span>
+                    <span>Repositories</span>
+                </a>
+                <a class="nav-link" data-nav="deployments" href="/templates/deployments.html">
+                    <span class="nav-icon">↗</span>
+                    <span>Deployments</span>
+                </a>
+                <a class="nav-link" data-nav="settings" href="/templates/settings.html">
+                    <span class="nav-icon">⚙</span>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            <div class="sidebar-panel">
+                <h3>Tracking</h3>
+                <p class="info-chip">This screen currently shows browser-local deployment history until a server-side history store is added.</p>
+            </div>
+            <div class="sidebar-footer">
+                <button class="ghost-button" type="button" data-theme-toggle><span data-theme-label>Dark mode</span></button>
+                <div class="sidebar-footer-copy">Use this view to remember which workflow template each repo used last.</div>
+            </div>
+        </aside>
+
+        <main class="main-shell">
+            <div class="mobile-topbar">
+                <button class="mobile-menu-button" type="button" data-sidebar-toggle>Menu</button>
+                <button class="ghost-button" type="button" data-theme-toggle><span data-theme-label>Dark mode</span></button>
+            </div>
+
+            <header class="topbar">
+                <div class="page-heading">
+                    <div class="section-kicker">Deployments</div>
+                    <h1>Review your latest Pages launches.</h1>
+                    <p>This page keeps a lightweight local history of deploys triggered from DeployBridge so you can quickly see the profile and workflow used.</p>
+                </div>
+                <div class="topbar-actions">
+                    <div class="user-card">
+                        <img data-user-avatar src="" alt="User avatar">
+                        <div>
+                            <strong data-user-name>GitHub User</strong>
+                            <span><span id="deployment-history-count">0</span> remembered launches</span>
+                        </div>
+                    </div>
+                    <button class="logout-button" type="button" data-logout>Logout</button>
+                </div>
+            </header>
+
+            <section class="content-grid">
+                <article class="panel-card">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Deployment log</h2>
+                            <p class="panel-subtitle">Until a persistent backend history exists, DeployBridge stores recent launches in this browser to support multi-page navigation and quick review.</p>
+                        </div>
+                        <a class="action-button" href="/templates/repositories.html" style="text-decoration:none;">Deploy another repo</a>
+                    </div>
+                    <div class="timeline" id="deployments-list"></div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/app-shell.js"></script>
+    <script src="../js/deployments.js"></script>
+</body>
+</html>

@@ -1,40 +1,699 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>DeployBridge - Overview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
+        @import url('https://fonts.googleapis.com/css2?family=Montenegrin+Gothic+One&display=swap');
+        
+        :root {
+            /* Minimal Beige & Black Theme */
+            --bg-color: #f5f5dc; 
+            --surface-color: #ffffff; 
+            --text-main: #000000;
+            --text-muted: #666666;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --primary-color: #000000;
+            --primary-hover: #333333;
+            --primary-light: rgba(0, 0, 0, 0.04);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #080808; 
+            --surface-color: #121212; 
+            --text-main: #f5f5dc; 
+            --text-muted: #999988;
+            --border-color: rgba(245, 245, 220, 0.1);
+            --primary-color: #f5f5dc; 
+            --primary-hover: #e0e0b8;
+            --primary-light: rgba(245, 245, 220, 0.06);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            transition: background-color 0.4s ease, color 0.4s ease; 
+            overflow-x: hidden;
+        }
+
+        /* ─── Layout Shell ─── */
+        .app-shell {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* ─── Sidebar ─── */
+        .sidebar {
+            width: 280px;
+            background-color: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 24px;
+            transition: width 0.3s ease, padding 0.3s ease, background-color 0.4s ease, border-color 0.4s ease, left 0.3s ease;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        /* --- Collapsed Sidebar State --- */
+        .app-shell.collapsed .sidebar {
+            width: 88px;
+            padding: 32px 16px;
+        }
+        .app-shell.collapsed .brand-copy,
+        .app-shell.collapsed .sidebar-panel,
+        .app-shell.collapsed .version-text,
+        .app-shell.collapsed .nav-link span {
+            display: none;
+        }
+        .app-shell.collapsed .brand-lockup {
+            padding-left: 0;
+            justify-content: center;
+        }
+        .app-shell.collapsed .nav-link {
+            justify-content: center;
+            padding: 12px;
+        }
+        .app-shell.collapsed .sidebar-footer {
+            justify-content: center;
+        }
+
+        .brand-lockup {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 48px;
+            padding-left: 8px;
+        }
+
+        .brand-mark {
+            font-family: "Montenegrin Gothic One", serif;
+            font-size: 24px;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+
+        .brand-copy {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-copy strong {
+            font-family: "Ubuntu", sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .brand-copy span {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover, .nav-link[data-active="true"] {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .sidebar-panel {
+            margin-top: auto;
+            padding: 20px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .sidebar-panel h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .info-chip {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+
+        .sidebar-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* ─── Main Content Area ─── */
+        .main-shell {
+            flex: 1;
+            overflow-y: auto;
+            padding: 48px 64px;
+            position: relative;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 56px;
+            gap: 24px;
+        }
+
+        .topbar-left {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .menu-toggle {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            margin-top: 4px;
+        }
+
+        .menu-toggle:hover {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+
+        .page-heading {
+            max-width: 600px;
+        }
+
+        .section-kicker {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .page-heading h1 {
+            font-family: "Ubuntu", sans-serif;
+            font-size: 32px;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .page-heading p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: right;
+        }
+
+        .user-card img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            object-fit: cover;
+        }
+
+        .user-card div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-card strong {
+            font-size: 14px;
+            font-family: "Ubuntu", sans-serif;
+        }
+
+        .user-card span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .logout-button {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-button:hover {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+
+        /* ─── Grids & Cards ─── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .metric-card {
+            background: var(--surface-color);
+            padding: 28px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+
+        .metric-card strong {
+            display: block;
+            font-size: 36px;
+            font-family: "Ubuntu", sans-serif;
+            margin: 8px 0 12px;
+            color: var(--primary-color);
+        }
+
+        .metric-card p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+
+        .split-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .panel-card {
+            background: var(--surface-color);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            padding: 32px;
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+
+        .panel-header h2 {
+            font-family: "Ubuntu", sans-serif;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .panel-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            max-width: 400px;
+        }
+
+        .action-button {
+            display: inline-block;
+            background: var(--primary-color);
+            color: var(--bg-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .action-button:hover {
+            opacity: 0.85;
+        }
+
+        .timeline, .mini-stats {
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* ─── Theme Toggle ─── */
+        .themeToggle {
+            color: var(--primary-color);
+            width: 24px;
+            height: 24px;
+            position: relative;
+            cursor: pointer;
+        }
+        .themeToggleInput {
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            z-index: 10;
+            cursor: pointer;
+        }
+        .themeToggle svg {
+            width: 100%;
+            height: 100%;
+            transition: transform .4s ease;
+            transform: rotate(40deg);
+        }
+        .btn {
+        width: 150px;
+        height: 50px;
+        border-radius: 5px;
+        border: none;
+        transition: all 0.5s ease-in-out;
+        font-size: 20px;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        background: #040f16;
+        color: #f5f5f5;
+        }
+
+        .btn:hover {
+        box-shadow: 0 0 20px 0px #2e2e2e3a;
+        }
+
+        .btn .icon {
+        position: absolute;
+        height: 40px;
+        width: 70px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.5s;
+        }
+
+        .btn .text {
+        transform: translateX(55px);
+        }
+
+        .btn:hover .icon {
+        width: 175px;
+        }
+
+        .btn:hover .text {
+        transition: all 0.5s;
+        opacity: 0;
+        }
+
+        .btn:focus {
+        outline: none;
+        }
+
+        .btn:active .icon {
+        transform: scale(0.85);
+        }
+        .themeToggle svg .sunMoon { transform-origin: center; transition: inherit; transform: scale(1); }
+        .themeToggle svg .sunRay { transform-origin: center; transform: scale(0); }
+        .themeToggle svg mask>circle { transition: transform .64s cubic-bezier(.41,.64,.32,1.575); transform: translate(0,0); }
+        .themeToggleInput:checked+svg { transform: rotate(90deg); }
+        .themeToggleInput:checked+svg mask>circle { transform: translate(16px,-3px); }
+        .themeToggleInput:checked+svg .sunMoon { transform: scale(.55); }
+        .themeToggleInput:checked+svg .sunRay { animation: showRay1832 .4s ease forwards; }
+
+        @keyframes showRay1832 {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .split-grid { grid-template-columns: 1fr; }
+            .main-shell { padding: 32px 40px; }
+        }
+        @media (max-width: 768px) {
+            .app-shell { flex-direction: column; }
+            
+            /* Mobile Sidebar Drawer */
+            .sidebar { 
+                position: fixed;
+                left: -100%;
+                top: 0;
+                width: 280px; 
+                height: 100vh; 
+                border-right: 1px solid var(--border-color); 
+                border-bottom: none;
+                padding: 24px; 
+                z-index: 100;
+                box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+            }
+            .app-shell.mobile-open .sidebar { left: 0; }
+            
+            /* Overwrite collapse behavior on mobile so it stays a full drawer */
+            .app-shell.collapsed .sidebar { width: 280px; left: -100%; }
+            .app-shell.collapsed.mobile-open .sidebar { left: 0; }
+            .app-shell.collapsed .brand-copy,
+            .app-shell.collapsed .sidebar-panel,
+            .app-shell.collapsed .version-text,
+            .app-shell.collapsed .nav-link span { display: flex; }
+            .app-shell.collapsed .nav-link { justify-content: flex-start; padding: 12px 16px; }
+            .app-shell.collapsed .brand-lockup { padding-left: 8px; justify-content: flex-start; }
+            .app-shell.collapsed .sidebar-footer { justify-content: space-between; }
+
+            .brand-lockup { margin-bottom: 24px; }
+            .main-shell { padding: 24px; }
+            .topbar { flex-direction: column; gap: 24px; }
+            .topbar-left { flex-direction: column; gap: 16px; }
+            .user-card { text-align: left; }
+            .menu-toggle { align-self: flex-start; }
+        }
+    </style>
 </head>
 <body>
-    <div id="dashboard-section">
-        <h2>Welcome, <span id="user-name"></span>!</h2>
-        
-        <img id="user-avatar" src="" alt="Avatar" width="100" height="100" style="border-radius: 50%;">
-        <br><br>
-        <button id="logout-btn">Logout</button>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            
+            <div class="brand-lockup">
+                <div class="brand-mark">DB</div>
+                <div class="brand-copy">
+                    <strong>DeployBridge</strong>
+                    <span>Control Room</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a class="nav-link" data-active="true" href="/templates/dashboard.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>Overview</span>
+                </a>
+                <a class="nav-link" href="/templates/repositories.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <span>Repositories</span>
+                </a>
+                <a class="nav-link" href="/templates/deployments.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
+                    <span>Deployments</span>
+                </a>
+                <a class="nav-link" href="/templates/settings.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Settings</span>
+                </a>
+            </nav>
 
-        <h3>Your Repositories</h3>
-        <table border="1" style="width: 100%; text-align: left; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th style="padding: 8px;">#</th>
-                    <th style="padding: 8px;">Repository Name</th>
-                    <th style="padding: 8px;">Language</th>
-                    <th style="padding: 8px;">Visibility</th>
-                    <th style="padding: 8px;">Status</th>
-                    <th style="padding: 8px;">Last Updated</th>
-                    <th style="padding: 8px;">View</th>
-                    <th style="padding: 8px;">Action</th>
-                </tr>
-            </thead>
-            <tbody id="repo-table-body">
-                <tr>
-                    <td colspan="6" style="padding: 8px; text-align: center;">Loading repositories...</td>
-                </tr>
-            </tbody>
-        </table>
+            <button class="btn" id="menuToggle" aria-label="Toggle Menu">
+                <span class="icon">
+                    <svg viewBox="0 0 175 80" width="40" height="40">
+                        <rect width="80" height="15" fill="#f0f0f0" rx="10"></rect>
+                        <rect y="30" width="80" height="15" fill="#f0f0f0" rx="10"></rect>
+                        <rect y="60" width="80" height="15" fill="#f0f0f0" rx="10"></rect>
+                    </svg>
+                </span>
+                <span class="text">MENU</span>
+            </button>
+
+            <div class="sidebar-footer">
+                <!-- Integrated Theme Toggle -->
+                <label class="themeToggle" title="Toggle Theme">
+                    <input type="checkbox" id="themeToggle" class="themeToggleInput" />
+                    <svg viewBox="0 0 20 20" fill="currentColor" stroke="none">
+                        <mask id="moon-mask">
+                            <rect x="0" y="0" width="20" height="20" fill="white"></rect>
+                            <circle cx="11" cy="3" r="8" fill="black"></circle>
+                        </mask>
+                        <circle class="sunMoon" cx="10" cy="10" r="8" mask="url(#moon-mask)"></circle>
+                        <g>
+                            <circle class="sunRay sunRay1" cx="18" cy="10" r="1.5"></circle>
+                            <circle class="sunRay sunRay2" cx="14" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay sunRay3" cx="6" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay sunRay4" cx="2" cy="10" r="1.5"></circle>
+                            <circle class="sunRay sunRay5" cx="6" cy="3.1718" r="1.5"></circle>
+                            <circle class="sunRay sunRay6" cx="14" cy="3.1718" r="1.5"></circle>
+                        </g>
+                    </svg>
+                </label>
+                <div class="version-text" style="font-size: 11px; color: var(--text-muted);">v1.0.0</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-shell">
+            <header class="topbar">
+                <div class="topbar-left">
+                    
+                    <div class="page-heading">
+                        <div class="section-kicker">Overview</div>
+                        <h1>Deploy without losing track of the pipeline.</h1>
+                        <p>See your GitHub footprint, recent launches, and frameworks ready for routing.</p>
+                    </div>
+                </div>
+                
+                <div class="topbar-actions">
+                    <div class="user-card">
+                        <div>
+                            <strong id="user-name">GitHub User</strong>
+                            <span>Authenticated</span>
+                        </div>
+                        <img id="user-avatar" src="https://placehold.co/100x100/f5f5dc/000000?text=U" alt="User avatar">
+                    </div>
+                    <button class="logout-button" id="logout-btn" type="button">Logout</button>
+                </div>
+            </header>
+
+            <section class="content-grid">
+                <!-- Metrics -->
+                <div class="metrics-grid">
+                    <article class="metric-card">
+                        <div class="section-kicker">Repositories</div>
+                        <strong id="metric-repos">12</strong>
+                        <p>Total visible from connected account.</p>
+                    </article>
+                    <article class="metric-card">
+                        <div class="section-kicker">Public</div>
+                        <strong id="metric-public">8</strong>
+                        <p>Available for direct publishing.</p>
+                    </article>
+                    <article class="metric-card">
+                        <div class="section-kicker">Private</div>
+                        <strong id="metric-private">4</strong>
+                        <p>Requires Actions-based publishing.</p>
+                    </article>
+                    <article class="metric-card">
+                        <div class="section-kicker">Launches</div>
+                        <strong id="metric-deployments">3</strong>
+                        <p>Tracked this session.</p>
+                    </article>
+                </div>
+
+                <!-- Panels -->
+                <div class="split-grid">
+                    <article class="panel-card">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Deployment activity</h2>
+                                <p class="panel-subtitle">Successful deployments logged locally.</p>
+                            </div>
+                            <a class="action-button" href="/templates/repositories.html" style="text-decoration:none;">Repositories</a>
+                        </div>
+                        <div class="timeline" id="recent-deployments">
+                            No recent activity found.
+                        </div>
+                    </article>
+
+                    <article class="panel-card">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Fresh activity</h2>
+                                <p class="panel-subtitle">Recently updated repos.</p>
+                            </div>
+                        </div>
+                        <div class="mini-stats" id="fresh-activity">
+                            Awaiting sync...
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <script src="../js/dashboard.js"></script>
+    <script src="../js/app-shell.js"></script>
+    <script src="../js/overview.js"></script>
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById("themeToggle");
+        themeToggle.checked = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        themeToggle.addEventListener("change", () =>  {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        });
+
+        // Sidebar Menu Toggle Logic
+        const menuToggle = document.getElementById("menuToggle");
+        const appShell = document.querySelector(".app-shell");
+
+        menuToggle.addEventListener("click", () => {
+            if (window.innerWidth <= 768) {
+                // Mobile behavior: slide menu drawer in and out
+                appShell.classList.toggle("mobile-open");
+            } else {
+                // Desktop behavior: icon-only mini sidebar
+                appShell.classList.toggle("collapsed");
+            }
+        });
+    </script>
 </body>
 </html>
