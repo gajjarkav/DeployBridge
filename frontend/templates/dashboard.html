@@ -3,36 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeployBridge - Overview</title>
+    <title>DeployBridge - Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
         @import url('https://fonts.googleapis.com/css2?family=Montenegrin+Gothic+One&display=swap');
         
         :root {
-            /* Minimal Beige & Black Theme */
             --bg-color: #f5f5dc; 
-            --surface-color: #ffffff; 
-            --text-main: #000000;
+            --surface-color: #ffffff;
+            --text-color: #000000;
             --text-muted: #666666;
-            --border-color: rgba(0, 0, 0, 0.08);
-            --primary-color: #000000;
-            --primary-hover: #333333;
-            --primary-light: rgba(0, 0, 0, 0.04);
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.03);
+            --primary-color: #000000; 
+            --primary-light: rgba(0, 0, 0, 0.05);
+            --primary-hover: rgba(0, 0, 0, 0.08);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+            
+            --table-header-bg: #e8e8d8;
+            --table-header-text: #1a1a1a;
+            --table-cell-bg: rgba(255, 255, 255, 0.85);
+            --table-cell-alt: rgba(248, 248, 243, 0.95);
+            --grid-color: rgba(0, 0, 0, 0.05);
+            
+            --group-bg: rgba(0, 0, 0, 0.025);
+            --group-border: rgba(0, 0, 0, 0.08);
         }
 
         [data-theme="dark"] {
-            --bg-color: #080808; 
-            --surface-color: #121212; 
-            --text-main: #f5f5dc; 
-            --text-muted: #999988;
-            --border-color: rgba(245, 245, 220, 0.1);
+            --bg-color: #0a0a0a; 
+            --surface-color: #121212;
+            --text-color: #f5f5dc; 
+            --text-muted: #a0a090;
             --primary-color: #f5f5dc; 
-            --primary-hover: #e0e0b8;
-            --primary-light: rgba(245, 245, 220, 0.06);
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --primary-light: rgba(245, 245, 220, 0.08);
+            --primary-hover: rgba(245, 245, 220, 0.14);
+            --border-color: rgba(245, 245, 220, 0.12);
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.6);
+
+            --table-header-bg: #222220;
+            --table-header-text: #f5f5dc;
+            --table-cell-bg: #141414;
+            --table-cell-alt: #1a1a1a;
+            --grid-color: rgba(245, 245, 220, 0.05);
+            
+            --group-bg: rgba(255, 255, 250, 0.03);
+            --group-border: rgba(245, 245, 220, 0.1);
         }
 
         * {
@@ -40,66 +60,103 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            transition: background-color 0.4s ease, color 0.4s ease; 
-            overflow-x: hidden;
-        }
-
-        /* ─── Layout Shell ─── */
-        .app-shell {
-            display: flex;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
             height: 100vh;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s ease;
+            
+            background-image: 
+                linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
+            background-size: 55px 55px;
         }
 
-        /* ─── Sidebar ─── */
+        .app-shell {
+            display: flex;
+            flex-direction: row;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
         .sidebar {
-            width: 280px;
+            width: 260px;
+            height: 100%;
             background-color: var(--surface-color);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            padding: 32px 24px;
-            transition: width 0.3s ease, padding 0.3s ease, background-color 0.4s ease, border-color 0.4s ease, left 0.3s ease;
-            z-index: 10;
+            padding: 24px 16px;
+            transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), padding 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease;
+            z-index: 30;
             flex-shrink: 0;
+            position: relative;
         }
 
-        /* --- Collapsed Sidebar State --- */
-        .app-shell.collapsed .sidebar {
-            width: 88px;
-            padding: 32px 16px;
+        .main-shell {
+            flex: 1;
+            height: 100%;
+            min-width: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 48px 64px 80px 64px;
+            position: relative;
+            z-index: 20;
         }
-        .app-shell.collapsed .brand-copy,
-        .app-shell.collapsed .sidebar-panel,
-        .app-shell.collapsed .version-text,
-        .app-shell.collapsed .nav-link span {
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding: 12px 16px;
+            background: var(--group-bg);
+            border: 1px solid var(--group-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+        }
+
+        .sidebar-header:hover {
+            background: var(--primary-hover);
+        }
+
+        .sidebar-header input {
             display: none;
         }
-        .app-shell.collapsed .brand-lockup {
-            padding-left: 0;
-            justify-content: center;
+
+        .sidebar-header .chevron-right {
+            width: 12px;
+            height: 12px;
+            fill: var(--text-color);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), fill 0.25s ease;
+            flex-shrink: 0;
+            transform: rotate(180deg);
         }
-        .app-shell.collapsed .nav-link {
-            justify-content: center;
-            padding: 12px;
+
+        .sidebar-header:hover .chevron-right {
+            fill: var(--primary-color);
         }
-        .app-shell.collapsed .sidebar-footer {
-            justify-content: center;
+
+        .sidebar-header input:checked ~ .chevron-right {
+            transform: rotate(0deg);
         }
 
         .brand-lockup {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 48px;
-            padding-left: 8px;
+            overflow: hidden;
+            white-space: nowrap;
         }
 
         .brand-mark {
@@ -107,31 +164,49 @@
             font-size: 24px;
             color: var(--primary-color);
             line-height: 1;
+            flex-shrink: 0;
         }
 
         .brand-copy {
             display: flex;
             flex-direction: column;
+            transition: opacity 0.25s ease;
+            justify-content: center;
         }
 
         .brand-copy strong {
             font-family: "Ubuntu", sans-serif;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
+            line-height: 1.1;
         }
 
         .brand-copy span {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
+            margin-top: 2px;
         }
 
         .sidebar-nav {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
             flex: 1;
+        }
+
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            background: var(--group-bg);
+            border: 1px solid var(--group-border);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .nav-link {
@@ -139,437 +214,624 @@
             align-items: center;
             gap: 12px;
             padding: 12px 16px;
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid var(--group-border);
+            background: transparent;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
             text-decoration: none;
             color: var(--text-muted);
-            font-weight: 500;
-            font-size: 14px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
-
-        .nav-link:hover, .nav-link[data-active="true"] {
-            background-color: var(--primary-light);
-            color: var(--primary-color);
-        }
-
-        .sidebar-panel {
-            margin-top: auto;
-            padding: 20px;
-            background: var(--primary-light);
-            border-radius: 12px;
-            margin-bottom: 24px;
-        }
-
-        .sidebar-panel h3 {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-            color: var(--primary-color);
-        }
-
-        .info-chip {
-            font-size: 13px;
-            line-height: 1.5;
-            color: var(--text-muted);
-        }
-
-        .sidebar-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-top: 24px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* ─── Main Content Area ─── */
-        .main-shell {
-            flex: 1;
-            overflow-y: auto;
-            padding: 48px 64px;
-            position: relative;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 56px;
-            gap: 24px;
-        }
-
-        .topbar-left {
-            display: flex;
-            gap: 24px;
-            align-items: flex-start;
-        }
-
-        .menu-toggle {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            margin-top: 4px;
-        }
-
-        .menu-toggle:hover {
-            border-color: var(--primary-color);
-            background: var(--primary-light);
-        }
-
-        .page-heading {
-            max-width: 600px;
-        }
-
-        .section-kicker {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            margin-bottom: 12px;
             font-weight: 600;
+            font-size: 13.5px;
+            transition: all 0.25s ease;
+            position: relative;
+            white-space: nowrap;
         }
 
-        .page-heading h1 {
-            font-family: "Ubuntu", sans-serif;
-            font-size: 32px;
-            line-height: 1.2;
-            margin-bottom: 16px;
-            color: var(--text-main);
+        .nav-link:last-child {
+            border-bottom: none;
         }
 
-        .page-heading p {
-            font-size: 16px;
-            line-height: 1.6;
-            color: var(--text-muted);
+        .nav-link svg {
+            flex-shrink: 0;
+            width: 17px;
+            height: 17px;
         }
 
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 24px;
+        .nav-link:hover {
+            background: var(--primary-hover);
+            color: var(--primary-color);
         }
 
-        .user-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-align: right;
+        .nav-link[data-active="true"] {
+            background: var(--primary-color);
+            color: var(--bg-color);
         }
 
-        .user-card img {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background-color: var(--primary-light);
-            object-fit: cover;
+        .nav-link[data-active="true"] svg {
+            color: var(--bg-color);
+        }
+        
+        .logout-link {
+            color: #ef4444 !important;
         }
 
-        .user-card div {
+        .logout-link svg {
+            color: #ef4444 !important;
+        }
+
+        .logout-link:hover {
+            background: rgba(239, 68, 68, 0.1) !important;
+            color: #dc2626 !important;
+        }
+
+        [data-theme="dark"] .logout-link:hover {
+            background: rgba(239, 68, 68, 0.15) !important;
+            color: #f87171 !important;
+        }
+
+        .sidebar-bottom {
             display: flex;
             flex-direction: column;
+            margin-top: auto;
+            padding-top: 14px;
         }
 
-        .user-card strong {
-            font-size: 14px;
-            font-family: "Ubuntu", sans-serif;
+        .app-shell.collapsed .sidebar {
+            width: 72px;
+            padding: 24px 10px;
         }
 
-        .user-card span {
-            font-size: 12px;
-            color: var(--text-muted);
+        .app-shell.collapsed .brand-copy,
+        .app-shell.collapsed .nav-link span {
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+            left: 50px;
         }
 
-        .logout-button {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
+        .app-shell.collapsed .brand-lockup {
+            display: none;
         }
 
-        .logout-button:hover {
-            border-color: var(--primary-color);
-            background: var(--primary-light);
-        }
-
-        /* ─── Grids & Cards ─── */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 24px;
-            margin-bottom: 48px;
-        }
-
-        .metric-card {
-            background: var(--surface-color);
-            padding: 28px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
-            transition: background-color 0.4s ease, border-color 0.4s ease;
-        }
-
-        .metric-card strong {
-            display: block;
-            font-size: 36px;
-            font-family: "Ubuntu", sans-serif;
-            margin: 8px 0 12px;
-            color: var(--primary-color);
-        }
-
-        .metric-card p {
-            font-size: 13px;
-            line-height: 1.5;
-            color: var(--text-muted);
-        }
-
-        .split-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
-        }
-
-        .panel-card {
-            background: var(--surface-color);
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
-            padding: 32px;
-            transition: background-color 0.4s ease, border-color 0.4s ease;
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+        .app-shell.collapsed .sidebar-header {
+            justify-content: center;
+            padding: 12px 0;
             margin-bottom: 32px;
         }
 
-        .panel-header h2 {
-            font-family: "Ubuntu", sans-serif;
-            font-size: 20px;
-            margin-bottom: 8px;
+        .app-shell.collapsed .nav-link {
+            justify-content: center;
+            padding: 14px 0;
         }
 
-        .panel-subtitle {
-            font-size: 14px;
-            color: var(--text-muted);
-            line-height: 1.5;
-            max-width: 400px;
-        }
-
-        .action-button {
-            display: inline-block;
+        .app-shell.collapsed .nav-link::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%) translateX(12px);
             background: var(--primary-color);
             color: var(--bg-color);
-            padding: 10px 20px;
+            padding: 6px 12px;
             border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: opacity 0.2s;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-md);
+            z-index: 100;
         }
 
-        .action-button:hover {
-            opacity: 0.85;
+        .app-shell.collapsed .nav-link:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(16px);
         }
 
-        .timeline, .mini-stats {
-            min-height: 150px;
+        .top-nav {
+            position: absolute;
+            top: 28px;
+            right: 48px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            z-index: 50;
+        }
+
+        .docs-link {
+            font-family: "Ubuntu", sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-color);
+            text-decoration: underline;
+            text-decoration-color: transparent;
+            text-underline-offset: 6px;
+            text-decoration-thickness: 2px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .docs-link:hover {
+            color: var(--primary-color);
+            text-decoration-color: var(--primary-color);
+        }
+
+        .themeToggle {
+            color: var(--primary-color);
+            width: 22px;
+            height: 22px;
+        }
+
+        .st-sunMoonThemeToggleBtn {
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px dashed var(--border-color);
-            border-radius: 8px;
-            color: var(--text-muted);
-            font-size: 14px;
+            border-radius: 50%;
         }
 
-        /* ─── Theme Toggle ─── */
-        .themeToggle {
-            color: var(--primary-color);
-            width: 24px;
-            height: 24px;
-            position: relative;
-            cursor: pointer;
-        }
-        .themeToggleInput {
+        .st-sunMoonThemeToggleBtn .themeToggleInput {
             opacity: 0;
             width: 100%;
-            height: 100%;
+            aspect-ratio: 1;
             position: absolute;
-            z-index: 10;
             cursor: pointer;
+            z-index: 10;
         }
-        .themeToggle svg {
+
+        .st-sunMoonThemeToggleBtn svg {
+            position: absolute;
+            left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            transition: transform .4s ease;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             transform: rotate(40deg);
         }
-        .btn {
-        width: 150px;
-        height: 50px;
-        border-radius: 5px;
-        border: none;
-        transition: all 0.5s ease-in-out;
-        font-size: 20px;
-        font-family: Verdana, Geneva, Tahoma, sans-serif;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        background: #040f16;
-        color: #f5f5f5;
-        }
 
-        .btn:hover {
-        box-shadow: 0 0 20px 0px #2e2e2e3a;
-        }
-
-        .btn .icon {
-        position: absolute;
-        height: 40px;
-        width: 70px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        transition: all 0.5s;
-        }
-
-        .btn .text {
-        transform: translateX(55px);
-        }
-
-        .btn:hover .icon {
-        width: 175px;
-        }
-
-        .btn:hover .text {
-        transition: all 0.5s;
-        opacity: 0;
-        }
-
-        .btn:focus {
-        outline: none;
-        }
-
-        .btn:active .icon {
-        transform: scale(0.85);
-        }
-        .themeToggle svg .sunMoon { transform-origin: center; transition: inherit; transform: scale(1); }
-        .themeToggle svg .sunRay { transform-origin: center; transform: scale(0); }
-        .themeToggle svg mask>circle { transition: transform .64s cubic-bezier(.41,.64,.32,1.575); transform: translate(0,0); }
-        .themeToggleInput:checked+svg { transform: rotate(90deg); }
-        .themeToggleInput:checked+svg mask>circle { transform: translate(16px,-3px); }
-        .themeToggleInput:checked+svg .sunMoon { transform: scale(.55); }
-        .themeToggleInput:checked+svg .sunRay { animation: showRay1832 .4s ease forwards; }
+        .st-sunMoonThemeToggleBtn svg .sunMoon { transform-origin: center; transition: inherit; transform: scale(1); }
+        .st-sunMoonThemeToggleBtn svg .sunRay { transform-origin: center; transform: scale(0); }
+        .st-sunMoonThemeToggleBtn svg mask>circle { transition: transform 0.64s cubic-bezier(.41,.64,.32,1.575); transform: translate(0,0); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg { transform: rotate(90deg); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg mask>circle { transform: translate(16px,-3px); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunMoon { transform: scale(.55); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunRay { animation: showRay1832 .4s ease forwards; }
 
         @keyframes showRay1832 {
             from { transform: scale(0); }
             to { transform: scale(1); }
         }
 
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .split-grid { grid-template-columns: 1fr; }
-            .main-shell { padding: 32px 40px; }
+        .page-heading {
+            max-width: 600px;
+            margin-bottom: 40px;
+            margin-top: 8px;
         }
-        @media (max-width: 768px) {
-            .app-shell { flex-direction: column; }
-            
-            /* Mobile Sidebar Drawer */
-            .sidebar { 
-                position: fixed;
-                left: -100%;
-                top: 0;
-                width: 280px; 
-                height: 100vh; 
-                border-right: 1px solid var(--border-color); 
-                border-bottom: none;
-                padding: 24px; 
-                z-index: 100;
-                box-shadow: 2px 0 12px rgba(0,0,0,0.1);
-            }
-            .app-shell.mobile-open .sidebar { left: 0; }
-            
-            /* Overwrite collapse behavior on mobile so it stays a full drawer */
-            .app-shell.collapsed .sidebar { width: 280px; left: -100%; }
-            .app-shell.collapsed.mobile-open .sidebar { left: 0; }
-            .app-shell.collapsed .brand-copy,
-            .app-shell.collapsed .sidebar-panel,
-            .app-shell.collapsed .version-text,
-            .app-shell.collapsed .nav-link span { display: flex; }
-            .app-shell.collapsed .nav-link { justify-content: flex-start; padding: 12px 16px; }
-            .app-shell.collapsed .brand-lockup { padding-left: 8px; justify-content: flex-start; }
-            .app-shell.collapsed .sidebar-footer { justify-content: space-between; }
 
-            .brand-lockup { margin-bottom: 24px; }
-            .main-shell { padding: 24px; }
-            .topbar { flex-direction: column; gap: 24px; }
-            .topbar-left { flex-direction: column; gap: 16px; }
-            .user-card { text-align: left; }
-            .menu-toggle { align-self: flex-start; }
+        .section-kicker {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .page-heading h1 {
+            font-family: "Ubuntu", sans-serif;
+            font-size: 34px;
+            line-height: 1.25;
+            margin-bottom: 12px;
+            color: var(--text-color);
+        }
+
+        .page-heading p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .dashboard-summary {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+            margin-bottom: 48px;
+            padding: 0 24px 0 0;
+            gap: 32px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            height: 120px; 
+        }
+
+        [data-theme="dark"] .dashboard-summary {
+            background: rgba(18, 18, 18, 0.55);
+            border: 1px solid rgba(245, 245, 220, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .summary-profile {
+            display: flex;
+            align-items: center;
+            gap: 0; 
+            padding-right: 32px;
+            border-right: 1px solid var(--border-color);
+            height: 100%;
+        }
+
+        .summary-avatar {
+            height: calc(100% - 2px);
+            width: auto;
+            aspect-ratio: 1 / 1;
+            border-radius: 15px 0 0 15px;
+            object-fit: cover;
+            background-color: rgba(0,0,0,0.05);
+            margin: 1px 20px 1px 1px;
+        }
+
+        .summary-user-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .summary-user-info h2 {
+            font-family: "Ubuntu", sans-serif;
+            font-size: 24px;
+            color: var(--text-color);
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .summary-user-info span {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 40px;
+            flex: 1;
+        }
+
+        .stat-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-family: "Ubuntu", sans-serif;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+
+        .db-table-wrapper {
+            margin-top: 24px;
+            position: relative;
+        }
+        
+        .db-table-header-text {
+            font-family: "Ubuntu", sans-serif;
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: var(--text-color);
+        }
+
+        .card-table {
+            width: 100%;
+            background: var(--table-header-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            font-family: "Courier New", Courier, monospace;
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            position: relative;
+        }
+
+        [data-theme="dark"] .card-table {
+            border: 1px solid rgba(245, 245, 220, 0.15);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .table-hover-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(245, 245, 220, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 20;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] .table-hover-overlay {
+             background: rgba(10, 10, 10, 0.9);
+        }
+
+        .card-table:hover .table-hover-overlay {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .view-all-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: "Ubuntu", sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            transform: translateY(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .view-all-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .card-table:hover .view-all-content {
+             transform: translateY(0);
+        }
+
+        .card-table__title {
+            color: var(--table-header-text);
+            font-weight: bold;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        [data-theme="dark"] .card-table__title {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .card-table__data {
+            display: grid;
+            grid-template-columns: 0.5fr 2fr 1fr 1fr 1.5fr 1.5fr;
+            border-right: 1px solid var(--border-color);
+            border-left: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            background: var(--table-cell-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .card-table__row {
+            display: contents;
+        }
+
+        .card-table__item {
+            padding: 14px 20px;
+            font-size: 0.85rem;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.25s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-table__item:not(:last-child) {
+            border-right: 1px solid var(--border-color);
+        }
+
+        .card-table__row:nth-child(even):not(.header-row) .card-table__item {
+            background: var(--table-cell-alt);
+        }
+
+        .card-table__row.header-row .card-table__item {
+            background: rgba(0, 0, 0, 0.02);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+            color: var(--table-header-text);
+        }
+
+        [data-theme="dark"] .card-table__row.header-row .card-table__item {
+             background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .action-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        [data-theme="dark"] .action-group {
+            background: rgba(18, 18, 18, 0.5);
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: "Ubuntu", sans-serif;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .action-btn:not(:last-child) {
+            border-right: 1px solid var(--border-color);
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: var(--bg-color);
+        }
+
+        .btn-label { display: inline; }
+        .btn-icon { display: none; }
+
+        @media (max-width: 900px) {
+            .dashboard-summary {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 24px;
+                height: auto;
+                padding: 0;
+            }
+            .summary-profile {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 0 24px 24px 0; 
+                width: 100%;
+                height: auto;
+            }
+            .summary-avatar {
+                 height: 80px;
+                 width: 80px;
+                 border-radius: 12px;
+                 margin: 24px 20px 0 24px;
+            }
+            .summary-user-info {
+                margin-top: 24px;
+            }
+            .summary-stats {
+                width: 100%;
+                justify-content: space-between;
+                gap: 20px;
+                padding: 0 24px 24px 24px;
+            }
+            .btn-label { display: none; }
+            .btn-icon { display: inline-block; }
+            .action-btn { padding: 6px 8px; }
+        }
+
+        @media (max-width: 600px) {
+            .summary-stats {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .main-shell {
+                padding: 24px 20px 80px 20px;
+            }
+        }
+
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation: none;
+            mix-blend-mode: normal;
+        }
+        ::view-transition-new(root) {
+            z-index: 9999;
         }
     </style>
 </head>
 <body>
-    <div class="app-shell">
-        <!-- Sidebar -->
+
+    <div class="app-shell" id="appShell">
+        
+        <!-- Sidebar Navigation -->
         <aside class="sidebar">
-            
-            <div class="brand-lockup">
-                <div class="brand-mark">DB</div>
-                <div class="brand-copy">
-                    <strong>DeployBridge</strong>
-                    <span>Control Room</span>
+            <label class="sidebar-header" title="Toggle Sidebar">
+                <input type="checkbox" id="sidebarToggle" />
+                <div class="brand-lockup">
+                    <div class="brand-mark">DB</div>
+                    <div class="brand-copy">
+                        <strong>DeployBridge</strong>
+                        <span>Control Room</span>
+                    </div>
                 </div>
-            </div>
-            
+                
+                <svg viewBox="0 0 320 512" class="chevron-right">
+                    <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"></path>
+                </svg>
+            </label>
+
             <nav class="sidebar-nav">
-                <a class="nav-link" data-active="true" href="/templates/dashboard.html">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                    <span>Overview</span>
-                </a>
-                <a class="nav-link" href="/templates/repositories.html">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                    <span>Repositories</span>
-                </a>
-                <a class="nav-link" href="/templates/deployments.html">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
-                    <span>Deployments</span>
-                </a>
-                <a class="nav-link" href="/templates/settings.html">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    <span>Settings</span>
-                </a>
+                <div class="nav-group">
+                    <a class="nav-link" data-active="true" href="./dashboard.html" data-tooltip="Overview">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        <span>Overview</span>
+                    </a>
+                    <a class="nav-link" href="./repositories.html" data-tooltip="Repositories">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        <span>Repositories</span>
+                    </a>
+                    <a class="nav-link" href="./deployments.html" data-tooltip="Deployments">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></svg>
+                        <span>Deployments</span>
+                    </a>
+                </div>
             </nav>
 
-            <button class="btn" id="menuToggle" aria-label="Toggle Menu">
-                <span class="icon">
-                    <svg viewBox="0 0 175 80" width="40" height="40">
-                        <rect width="80" height="15" fill="#f0f0f0" rx="10"></rect>
-                        <rect y="30" width="80" height="15" fill="#f0f0f0" rx="10"></rect>
-                        <rect y="60" width="80" height="15" fill="#f0f0f0" rx="10"></rect>
-                    </svg>
-                </span>
-                <span class="text">MENU</span>
-            </button>
+            <div class="sidebar-bottom">
+                <div class="nav-group">
+                    <a class="nav-link" href="./settings.html" data-tooltip="Settings">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <span>Settings</span>
+                    </a>
+                    <a class="nav-link" href="#" data-tooltip="Profile">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span>Profile</span>
+                    </a>
+                    <button class="nav-link logout-link" type="button" data-tooltip="Logout" data-logout>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
 
-            <div class="sidebar-footer">
-                <!-- Integrated Theme Toggle -->
-                <label class="themeToggle" title="Toggle Theme">
-                    <input type="checkbox" id="themeToggle" class="themeToggleInput" />
-                    <svg viewBox="0 0 20 20" fill="currentColor" stroke="none">
+        <!-- Main Content Area -->
+        <main class="main-shell">
+            <div class="top-nav">
+                <a href="#docs" class="docs-link">Docs</a>
+                <label for="themeToggle" class="themeToggle st-sunMoonThemeToggleBtn">
+                    <input type="checkbox" id="themeToggle" class="themeToggleInput" aria-label="Toggle Theme" />
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" stroke="none">
                         <mask id="moon-mask">
                             <rect x="0" y="0" width="20" height="20" fill="white"></rect>
                             <circle cx="11" cy="3" r="8" fill="black"></circle>
@@ -585,115 +847,283 @@
                         </g>
                     </svg>
                 </label>
-                <div class="version-text" style="font-size: 11px; color: var(--text-muted);">v1.0.0</div>
             </div>
-        </aside>
 
-        <!-- Main Content -->
-        <main class="main-shell">
-            <header class="topbar">
-                <div class="topbar-left">
-                    
-                    <div class="page-heading">
-                        <div class="section-kicker">Overview</div>
-                        <h1>Deploy without losing track of the pipeline.</h1>
-                        <p>See your GitHub footprint, recent launches, and frameworks ready for routing.</p>
+            <div class="page-heading">
+                <div class="section-kicker">Overview</div>
+                <h1>Overview Dashboard</h1>
+                <p>Real-time autonomous AI monitoring, repository sync, and active deployment pipelines.</p>
+            </div>
+
+            <div class="dashboard-summary">
+                <div class="summary-profile">
+                    <img id="summary-avatar-img" src="https://placehold.co/150x150/e0e0e0/000000?text=U" alt="User Avatar" class="summary-avatar">
+                    <div class="summary-user-info">
+                        <h2 id="summary-user-name">GitHub User</h2>
+                        <span>Admin Access</span>
                     </div>
                 </div>
                 
-                <div class="topbar-actions">
-                    <div class="user-card">
-                        <div>
-                            <strong id="user-name">GitHub User</strong>
-                            <span>Authenticated</span>
-                        </div>
-                        <img id="user-avatar" src="https://placehold.co/100x100/f5f5dc/000000?text=U" alt="User avatar">
+                <div class="summary-stats">
+                    <div class="stat-group">
+                        <span class="stat-label">Total Repos</span>
+                        <strong id="stat-total" class="stat-value">--</strong>
                     </div>
-                    <button class="logout-button" id="logout-btn" type="button">Logout</button>
+                    <div class="stat-group">
+                        <span class="stat-label">Public</span>
+                        <strong id="stat-public" class="stat-value">--</strong>
+                    </div>
+                    <div class="stat-group">
+                        <span class="stat-label">Private</span>
+                        <strong id="stat-private" class="stat-value">--</strong>
+                    </div>
                 </div>
-            </header>
+            </div>
 
-            <section class="content-grid">
-                <!-- Metrics -->
-                <div class="metrics-grid">
-                    <article class="metric-card">
-                        <div class="section-kicker">Repositories</div>
-                        <strong id="metric-repos">12</strong>
-                        <p>Total visible from connected account.</p>
-                    </article>
-                    <article class="metric-card">
-                        <div class="section-kicker">Public</div>
-                        <strong id="metric-public">8</strong>
-                        <p>Available for direct publishing.</p>
-                    </article>
-                    <article class="metric-card">
-                        <div class="section-kicker">Private</div>
-                        <strong id="metric-private">4</strong>
-                        <p>Requires Actions-based publishing.</p>
-                    </article>
-                    <article class="metric-card">
-                        <div class="section-kicker">Launches</div>
-                        <strong id="metric-deployments">3</strong>
-                        <p>Tracked this session.</p>
-                    </article>
-                </div>
-
-                <!-- Panels -->
-                <div class="split-grid">
-                    <article class="panel-card">
-                        <div class="panel-header">
-                            <div>
-                                <h2>Deployment activity</h2>
-                                <p class="panel-subtitle">Successful deployments logged locally.</p>
-                            </div>
-                            <a class="action-button" href="/templates/repositories.html" style="text-decoration:none;">Repositories</a>
+            <div class="db-table-wrapper">
+                <div class="db-table-header-text">Top Repositories</div>
+                <div class="card-table">
+                    <a href="./repositories.html" class="table-hover-overlay">
+                        <div class="view-all-content">
+                            <span>View All Repositories</span>
+                            <svg viewBox="0 0 320 512" class="view-all-icon" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"></path>
+                            </svg>
                         </div>
-                        <div class="timeline" id="recent-deployments">
-                            No recent activity found.
-                        </div>
-                    </article>
+                    </a>
 
-                    <article class="panel-card">
-                        <div class="panel-header">
-                            <div>
-                                <h2>Fresh activity</h2>
-                                <p class="panel-subtitle">Recently updated repos.</p>
+                    <div class="card-table__title">
+                        <span>REPOSITORY_INDEX</span>
+                        <span id="repo-sync-status" style="font-size:0.75rem; font-weight:normal; opacity:0.7;">STATUS: SYNCING...</span>
+                    </div>
+
+                    <div class="card-table__data" id="dashboard-repo-table">
+                        <div class="card-table__row header-row">
+                            <div class="card-table__item">#</div>
+                            <div class="card-table__item">Repository</div>
+                            <div class="card-table__item">Language</div>
+                            <div class="card-table__item">Visibility</div>
+                            <div class="card-table__item">Updated</div>
+                            <div class="card-table__item">Actions</div>
+                        </div>
+
+                        <div class="card-table__row placeholder-row">
+                            <div class="card-table__item" style="grid-column: span 6; justify-content: center; opacity: 0.5;">
+                                Loading repository data...
                             </div>
                         </div>
-                        <div class="mini-stats" id="fresh-activity">
-                            Awaiting sync...
-                        </div>
-                    </article>
+                    </div>
                 </div>
-            </section>
+            </div>
         </main>
     </div>
 
-    <script src="../js/app-shell.js"></script>
-    <script src="../js/overview.js"></script>
     <script>
-        // Theme Toggle Logic
+        const appShell = document.getElementById("appShell");
+        const sidebarToggle = document.getElementById("sidebarToggle");
         const themeToggle = document.getElementById("themeToggle");
-        themeToggle.checked = document.documentElement.getAttribute('data-theme') === 'dark';
+        const logoutButton = document.querySelector("[data-logout]");
 
-        themeToggle.addEventListener("change", () =>  {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-        });
-
-        // Sidebar Menu Toggle Logic
-        const menuToggle = document.getElementById("menuToggle");
-        const appShell = document.querySelector(".app-shell");
-
-        menuToggle.addEventListener("click", () => {
-            if (window.innerWidth <= 768) {
-                // Mobile behavior: slide menu drawer in and out
-                appShell.classList.toggle("mobile-open");
+        sidebarToggle.addEventListener("change", (e) => {
+            if (e.target.checked) {
+                appShell.classList.add("collapsed");
             } else {
-                // Desktop behavior: icon-only mini sidebar
-                appShell.classList.toggle("collapsed");
+                appShell.classList.remove("collapsed");
             }
         });
+
+        themeToggle.addEventListener("change", () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const nextTheme = isDark ? 'light' : 'dark';
+            themeToggle.checked = nextTheme === "dark";
+
+            if (!document.startViewTransition) {
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                return;
+            }
+
+            const rect = themeToggle.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            const endRadius = Math.hypot(
+                Math.max(x, window.innerWidth - x),
+                Math.max(y, window.innerHeight - y)
+            );
+
+            const transition = document.startViewTransition(() => {
+                document.documentElement.setAttribute('data-theme', nextTheme);
+            });
+
+            transition.ready.then(() => {
+                document.documentElement.animate(
+                    {
+                        clipPath: [
+                            `circle(0px at ${x}px ${y}px)`,
+                            `circle(${endRadius}px at ${x}px ${y}px)`
+                        ]
+                    },
+                    {
+                        duration: 550,
+                        easing: "ease-in-out",
+                        pseudoElement: "::view-transition-new(root)",
+                    }
+                );
+            });
+        });
+
+        if (logoutButton) {
+            logoutButton.addEventListener("click", () => {
+                localStorage.removeItem("gh_access_token");
+                localStorage.removeItem("gh_username");
+                localStorage.removeItem("gh_avatar");
+                window.location.href = "./auth.html";
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const session = {
+                token: localStorage.getItem("gh_access_token"),
+                username: localStorage.getItem("gh_username"),
+                avatar: localStorage.getItem("gh_avatar"),
+            };
+
+            const avatarImg = document.getElementById("summary-avatar-img");
+            const userNameEl = document.getElementById("summary-user-name");
+            const totalReposEl = document.getElementById("stat-total");
+            const publicReposEl = document.getElementById("stat-public");
+            const privateReposEl = document.getElementById("stat-private");
+            const tableBody = document.getElementById("dashboard-repo-table");
+            const syncStatus = document.getElementById("repo-sync-status");
+
+            if (!session.token) {
+                syncStatus.textContent = "STATUS: UNAUTHENTICATED";
+                syncStatus.style.color = "#ef4444";
+                renderEmptyState("Sign in to load your GitHub repositories.");
+                return;
+            }
+
+            try {
+                // Fetch User Profile Data
+                const userRes = await fetch("https://api.github.com/user", {
+                    headers: { "Authorization": `Bearer ${session.token}` }
+                });
+                
+                if (!userRes.ok) throw new Error("Failed to fetch user profile.");
+                const userData = await userRes.json();
+
+                // Update Profile Banner
+                if (avatarImg && userData.avatar_url) {
+                    avatarImg.src = userData.avatar_url;
+                }
+                if (userNameEl) {
+                    userNameEl.textContent = userData.name || userData.login || session.username || "GitHub User";
+                }
+                if (totalReposEl) {
+                    totalReposEl.textContent = userData.total_private_repos !== undefined
+                        ? (userData.public_repos + userData.total_private_repos)
+                        : userData.public_repos;
+                }
+                if (publicReposEl) {
+                    publicReposEl.textContent = userData.public_repos;
+                }
+                if (privateReposEl) {
+                    if (userData.total_private_repos !== undefined) {
+                        privateReposEl.textContent = userData.total_private_repos;
+                    } else {
+                        privateReposEl.textContent = "N/A";
+                    }
+                }
+
+                // Fetch Top 4 Recently Updated Repos
+                const reposRes = await fetch("https://api.github.com/user/repos?sort=updated&per_page=4", {
+                    headers: { "Authorization": `Bearer ${session.token}` }
+                });
+
+                if (!reposRes.ok) throw new Error("Failed to fetch repositories.");
+                const repos = await reposRes.json();
+
+                // Clear placeholder
+                const headerHtml = `
+                    <div class="card-table__row header-row">
+                        <div class="card-table__item">#</div>
+                        <div class="card-table__item">Repository</div>
+                        <div class="card-table__item">Language</div>
+                        <div class="card-table__item">Visibility</div>
+                        <div class="card-table__item">Updated</div>
+                        <div class="card-table__item">Actions</div>
+                    </div>
+                `;
+                tableBody.innerHTML = headerHtml;
+
+                // Render Repos
+                repos.forEach((repo, index) => {
+                    const updatedAt = new Date(repo.updated_at);
+                    const timeString = getRelativeTime(updatedAt);
+                    const visibilityColor = repo.private ? '#ef4444' : '#22c55e';
+                    const visibilityText = repo.private ? 'Private' : 'Public';
+                    const indexStr = (index + 1).toString().padStart(2, '0');
+
+                    const rowHtml = `
+                        <div class="card-table__row">
+                            <div class="card-table__item">${indexStr}</div>
+                            <div class="card-table__item" style="font-weight:bold;">${repo.name}</div>
+                            <div class="card-table__item">${repo.language || "Unknown"}</div>
+                            <div class="card-table__item"><span style="color:${visibilityColor};">${visibilityText}</span></div>
+                            <div class="card-table__item">${timeString}</div>
+                            <div class="card-table__item">
+                                <div class="action-group">
+                                    <button class="action-btn" onclick="window.open('${repo.html_url}', '_blank')"><span class="btn-label">View</span><span class="btn-icon">&emsp;👁&emsp;</span></button>
+                                    <button class="action-btn" onclick="alert('Analyze ${repo.name}')"><span class="btn-label">Analyze</span><span class="btn-icon">&emsp;⚡&emsp;</span></button>
+                                    <button class="action-btn" onclick="alert('Deploy ${repo.name}')"><span class="btn-label">Deploy</span><span class="btn-icon">&emsp;🚀&emsp;</span></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    tableBody.insertAdjacentHTML('beforeend', rowHtml);
+                });
+
+                syncStatus.textContent = "STATUS: SYNCED";
+                syncStatus.style.color = "#22c55e";
+
+            } catch (error) {
+                console.error("Dashboard Sync Error:", error);
+                syncStatus.textContent = "STATUS: ERROR";
+                syncStatus.style.color = "#ef4444";
+                renderEmptyState("Failed to load live repository data.");
+            }
+        });
+
+        function getRelativeTime(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return `${diffInSeconds} secs ago`;
+            const diffInMins = Math.floor(diffInSeconds / 60);
+            if (diffInMins < 60) return `${diffInMins} mins ago`;
+            const diffInHours = Math.floor(diffInMins / 60);
+            if (diffInHours < 24) return `${diffInHours} hours ago`;
+            const diffInDays = Math.floor(diffInHours / 24);
+            return `${diffInDays} days ago`;
+        }
+
+        function renderEmptyState(message) {
+            const tableBody = document.getElementById("dashboard-repo-table");
+            tableBody.innerHTML = `
+                <div class="card-table__row header-row">
+                    <div class="card-table__item">#</div>
+                    <div class="card-table__item">Repository</div>
+                    <div class="card-table__item">Language</div>
+                    <div class="card-table__item">Visibility</div>
+                    <div class="card-table__item">Updated</div>
+                    <div class="card-table__item">Actions</div>
+                </div>
+                <div class="card-table__row">
+                    <div class="card-table__item" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">
+                        ${message}
+                    </div>
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>
