@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -58,6 +60,7 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
             github_token=token_data["access_token"],
             github_token_type=token_data["token_type"],
             github_scope=token_data["scope"],
+            last_login=datetime.now(timezone.utc),
         )
         db.add(db_user)
     else:
@@ -67,6 +70,7 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
         db_user.github_token = token_data["access_token"]
         db_user.github_token_type = token_data["token_type"]
         db_user.github_scope = token_data["scope"]
+        db_user.last_login = datetime.now(timezone.utc)
 
     await db.commit()
     await db.refresh(db_user)
@@ -74,10 +78,16 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
     return {
         "message": "Login successful",
         "user": {
-            "id": str(db_user.id),
+            "id": str(db_user.github_id),
             "username": db_user.username,
             "email": db_user.email,
-            "avatar_url": db_user.avatar_url
+            "avatar_url": db_user.avatar_url,
+            "last_login": db_user.last_login.isoformat(),
+            "scope": db_user.github_scope,
+            "token_type": db_user.github_token_type,
         },
-        "github_access_token": token_data["access_token"]
+        "github_access_token": token_data["access_token"],
+        "scope": db_user.github_scope,
+        "token_type": db_user.github_token_type,
+        "last_login": db_user.last_login.isoformat(),
     }

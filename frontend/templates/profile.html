@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeployBridge - Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
+        @import url('https://fonts.googleapis.com/css2?family=Montenegrin+Gothic+One&display=swap');
+
+        :root {
+            --bg-color: #f5f5dc;
+            --surface-color: #ffffff;
+            --text-color: #000000;
+            --text-muted: #666666;
+            --primary-color: #000000;
+            --primary-light: rgba(0, 0, 0, 0.05);
+            --primary-hover: rgba(0, 0, 0, 0.08);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --grid-color: rgba(0, 0, 0, 0.05);
+            --group-bg: rgba(0, 0, 0, 0.025);
+            --group-border: rgba(0, 0, 0, 0.08);
+            --success-bg: rgba(34, 197, 94, 0.15);
+            --success-text: #15803d;
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0a0a0a;
+            --surface-color: #121212;
+            --text-color: #f5f5dc;
+            --text-muted: #a0a090;
+            --primary-color: #f5f5dc;
+            --primary-light: rgba(245, 245, 220, 0.08);
+            --primary-hover: rgba(245, 245, 220, 0.14);
+            --border-color: rgba(245, 245, 220, 0.12);
+            --grid-color: rgba(245, 245, 220, 0.05);
+            --group-bg: rgba(255, 255, 250, 0.03);
+            --group-border: rgba(245, 245, 220, 0.1);
+            --success-bg: rgba(34, 197, 94, 0.2);
+            --success-text: #4ade80;
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s ease;
+            background-image:
+                linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
+            background-size: 55px 55px;
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        .app-shell {
+            display: flex;
+            flex-direction: row;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sidebar {
+            width: 260px;
+            height: 100%;
+            background-color: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), padding 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease;
+            z-index: 30;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding: 12px 16px;
+            background: var(--group-bg);
+            border: 1px solid var(--group-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+        }
+
+        .sidebar-header:hover { background: var(--primary-hover); }
+        .sidebar-header input { display: none; }
+
+        .sidebar-header .chevron-right {
+            width: 12px;
+            height: 12px;
+            fill: var(--text-color);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), fill 0.25s ease;
+            flex-shrink: 0;
+            transform: rotate(180deg);
+        }
+
+        .sidebar-header:hover .chevron-right { fill: var(--primary-color); }
+        .sidebar-header input:checked ~ .chevron-right { transform: rotate(0deg); }
+
+        .brand-lockup {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .brand-mark {
+            font-family: "Montenegrin Gothic One", serif;
+            font-size: 24px;
+            color: var(--primary-color);
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .brand-copy {
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.25s ease;
+            justify-content: center;
+        }
+
+        .brand-copy strong { font-family: "Ubuntu", sans-serif; font-size: 15px; font-weight: 700; line-height: 1.1; }
+        .brand-copy span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+        .sidebar-nav { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+        
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            background: var(--group-bg);
+            border: 1px solid var(--group-border);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid var(--group-border);
+            background: transparent;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 13.5px;
+            transition: all 0.25s ease;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .nav-link:last-child { border-bottom: none; }
+        .nav-link svg { flex-shrink: 0; width: 17px; height: 17px; }
+        .nav-link:hover { background: var(--primary-hover); color: var(--primary-color); }
+        .nav-link[data-active="true"] { background: var(--primary-color); color: var(--bg-color); }
+        .nav-link[data-active="true"] svg { color: var(--bg-color); }
+        
+        .logout-link { color: #ef4444 !important; }
+        .logout-link svg { color: #ef4444 !important; }
+        .logout-link:hover { background: rgba(239, 68, 68, 0.1) !important; color: #dc2626 !important; }
+        [data-theme="dark"] .logout-link:hover { background: rgba(239, 68, 68, 0.15) !important; color: #f87171 !important; }
+
+        .sidebar-bottom { display: flex; flex-direction: column; margin-top: auto; padding-top: 14px; }
+
+        /* Sidebar Collapse States */
+        .app-shell.collapsed .sidebar { width: 72px; padding: 24px 10px; }
+        .app-shell.collapsed .brand-copy, .app-shell.collapsed .nav-link span { opacity: 0; pointer-events: none; position: absolute; left: 50px; }
+        .app-shell.collapsed .brand-lockup { display: none; }
+        .app-shell.collapsed .sidebar-header { justify-content: center; padding: 12px 0; margin-bottom: 32px; }
+        .app-shell.collapsed .nav-link { justify-content: center; padding: 14px 0; }
+        
+        .app-shell.collapsed .nav-link::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%; top: 50%;
+            transform: translateY(-50%) translateX(12px);
+            background: var(--primary-color);
+            color: var(--bg-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-md); z-index: 100;
+        }
+        .app-shell.collapsed .nav-link:hover::after { opacity: 1; visibility: visible; transform: translateY(-50%) translateX(16px); }
+
+        .main-shell {
+            flex: 1;
+            height: 100%;
+            min-width: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 48px 64px 80px 64px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .top-nav {
+            position: absolute;
+            top: 28px;
+            right: 48px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            z-index: 50;
+        }
+
+        .docs-link {
+            font-family: "Ubuntu", sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-color);
+            text-decoration: underline;
+            text-decoration-color: transparent;
+            text-underline-offset: 6px;
+            text-decoration-thickness: 2px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .docs-link:hover { color: var(--primary-color); text-decoration-color: var(--primary-color); }
+
+        .themeToggle { color: var(--primary-color); width: 22px; height: 22px; }
+
+        .st-sunMoonThemeToggleBtn {
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput { opacity: 0; width: 100%; aspect-ratio: 1; position: absolute; cursor: pointer; z-index: 10; }
+        .st-sunMoonThemeToggleBtn svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: rotate(40deg); }
+        .st-sunMoonThemeToggleBtn svg .sunMoon { transform-origin: center; transition: inherit; transform: scale(1); }
+        .st-sunMoonThemeToggleBtn svg .sunRay { transform-origin: center; transform: scale(0); }
+        .st-sunMoonThemeToggleBtn svg mask>circle { transition: transform 0.64s cubic-bezier(.41,.64,.32,1.575); transform: translate(0,0); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg { transform: rotate(90deg); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg mask>circle { transform: translate(16px,-3px); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunMoon { transform: scale(.55); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunRay { animation: showRay1832 .4s ease forwards; }
+
+        @keyframes showRay1832 { from { transform: scale(0); } to { transform: scale(1); } }
+
+        .page-heading { max-width: 600px; margin-bottom: 40px; margin-top: 8px; }
+        .section-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; }
+        .page-heading h1 { font-family: "Ubuntu", sans-serif; font-size: 34px; line-height: 1.25; margin-bottom: 12px; color: var(--text-color); }
+        .page-heading p { font-size: 15px; line-height: 1.6; color: var(--text-muted); }
+
+        .profile-master-container {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+            overflow: hidden; /* Crucial for clipping the avatar's left corners */
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        [data-theme="dark"] .profile-master-container {
+            background: rgba(18, 18, 18, 0.55);
+            border: 1px solid rgba(245, 245, 220, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        /* 30:70 Top Partition */
+        .profile-header-partition {
+            display: flex;
+            align-items: stretch;
+            border-bottom: 1px solid var(--border-color);
+            min-height: 180px;
+        }
+
+        .profile-avatar {
+            width: 30%;
+            height: 100%; /* Stretch fully to edges */
+            object-fit: cover;
+            background: rgba(0,0,0,0.05);
+            border-right: 1px solid var(--border-color);
+            border-radius: 0; /* Left side clipped by parent, right side straight */
+            flex-shrink: 0;
+            margin: 0;
+            padding: 0;
+            display: block;
+        }
+
+        .profile-user-meta {
+            width: 70%;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .profile-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .profile-title-row h2 {
+            font-family: "Ubuntu", sans-serif;
+            font-size: 26px;
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        .profile-auth-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            background: var(--success-bg);
+            color: var(--success-text);
+            font-size: 11px;
+            font-weight: 700;
+            font-family: "Ubuntu", sans-serif;
+            border-radius: 20px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .profile-bio { font-size: 14px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+        .profile-meta-group {
+            display: flex;
+            flex-wrap: wrap;
+            background: var(--group-bg);
+            border: 1px solid var(--group-border);
+            border-radius: 12px;
+            overflow: hidden;
+            width: fit-content;
+            margin-top: 20px;
+        }
+
+        .meta-chip {
+            font-size: 12px;
+            padding: 8px 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-right: 1px solid var(--group-border);
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .meta-chip:last-child { border-right: none; }
+        .meta-chip[href]:hover { background: var(--primary-hover); color: var(--primary-color); }
+
+        .stats-grid-partition {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            border-bottom: 1px solid var(--border-color);
+            background: var(--group-bg);
+        }
+
+        .stat-cell {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .stat-cell:last-child { border-right: none; }
+        .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 6px; font-weight: 700; }
+        .stat-value { font-size: 28px; font-family: "Ubuntu", sans-serif; color: var(--primary-color); line-height: 1; }
+
+        .accordion-section { border-bottom: 1px solid var(--border-color); }
+        .accordion-section:last-child { border-bottom: none; }
+
+        .accordion-header {
+            width: 100%;
+            padding: 20px 28px;
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: "Ubuntu", sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .accordion-header:hover { background: var(--primary-hover); }
+
+        .accordion-chevron {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+            transition: transform 0.3s ease;
+            transform: rotate(0deg); /* Points Right initially */
+        }
+
+        .accordion-section.open .accordion-chevron {
+            transform: rotate(90deg); /* Rotates exactly 90deg to point Down */
+        }
+
+        .accordion-content {
+            display: none;
+            padding: 0 28px 24px 28px;
+            background: transparent;
+        }
+
+        .accordion-section.open .accordion-content { display: block; }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13.5px;
+        }
+
+        .detail-row:last-child { border-bottom: none; }
+        .detail-key { font-weight: 600; color: var(--text-color); }
+        .detail-value { color: var(--text-muted); text-align: right; word-break: break-all; max-width: 60%; }
+
+        /* Transitions */
+        ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+        ::view-transition-new(root) { z-index: 9999; }
+
+        @media (max-width: 900px) {
+            .profile-header-partition { flex-direction: column; }
+            .profile-avatar { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--border-color); }
+            .profile-user-meta { width: 100%; padding: 24px; }
+            .stats-grid-partition { grid-template-columns: repeat(2, 1fr); }
+            .stat-cell:nth-child(2n) { border-right: none; }
+            .stat-cell:nth-child(5) { grid-column: 1 / -1; border-right: none; border-top: 1px solid var(--border-color); }
+        }
+
+        @media (max-width: 600px) {
+            .main-shell { padding: 24px 20px 80px 20px; }
+            .stats-grid-partition { grid-template-columns: 1fr; }
+            .stat-cell { border-right: none; border-bottom: 1px solid var(--border-color); }
+            .stat-cell:nth-child(5) { border-top: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell" id="appShell">
+        <aside class="sidebar">
+            <label class="sidebar-header" title="Toggle Sidebar">
+                <input type="checkbox" id="sidebarToggle" />
+                <div class="brand-lockup">
+                    <div class="brand-mark">DB</div>
+                    <div class="brand-copy">
+                        <strong>DeployBridge</strong>
+                        <span>Control Room</span>
+                    </div>
+                </div>
+                <svg viewBox="0 0 320 512" class="chevron-right">
+                    <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"></path>
+                </svg>
+            </label>
+
+            <nav class="sidebar-nav">
+                <div class="nav-group">
+                    <a class="nav-link" href="./dashboard.html" data-tooltip="Overview">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        <span>Overview</span>
+                    </a>
+                    <a class="nav-link" href="./repositories.html" data-tooltip="Repositories">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        <span>Repositories</span>
+                    </a>
+                    <a class="nav-link" href="./deployments.html" data-tooltip="Deployments">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></svg>
+                        <span>Deployments</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="nav-group">
+                    <a class="nav-link" href="./settings.html" data-tooltip="Settings">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <span>Settings</span>
+                    </a>
+                    <a class="nav-link" data-active="true" href="./profile.html" data-tooltip="Profile">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span>Profile</span>
+                    </a>
+                    <button class="nav-link logout-link" type="button" data-tooltip="Logout" data-logout>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-shell">
+            <div class="top-nav">
+                <a href="#docs" class="docs-link">Docs</a>
+                <label for="themeToggle" class="themeToggle st-sunMoonThemeToggleBtn">
+                    <input type="checkbox" id="themeToggle" class="themeToggleInput" aria-label="Toggle Theme" />
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" stroke="none">
+                        <mask id="moon-mask">
+                            <rect x="0" y="0" width="20" height="20" fill="white"></rect>
+                            <circle cx="11" cy="3" r="8" fill="black"></circle>
+                        </mask>
+                        <circle class="sunMoon" cx="10" cy="10" r="8" mask="url(#moon-mask)"></circle>
+                        <g>
+                            <circle class="sunRay sunRay1" cx="18" cy="10" r="1.5"></circle>
+                            <circle class="sunRay sunRay2" cx="14" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay sunRay3" cx="6" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay sunRay4" cx="2" cy="10" r="1.5"></circle>
+                            <circle class="sunRay sunRay5" cx="6" cy="3.1718" r="1.5"></circle>
+                            <circle class="sunRay sunRay6" cx="14" cy="3.1718" r="1.5"></circle>
+                        </g>
+                    </svg>
+                </label>
+            </div>
+
+            <div class="page-heading">
+                <div class="section-kicker">Profile</div>
+                <h1>GitHub Operator Profile</h1>
+                <p>Profile details, repository statistics, and active OAuth session information synced from your GitHub account.</p>
+            </div>
+
+            <!-- Master Bento Container -->
+            <div class="profile-master-container">
+                
+                <!-- 30:70 Top Partition -->
+                <div class="profile-header-partition">
+                    <img id="profile-avatar" class="profile-avatar" src="https://placehold.co/250x250/e0e0e0/000000?text=U" alt="User avatar" />
+                    <div class="profile-user-meta">
+                        <div class="profile-title-row">
+                            <h2 id="profile-name">GitHub User</h2>
+                            <span class="profile-auth-pill">Authenticated</span>
+                        </div>
+                        <p id="profile-bio" class="profile-bio">Loading profile information...</p>
+                        
+                        <!-- Meta Info Sub-Partition Container -->
+                        <div class="profile-meta-group">
+                            <span id="profile-location" class="meta-chip">Location unavailable</span>
+                            <span id="profile-company" class="meta-chip">Company unavailable</span>
+                            <a id="profile-website" class="meta-chip" href="#" target="_blank" rel="noreferrer">Website</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Partition -->
+                <div class="stats-grid-partition">
+                    <article class="stat-cell">
+                        <span class="stat-label">Total Repos</span>
+                        <strong id="stat-total" class="stat-value">--</strong>
+                    </article>
+                    <article class="stat-cell">
+                        <span class="stat-label">Public</span>
+                        <strong id="stat-public" class="stat-value">--</strong>
+                    </article>
+                    <article class="stat-cell">
+                        <span class="stat-label">Private</span>
+                        <strong id="stat-private" class="stat-value">--</strong>
+                    </article>
+                    <article class="stat-cell">
+                        <span class="stat-label">Followers</span>
+                        <strong id="stat-followers" class="stat-value">--</strong>
+                    </article>
+                    <article class="stat-cell">
+                        <span class="stat-label">Following</span>
+                        <strong id="stat-following" class="stat-value">--</strong>
+                    </article>
+                </div>
+
+                <!-- Accordion Partitions -->
+                <div class="accordion-section open">
+                    <button class="accordion-header" type="button">
+                        <span>Identity & Account Info</span>
+                        <!-- Default Chevron Points Right (rotate(0deg)), open points Down (rotate(90deg)) -->
+                        <svg class="accordion-chevron" viewBox="0 0 320 512"><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"></path></svg>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="detail-row"><span class="detail-key">Username</span><span id="detail-login" class="detail-value">--</span></div>
+                        <div class="detail-row"><span class="detail-key">GitHub ID</span><span id="detail-github-id" class="detail-value">--</span></div>
+                        <div class="detail-row"><span class="detail-key">Email</span><span id="detail-email" class="detail-value">--</span></div>
+                        <div class="detail-row"><span class="detail-key">Account Type</span><span id="detail-type" class="detail-value">--</span></div>
+                    </div>
+                </div>
+
+                <div class="accordion-section">
+                    <button class="accordion-header" type="button">
+                        <span>Session & Token Parameters</span>
+                        <svg class="accordion-chevron" viewBox="0 0 320 512"><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"></path></svg>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="detail-row"><span class="detail-key">Status</span><span id="detail-session-status" class="detail-value">Active</span></div>
+                        <div class="detail-row"><span class="detail-key">Token Type</span><span id="detail-token-type" class="detail-value">Bearer (OAuth/PAT)</span></div>
+                        <div class="detail-row"><span class="detail-key">OAuth Scope</span><span id="detail-scope" class="detail-value">repo, user, workflow</span></div>
+                        <div class="detail-row"><span class="detail-key">Last Login</span><span id="detail-last-login" class="detail-value">Just now</span></div>
+                    </div>
+                </div>
+
+                <div class="accordion-section">
+                    <button class="accordion-header" type="button">
+                        <span>Account Activity & Timeline</span>
+                        <svg class="accordion-chevron" viewBox="0 0 320 512"><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"></path></svg>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="detail-row"><span class="detail-key">Session Token</span><span id="detail-token" class="detail-value">--</span></div>
+                        <div class="detail-row"><span class="detail-key">Joined GitHub</span><span id="detail-created-at" class="detail-value">--</span></div>
+                        <div class="detail-row"><span class="detail-key">Profile Updated</span><span id="detail-updated-at" class="detail-value">--</span></div>
+                        <div class="detail-row"><span class="detail-key">Repository Visibility</span><span id="detail-repo-visibility" class="detail-value">Public & Private</span></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const appShell = document.getElementById("appShell");
+        const sidebarToggle = document.getElementById("sidebarToggle");
+        const themeToggle = document.getElementById("themeToggle");
+        const logoutButtons = document.querySelectorAll("[data-logout]");
+
+        // Sidebar logic
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener("change", (e) => {
+                if (e.target.checked) {
+                    appShell.classList.add("collapsed");
+                } else {
+                    appShell.classList.remove("collapsed");
+                }
+            });
+        }
+
+        // Accordion logic
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.parentElement;
+                section.classList.toggle('open');
+            });
+        });
+
+        // Logout logic
+        if (logoutButtons) {
+            logoutButtons.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    localStorage.removeItem("gh_access_token");
+                    localStorage.removeItem("gh_username");
+                    localStorage.removeItem("gh_avatar");
+                    window.location.href = "./auth.html";
+                });
+            });
+        }
+
+        // Theme logic exactly matching Dashboard
+        themeToggle.addEventListener("change", () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const nextTheme = isDark ? 'light' : 'dark';
+            themeToggle.checked = nextTheme === "dark";
+
+            if (!document.startViewTransition) {
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                return;
+            }
+
+            const rect = themeToggle.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            const endRadius = Math.hypot(
+                Math.max(x, window.innerWidth - x),
+                Math.max(y, window.innerHeight - y)
+            );
+
+            const transition = document.startViewTransition(() => {
+                document.documentElement.setAttribute('data-theme', nextTheme);
+            });
+
+            transition.ready.then(() => {
+                document.documentElement.animate(
+                    {
+                        clipPath: [
+                            `circle(0px at ${x}px ${y}px)`,
+                            `circle(${endRadius}px at ${x}px ${y}px)`
+                        ]
+                    },
+                    {
+                        duration: 550,
+                        easing: "ease-in-out",
+                        pseudoElement: "::view-transition-new(root)",
+                    }
+                );
+            });
+        });
+
+        // GitHub API Fetch Logic
+        document.addEventListener("DOMContentLoaded", async () => {
+            const token = localStorage.getItem("gh_access_token");
+            if (!token) {
+                document.getElementById("profile-name").textContent = "Unauthenticated";
+                document.getElementById("profile-bio").textContent = "Please log in to view your GitHub profile.";
+                return;
+            }
+
+            try {
+                const res = await fetch("https://api.github.com/user", {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    
+                    // Header Details
+                    document.getElementById("profile-avatar").src = data.avatar_url;
+                    document.getElementById("profile-name").textContent = data.name || data.login;
+                    document.getElementById("profile-bio").textContent = data.bio || "No bio available.";
+                    
+                    // Meta group
+                    document.getElementById("profile-location").textContent = data.location || "Location unknown";
+                    document.getElementById("profile-company").textContent = data.company || "Company unknown";
+                    if (data.blog) {
+                        const webEl = document.getElementById("profile-website");
+                        webEl.href = data.blog.startsWith('http') ? data.blog : `https://${data.blog}`;
+                        webEl.textContent = "Website";
+                    }
+
+                    // Stats Grid
+                    const pubCount = data.public_repos || 0;
+                    const privCount = data.total_private_repos || 0;
+                    document.getElementById("stat-total").textContent = pubCount + privCount;
+                    document.getElementById("stat-public").textContent = pubCount;
+                    document.getElementById("stat-private").textContent = data.total_private_repos !== undefined ? privCount : "N/A";
+                    document.getElementById("stat-followers").textContent = data.followers;
+                    document.getElementById("stat-following").textContent = data.following;
+
+                    // Identity Info
+                    document.getElementById("detail-login").textContent = `@${data.login}`;
+                    document.getElementById("detail-github-id").textContent = data.id;
+                    document.getElementById("detail-email").textContent = data.email || "Private";
+                    document.getElementById("detail-type").textContent = data.type;
+
+                    // Account Activity
+                    document.getElementById("detail-token").textContent = `${token.substring(0, 8)}... (Valid)`;
+                    document.getElementById("detail-created-at").textContent = new Date(data.created_at).toLocaleDateString();
+                    document.getElementById("detail-updated-at").textContent = new Date(data.updated_at).toLocaleDateString();
+                }
+            } catch (error) {
+                console.error("Failed to load profile", error);
+            }
+        });
+    </script>
+</body>
+</html>

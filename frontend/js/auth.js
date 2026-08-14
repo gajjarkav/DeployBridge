@@ -66,8 +66,13 @@ async function handleGitHubCallback(code) {
         const data = await response.json();
 
         localStorage.setItem("gh_access_token", data.github_access_token);
-        localStorage.setItem("gh_username", data.user.username);
-        localStorage.setItem("gh_avatar", data.user.avatar_url);
+        localStorage.setItem("gh_username", data.user.username || "");
+        localStorage.setItem("gh_avatar", data.user.avatar_url || "");
+        localStorage.setItem("gh_email", data.user.email || "");
+        localStorage.setItem("gh_user_id", data.user.id || "");
+        localStorage.setItem("gh_scope", data.scope || "");
+        localStorage.setItem("gh_token_type", data.token_type || "bearer");
+        localStorage.setItem("gh_last_login", data.last_login || new Date().toISOString());
 
         window.location.href = '../templates/dashboard.html';
     } catch (error) {

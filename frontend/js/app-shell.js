@@ -7,6 +7,11 @@ function getAuthSession() {
         token: localStorage.getItem("gh_access_token"),
         username: localStorage.getItem("gh_username"),
         avatar: localStorage.getItem("gh_avatar"),
+        email: localStorage.getItem("gh_email"),
+        userId: localStorage.getItem("gh_user_id"),
+        scope: localStorage.getItem("gh_scope"),
+        tokenType: localStorage.getItem("gh_token_type") || "Bearer",
+        lastLogin: localStorage.getItem("gh_last_login"),
     };
 }
 
@@ -98,6 +103,11 @@ function logoutUser() {
     localStorage.removeItem("gh_access_token");
     localStorage.removeItem("gh_username");
     localStorage.removeItem("gh_avatar");
+    localStorage.removeItem("gh_email");
+    localStorage.removeItem("gh_user_id");
+    localStorage.removeItem("gh_scope");
+    localStorage.removeItem("gh_token_type");
+    localStorage.removeItem("gh_last_login");
     window.location.href = "../templates/auth.html";
 }
 
