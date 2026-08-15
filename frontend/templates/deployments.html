@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeployBridge Deployments</title>
     <link rel="stylesheet" href="../static/css/app.css">
+
+    <script>
+        const savedTheme = localStorage.getItem('db_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 </head>
 <body class="app-body sidebar-collapsed">
     <div class="app-shell">

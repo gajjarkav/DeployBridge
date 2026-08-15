@@ -7,6 +7,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
+    <!-- ADDED: Read theme immediately to prevent screen flashing (FOUC) -->
+    <script>
+        const savedTheme = localStorage.getItem('db_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+    
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
         @import url('https://fonts.googleapis.com/css2?family=Montenegrin+Gothic+One&display=swap');
@@ -785,7 +791,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                         <span>Settings</span>
                     </a>
-                    <a class="nav-link" href="./profile.html" data-nav="profile" data-tooltip="Profile">
+                    <a class="nav-link" href="./profile.html" data-tooltip="Profile">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         <span>Profile</span>
                     </a>
@@ -884,11 +890,25 @@
         const themeToggle = document.getElementById("themeToggle");
         const logoutButton = document.querySelector("[data-logout]");
 
+        // ADDED: Initialize the Theme Toggle switch to match the saved theme on load
+        if (themeToggle) {
+            themeToggle.checked = document.documentElement.getAttribute('data-theme') === 'dark';
+        }
+
+        // ADDED: Sidebar persistence logic
+        const savedSidebar = localStorage.getItem('db_sidebar_collapsed');
+        if (savedSidebar === 'true' && sidebarToggle && appShell) {
+            appShell.classList.add("collapsed");
+            sidebarToggle.checked = true;
+        }
+
         sidebarToggle.addEventListener("change", (e) => {
             if (e.target.checked) {
                 appShell.classList.add("collapsed");
+                localStorage.setItem('db_sidebar_collapsed', 'true');
             } else {
                 appShell.classList.remove("collapsed");
+                localStorage.setItem('db_sidebar_collapsed', 'false');
             }
         });
 
@@ -896,6 +916,9 @@
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             const nextTheme = isDark ? 'light' : 'dark';
             themeToggle.checked = nextTheme === "dark";
+
+            // ADDED: Save the new theme choice to LocalStorage
+            localStorage.setItem('db_theme', nextTheme);
 
             if (!document.startViewTransition) {
                 document.documentElement.setAttribute('data-theme', nextTheme);

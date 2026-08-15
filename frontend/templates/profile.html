@@ -6,6 +6,11 @@
     <title>DeployBridge - Profile</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <script>
+        const savedTheme = localStorage.getItem('db_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
     
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
