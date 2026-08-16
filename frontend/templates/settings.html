@@ -603,6 +603,144 @@
             overflow: hidden;
         }
 
+        /* Modal Styles */
+        .glass-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .glass-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .glass-modal-content {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 0;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            overflow: hidden;
+        }
+        [data-theme="dark"] .glass-modal-content {
+            background: rgba(18, 18, 18, 0.75);
+            border-color: rgba(245, 245, 220, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        .glass-modal.active .glass-modal-content {
+            transform: translateY(0) scale(1);
+        }
+        .glass-modal-header {
+            padding: 24px 24px 16px 24px;
+        }
+        .glass-modal-header h3 {
+            font-family: "Ubuntu", sans-serif;
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+        .glass-modal-header p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .glass-modal-body {
+            padding: 0 24px 24px 24px;
+        }
+        .glass-modal-body input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--surface-color);
+            color: var(--text-color);
+            font-family: "Courier New", monospace;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .glass-modal-body input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+        .glass-modal-body small {
+            display: block;
+            margin-top: 8px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+        .modal-actions {
+            display: flex;
+            width: 100%;
+            margin-top: 0;
+            gap: 0;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 16px 18px;
+            border: none;
+            border-radius: 0;
+            font-family: "Ubuntu", sans-serif;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .modal-btn.danger {
+            background: #ef4444;
+            color: #ffffff;
+        }
+        .modal-btn.danger:hover { background: #dc2626; }
+        .modal-btn.success {
+            background: #22c55e;
+            color: #ffffff;
+        }
+        .modal-btn.success:hover { background: #16a34a; }
+        
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .icon-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+        }
+        .icon-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+        .modal-status {
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        .modal-status.is-error { color: var(--status-danger-text); }
+
         .sub-partition-row {
             display: flex;
             align-items: stretch;
@@ -895,7 +1033,14 @@
                             </div>
                             <div class="sub-partition-row">
                                 <div class="row-col-70">Default Deploy Branch</div>
-                                <div class="row-col-30">main / master</div>
+                                <div class="row-col-30" style="gap: 8px; justify-content: flex-end;">
+                                    <span id="default-branch-summary" style="font-family: monospace; font-size: 12.5px; color: var(--text-muted);">Repository Default</span>
+                                    <button class="icon-btn" id="open-branch-modal" type="button" title="Edit Default Branch">
+                                        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             <div class="sub-partition-row">
                                 <div class="row-col-70">Pipeline Detection</div>
@@ -948,6 +1093,25 @@
                 </div>
             </div>
         </main>
+
+        <!-- Modal for Edit Branch -->
+        <div id="branch-modal" class="glass-modal">
+            <div class="glass-modal-content">
+                <div class="glass-modal-header">
+                    <h3>Edit Default Branch</h3>
+                    <p>Specify the target branch for your deployments.</p>
+                </div>
+                <div class="glass-modal-body">
+                    <input type="text" id="modal-branch-input" placeholder="e.g., main or master" />
+                    <small>Leave this empty to automatically use the repository's default branch.</small>
+                    <div id="modal-branch-status" class="modal-status"></div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="modal-btn danger" id="close-branch-modal">Close</button>
+                    <button type="button" class="modal-btn success" id="submit-branch-modal">Submit</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -956,6 +1120,17 @@
         const themeToggle = document.getElementById("themeToggle");
         const quickThemeToggle = document.getElementById("quick-theme-toggle");
         const logoutButtons = document.querySelectorAll("[data-logout]");
+        const defaultBranchSummary = document.getElementById("default-branch-summary");
+        
+        // Modal Elements
+        const branchModal = document.getElementById("branch-modal");
+        const openBranchModalBtn = document.getElementById("open-branch-modal");
+        const closeBranchModalBtn = document.getElementById("close-branch-modal");
+        const submitBranchModalBtn = document.getElementById("submit-branch-modal");
+        const modalBranchInput = document.getElementById("modal-branch-input");
+        const modalBranchStatus = document.getElementById("modal-branch-status");
+        
+        const backendApiUrl = "http://127.0.0.1:8000/v1";
 
         // ADDED: Initialize the Theme Toggle switch to match the saved theme on load
         if (themeToggle) {
@@ -1039,9 +1214,129 @@
                 localStorage.removeItem("gh_access_token");
                 localStorage.removeItem("gh_username");
                 localStorage.removeItem("gh_avatar");
+                localStorage.removeItem("gh_email");
+                localStorage.removeItem("gh_user_id");
+                localStorage.removeItem("gh_scope");
+                localStorage.removeItem("gh_token_type");
+                localStorage.removeItem("gh_last_login");
                 window.location.href = "./auth.html";
             });
         });
+
+        // Modal specific functions
+        if (openBranchModalBtn) {
+            openBranchModalBtn.addEventListener("click", () => {
+                branchModal.classList.add("active");
+                if (modalBranchStatus) modalBranchStatus.textContent = "";
+                if (modalBranchInput) modalBranchInput.focus();
+            });
+        }
+
+        if (closeBranchModalBtn) {
+            closeBranchModalBtn.addEventListener("click", () => {
+                branchModal.classList.remove("active");
+            });
+        }
+
+        // Close modal on background click
+        if (branchModal) {
+            branchModal.addEventListener("click", (e) => {
+                if (e.target === branchModal) {
+                    branchModal.classList.remove("active");
+                }
+            });
+        }
+
+        function syncBranchSummary(branchValue) {
+            if (!defaultBranchSummary) return;
+            defaultBranchSummary.textContent = branchValue ? `Saved: ${branchValue}` : "Repository Default";
+        }
+
+        async function loadBranchPreference(token) {
+            try {
+                const response = await fetch(`${backendApiUrl}/auth/profile`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Accept": "application/json",
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Unable to load branch preference.");
+                }
+
+                const profile = await response.json();
+                const branchValue = profile.deploy_branch || "";
+
+                if (modalBranchInput) {
+                    modalBranchInput.value = branchValue;
+                }
+
+                syncBranchSummary(branchValue);
+            } catch (error) {
+                console.error("Branch preference fetch error:", error);
+            }
+        }
+
+        async function saveBranchPreference(token, branchValue) {
+            const response = await fetch(`${backendApiUrl}/auth/profile`, {
+                method: "PATCH",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                body: JSON.stringify({
+                    deploy_branch: branchValue || null,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorPayload = await response.json().catch(() => null);
+                const detail = errorPayload?.detail || "Unable to save branch preference.";
+                throw new Error(detail);
+            }
+
+            return response.json();
+        }
+
+        if (submitBranchModalBtn) {
+            submitBranchModalBtn.addEventListener("click", async () => {
+                const token = localStorage.getItem("gh_access_token");
+                if (!token) {
+                    if (modalBranchStatus) {
+                        modalBranchStatus.textContent = "Session expired. Please sign in again.";
+                        modalBranchStatus.className = "modal-status is-error";
+                    }
+                    return;
+                }
+
+                const branchValue = modalBranchInput ? modalBranchInput.value.trim() : "";
+                
+                if (modalBranchStatus) {
+                    modalBranchStatus.textContent = "Saving...";
+                    modalBranchStatus.className = "modal-status";
+                }
+
+                try {
+                    const profile = await saveBranchPreference(token, branchValue);
+                    const savedBranch = profile.deploy_branch || "";
+
+                    if (modalBranchInput) {
+                        modalBranchInput.value = savedBranch;
+                    }
+
+                    syncBranchSummary(savedBranch);
+                    branchModal.classList.remove("active");
+                } catch (error) {
+                    console.error("Branch preference save error:", error);
+                    if (modalBranchStatus) {
+                        modalBranchStatus.textContent = error.message || "Could not save branch preference.";
+                        modalBranchStatus.className = "modal-status is-error";
+                    }
+                }
+            });
+        }
 
         document.addEventListener("DOMContentLoaded", async () => {
             const token = localStorage.getItem("gh_access_token");

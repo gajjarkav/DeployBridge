@@ -76,5 +76,10 @@ class User(Base):
         nullable=False,
     )
 
+    deploy_branch: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     def  __repr__(self) -> str:
         return f"<User {self.username} (github_id: {self.github_id})>"

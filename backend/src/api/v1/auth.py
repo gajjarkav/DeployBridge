@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from ...db.session import get_db
 from ...models.user import User
+from ...schemas.user import UserProfileResponse, UserDeployBranchUpdate
 from ...services.github import GitHubService
 from ...core.config import get_settings
 
@@ -91,3 +92,58 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
         "token_type": db_user.github_token_type,
         "last_login": db_user.last_login.isoformat(),
     }
+
+
+def _extract_bearer_token(authorization: str | None) -> str:
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid Authorization header.",
+        )
+
+    return authorization.split(" ", 1)[1]
+
+
+async def get_current_user_by_token(
+    db: AsyncSession,
+    authorization: str | None,
+) -> User:
+    token = _extract_bearer_token(authorization)
+
+    query = select(User).where(User.github_token == token)
+    result = await db.execute(query)
+    db_user = result.scalar_one_or_none()
+
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session token.",
+        )
+
+    return db_user
+
+
+@router.get("/profile", response_model=UserProfileResponse, summary="Get current user profile")
+async def get_user_profile(
+    authorization: str | None = Header(None),
+    db: AsyncSession = Depends(get_db),
+):
+    db_user = await get_current_user_by_token(db, authorization)
+    return UserProfileResponse.model_validate(db_user)
+
+
+@router.patch("/profile", response_model=UserProfileResponse, summary="Update current user profile")
+async def update_user_profile(
+    payload: UserDeployBranchUpdate,
+    authorization: str | None = Header(None),
+    db: AsyncSession = Depends(get_db),
+):
+    db_user = await get_current_user_by_token(db, authorization)
+
+    branch = payload.deploy_branch.strip() if payload.deploy_branch else None
+    db_user.deploy_branch = branch or None
+
+    await db.commit()
+    await db.refresh(db_user)
+
+    return UserProfileResponse.model_validate(db_user)

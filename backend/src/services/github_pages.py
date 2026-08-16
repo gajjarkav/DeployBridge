@@ -5,6 +5,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
@@ -29,6 +30,7 @@ class RepositoryContext:
     owner: str
     repository: str
     default_branch: str
+    selected_branch: str
     root_items: list[dict[str, Any]]
     root_names: set[str]
     root_directories: set[str]
@@ -116,6 +118,7 @@ class GitHubPagesService:
         github_token: str,
         owner: str,
         repository: str,
+        preferred_branch: str | None = None,
     ) -> GitHubPagesDetectResponse:
         repository_data = await cls._verify_repository(
             github_token=github_token,
@@ -127,6 +130,7 @@ class GitHubPagesService:
             owner=owner,
             repository=repository,
             repository_data=repository_data,
+            preferred_branch=preferred_branch,
         )
         detected_profile, reason = cls._detect_profile(context)
 
@@ -134,6 +138,7 @@ class GitHubPagesService:
             detected_profile=detected_profile,
             supported_profiles=cls.SUPPORTED_PROFILES,
             reason=reason,
+            branch=context.selected_branch,
         )
 
     @classmethod
@@ -143,6 +148,7 @@ class GitHubPagesService:
         owner: str,
         repository: str,
         deployment_profile: DeploymentProfile = "auto",
+        preferred_branch: str | None = None,
     ) -> GitHubPagesDeployResponse:
         print(f"\n🚀 Starting GitHub Pages deployment for {owner}/{repository}")
 
@@ -156,6 +162,7 @@ class GitHubPagesService:
             owner=owner,
             repository=repository,
             repository_data=repository_data,
+            preferred_branch=preferred_branch,
         )
 
         resolved_profile, reason = cls._resolve_requested_profile(
@@ -170,27 +177,27 @@ class GitHubPagesService:
             github_token=github_token,
             owner=owner,
             repository=repository,
-            default_branch=context.default_branch,
+            default_branch=context.selected_branch,
             keep_filename=profile_definition.workflow_filename,
         )
         await cls._upsert_workflow(
             github_token=github_token,
             owner=owner,
             repository=repository,
-            default_branch=context.default_branch,
+            default_branch=context.selected_branch,
             profile_definition=profile_definition,
         )
         await cls._configure_pages(
             github_token=github_token,
             owner=owner,
             repository=repository,
-            default_branch=context.default_branch,
+            default_branch=context.selected_branch,
         )
         await cls._dispatch_workflow(
             github_token=github_token,
             owner=owner,
             repository=repository,
-            default_branch=context.default_branch,
+            default_branch=context.selected_branch,
             workflow_filename=profile_definition.workflow_filename,
         )
 
@@ -200,10 +207,11 @@ class GitHubPagesService:
             success=True,
             message=(
                 f'GitHub Pages deployment started for "{repository}" using the '
-                f'"{resolved_profile}" profile on "{context.default_branch}".'
+                f'"{resolved_profile}" profile on "{context.selected_branch}".'
             ),
             resolved_profile=resolved_profile,
             workflow_template=profile_definition.workflow_template,
+            branch=context.selected_branch,
         )
 
     @classmethod
@@ -259,6 +267,7 @@ class GitHubPagesService:
         owner: str,
         repository: str,
         repository_data: dict[str, Any],
+        preferred_branch: str | None = None,
     ) -> RepositoryContext:
         default_branch = repository_data.get("default_branch")
         if not default_branch:
@@ -268,12 +277,30 @@ class GitHubPagesService:
                 status_code=400,
             )
 
+        selected_branch = preferred_branch.strip() if preferred_branch else default_branch
+        if selected_branch != default_branch:
+            branch_exists = await cls._branch_exists(
+                github_token=github_token,
+                owner=owner,
+                repository=repository,
+                branch=selected_branch,
+            )
+            if not branch_exists:
+                raise GitHubAPIError(
+                    message="Saved deploy branch does not exist",
+                    detail=(
+                        f'The saved deploy branch "{selected_branch}" was not found in '
+                        f'"{owner}/{repository}". Clear it in settings or save a valid branch name.'
+                    ),
+                    status_code=400,
+                )
+
         root_items = await cls._get_repository_contents(
             github_token=github_token,
             owner=owner,
             repository=repository,
             path="",
-            ref=default_branch,
+            ref=selected_branch,
         )
         root_names = {
             item.get("name", "").lower()
@@ -291,13 +318,13 @@ class GitHubPagesService:
             owner=owner,
             repository=repository,
             path="package.json",
-            ref=default_branch,
+            ref=selected_branch,
         )
         next_config_text = await cls._read_first_available_file(
             github_token=github_token,
             owner=owner,
             repository=repository,
-            ref=default_branch,
+            ref=selected_branch,
             candidates=cls.NEXT_CONFIG_CANDIDATES,
         )
         gemfile_text = await cls._get_text_file(
@@ -305,7 +332,7 @@ class GitHubPagesService:
             owner=owner,
             repository=repository,
             path="Gemfile",
-            ref=default_branch,
+            ref=selected_branch,
         )
 
         scripts = {}
@@ -327,6 +354,7 @@ class GitHubPagesService:
             owner=owner,
             repository=repository,
             default_branch=default_branch,
+            selected_branch=selected_branch,
             root_items=root_items,
             root_names=root_names,
             root_directories=root_directories,
@@ -337,6 +365,32 @@ class GitHubPagesService:
             scripts=scripts,
             next_config_text=next_config_text,
             gemfile_text=gemfile_text,
+        )
+
+    @classmethod
+    async def _branch_exists(
+        cls,
+        github_token: str,
+        owner: str,
+        repository: str,
+        branch: str,
+    ) -> bool:
+        encoded_branch = quote(branch, safe="")
+        response = await cls._request(
+            method="GET",
+            url=f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repository}/branches/{encoded_branch}",
+            github_token=github_token,
+        )
+
+        if response.status_code == 200:
+            return True
+        if response.status_code == 404:
+            return False
+
+        raise GitHubAPIError(
+            message="Failed to validate deploy branch",
+            detail=f"GitHub returned status code {response.status_code}: {response.text}",
+            status_code=400,
         )
 
     @classmethod

@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.exception import GitHubPagesError
+from ...db.session import get_db
 from ...schemas.github_pages import (
     GitHubPagesDeployRequest,
     GitHubPagesDeployResponse,
@@ -8,19 +10,10 @@ from ...schemas.github_pages import (
     GitHubPagesRepositoryRequest,
 )
 from ...services.github_pages import GitHubPagesService
+from .auth import get_current_user_by_token
 
 
 router = APIRouter()
-
-
-def _extract_github_token(authorization: str | None) -> str:
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing or invalid Authorization header.",
-        )
-
-    return authorization.split(" ", 1)[1]
 
 
 @router.post(
@@ -31,14 +24,20 @@ def _extract_github_token(authorization: str | None) -> str:
 async def detect_github_pages_profile(
     request: GitHubPagesRepositoryRequest,
     authorization: str | None = Header(None),
+    db: AsyncSession = Depends(get_db),
 ):
-    github_token = _extract_github_token(authorization)
+    db_user = await get_current_user_by_token(db, authorization)
+    github_token = db_user.github_token
+
+    if not github_token:
+        raise HTTPException(status_code=401, detail="Missing GitHub access token.")
 
     try:
         return await GitHubPagesService.detect(
             github_token=github_token,
             owner=request.owner,
             repository=request.repository,
+            preferred_branch=db_user.deploy_branch,
         )
     except GitHubPagesError as exc:
         raise HTTPException(
@@ -55,8 +54,13 @@ async def detect_github_pages_profile(
 async def deploy_to_github_pages(
     request: GitHubPagesDeployRequest,
     authorization: str | None = Header(None),
+    db: AsyncSession = Depends(get_db),
 ):
-    github_token = _extract_github_token(authorization)
+    db_user = await get_current_user_by_token(db, authorization)
+    github_token = db_user.github_token
+
+    if not github_token:
+        raise HTTPException(status_code=401, detail="Missing GitHub access token.")
 
     try:
         return await GitHubPagesService.deploy(
@@ -64,6 +68,7 @@ async def deploy_to_github_pages(
             owner=request.owner,
             repository=request.repository,
             deployment_profile=request.deployment_profile,
+            preferred_branch=db_user.deploy_branch,
         )
     except GitHubPagesError as exc:
         raise HTTPException(

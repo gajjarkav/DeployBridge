@@ -23,6 +23,7 @@ class GitHubPagesDetectResponse(BaseModel):
     detected_profile: ResolvedDeploymentProfile
     supported_profiles: list[DeploymentProfile]
     reason: str
+    branch: str
 
 
 class GitHubPagesDeployResponse(BaseModel):
@@ -30,3 +31,4 @@ class GitHubPagesDeployResponse(BaseModel):
     message: str
     resolved_profile: ResolvedDeploymentProfile
     workflow_template: str
+    branch: str
