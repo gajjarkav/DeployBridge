@@ -28,7 +28,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -42,34 +41,90 @@ jobs:
           echo "base_path=$BASE_PATH" >> "$GITHUB_OUTPUT"
           echo "PUBLIC_URL=$BASE_PATH" >> "$GITHUB_ENV"
 
+      - name: Resolve package manager
+        id: package-manager
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "name=pnpm" >> "$GITHUB_OUTPUT"
+            echo "install=pnpm install --frozen-lockfile" >> "$GITHUB_OUTPUT"
+            echo "run=pnpm" >> "$GITHUB_OUTPUT"
+          elif [ -f yarn.lock ]; then
+            echo "name=yarn" >> "$GITHUB_OUTPUT"
+            echo "install=yarn install --frozen-lockfile" >> "$GITHUB_OUTPUT"
+            echo "run=yarn" >> "$GITHUB_OUTPUT"
+          elif [ -f package-lock.json ]; then
+            echo "name=npm" >> "$GITHUB_OUTPUT"
+            echo "install=npm ci" >> "$GITHUB_OUTPUT"
+            echo "run=npm run" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=npm" >> "$GITHUB_OUTPUT"
+            echo "install=npm install" >> "$GITHUB_OUTPUT"
+            echo "run=npm run" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Enable Corepack for pnpm/yarn
+        if: steps.package-manager.outputs.name != 'npm'
+        run: corepack enable
+
       - name: Install dependencies
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
+          INSTALL_COMMAND="${{ steps.package-manager.outputs.install }}"
+
+          if [ "${{ steps.package-manager.outputs.name }}" = "npm" ] && [ -f package-lock.json ]; then
+            if $INSTALL_COMMAND; then
+              echo "Dependencies installed with npm ci."
+            else
+              echo "npm ci failed, likely due to an out-of-sync lockfile. Falling back to npm install."
+              npm install
+            fi
+          elif [ "${{ steps.package-manager.outputs.name }}" = "pnpm" ] && [ -f pnpm-lock.yaml ]; then
+            if $INSTALL_COMMAND; then
+              echo "Dependencies installed with pnpm."
+            else
+              echo "pnpm install --frozen-lockfile failed. Falling back to pnpm install."
+              pnpm install
+            fi
+          elif [ "${{ steps.package-manager.outputs.name }}" = "yarn" ] && [ -f yarn.lock ]; then
+            if $INSTALL_COMMAND; then
+              echo "Dependencies installed with yarn."
+            else
+              echo "yarn install --frozen-lockfile failed. Falling back to yarn install."
+              yarn install
+            fi
           else
-            npm install
+            $INSTALL_COMMAND
           fi
 
       - name: Resolve build command
         id: build-command
         env:
           REPO_NAME: ${{ steps.pages-base.outputs.repo_name }}
+          RUNNER: ${{ steps.package-manager.outputs.run }}
         run: |
-          BUILD_COMMAND=$(node -e "const pkg=require('./package.json'); const scripts=pkg.scripts || {}; const deps={...(pkg.dependencies || {}), ...(pkg.devDependencies || {})}; const basePath='/' + process.env.REPO_NAME + '/'; let command=''; if (scripts.generate) { command='npm run generate'; } else if (scripts.build) { command='npm run build'; } else { process.exit(1); } if ('vite' in deps) { command += ' -- --base=' + basePath; } else if ('@angular/cli' in deps || '@angular/core' in deps) { command += ' -- --base-href=' + basePath; } process.stdout.write(command);")
+          BUILD_COMMAND=$(node -e "const pkg=require('./package.json'); const scripts=pkg.scripts || {}; const deps={...(pkg.dependencies || {}), ...(pkg.devDependencies || {})}; const basePath='/' + process.env.REPO_NAME + '/'; const runner=process.env.RUNNER || 'npm run'; let command=''; if (scripts.generate) { command=runner + ' generate'; } else if (scripts.build) { command=runner + ' build'; } else { process.exit(1); } if ('vite' in deps) { command += ' -- --base=' + basePath; } else if ('@angular/cli' in deps || '@angular/core' in deps) { command += ' -- --base-href=' + basePath; } process.stdout.write(command);")
           if [ -z "$BUILD_COMMAND" ]; then
             echo "No supported build command was found."
             exit 1
           fi
           echo "command=$BUILD_COMMAND" >> "$GITHUB_OUTPUT"
 
+      - name: Detect legacy OpenSSL compatibility need
+        id: openssl-compat
+        run: |
+          NEEDS_COMPAT=$(node -e "const pkg=require('./package.json'); const deps={...(pkg.dependencies || {}), ...(pkg.devDependencies || {})}; const scripts=Object.values(pkg.scripts || {}).map((value) => String(value).toLowerCase()); const webpackVersion=String(deps.webpack || ''); const needsCompat=('react-scripts' in deps) || /^4(\.|$)/.test(webpackVersion) || scripts.some((script) => script.includes('react-scripts') || script.includes('webpack')); process.stdout.write(needsCompat ? 'true' : 'false');")
+          echo "needs_compat=$NEEDS_COMPAT" >> "$GITHUB_OUTPUT"
+
       - name: Build static site
+        env:
+          CI: "false"
+          NODE_OPTIONS: ${{ steps.openssl-compat.outputs.needs_compat == 'true' && '--openssl-legacy-provider' || '' }}
         run: ${{ steps.build-command.outputs.command }}
 
       - name: Resolve artifact path
         id: artifact
         run: |
           PACKAGE_NAME=$(node -e "const pkg=require('./package.json'); process.stdout.write((pkg.name || '').replace(/^@/, '').replace(/\//g, '-'));")
-          CANDIDATES="dist build out public .output/public"
+          CANDIDATES="dist build out public .output/public .vitepress/dist"
 
           for candidate in $CANDIDATES; do
             if [ -d "$candidate" ]; then

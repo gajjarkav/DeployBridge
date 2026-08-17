@@ -1094,13 +1094,97 @@
             `;
         }
 
+        const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
+
+        async function postGitHubPagesRequest(path, token, body) {
+            console.log(`[DeployBridge] POST ${BACKEND_API_URL}${path}`, body);
+
+            const response = await fetch(`${BACKEND_API_URL}${path}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify(body),
+            });
+
+            const data = await response.json().catch(() => ({}));
+            console.log(`[DeployBridge] Response ${response.status} for ${path}`, data);
+
+            if (!response.ok) {
+                throw new Error(data.detail || `Request failed with status ${response.status}`);
+            }
+
+            return data;
+        }
+
         // Exposing specific action handlers globally so buttons can access them
         window.analyzeRepo = (repoName) => {
             alert(`Initializing deep scan for: ${repoName}...\n\n(Backend hit attached to logic)`);
         };
 
-        window.deployGitHubPages = (owner, repository) => {
-            alert(`Initializing deployment profile detection for: ${repository}\nOwner: ${owner}\n\n(Deploy pipeline hit)`);
+        window.deployGitHubPages = async (owner, repository) => {
+            const token = localStorage.getItem("gh_access_token");
+
+            if (!token) {
+                alert("GitHub login session is missing. Please sign in again.");
+                return;
+            }
+
+            try {
+                const detectData = await postGitHubPagesRequest("/github-pages/detect", token, {
+                    owner,
+                    repository,
+                });
+
+                const overrideInput = window.prompt(
+                    [
+                        `Detected profile for "${repository}": ${detectData.detected_profile}`,
+                        `Reason: ${detectData.reason}`,
+                        `Branch: ${detectData.branch}`,
+                        "",
+                        `Supported options: ${detectData.supported_profiles.join(", ")}`,
+                        'Type a profile name to override, or leave blank to use "auto".',
+                    ].join("\n"),
+                    "auto"
+                );
+
+                if (overrideInput === null) {
+                    return;
+                }
+
+                const selectedProfile = (overrideInput.trim() || "auto").toLowerCase();
+                if (!detectData.supported_profiles.includes(selectedProfile)) {
+                    alert(`Unsupported deployment profile: ${selectedProfile}`);
+                    return;
+                }
+
+                const confirmed = window.confirm(
+                    `Deploy "${repository}" to GitHub Pages using "${selectedProfile === "auto" ? detectData.detected_profile : selectedProfile}" on branch "${detectData.branch}"?`
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+
+                const deployData = await postGitHubPagesRequest("/github-pages/deploy", token, {
+                    owner,
+                    repository,
+                    deployment_profile: selectedProfile,
+                });
+
+                alert(
+                    [
+                        deployData.message,
+                        `Resolved profile: ${deployData.resolved_profile}`,
+                        `Workflow: ${deployData.workflow_template}`,
+                        `Branch: ${deployData.branch}`,
+                    ].join("\n")
+                );
+            } catch (error) {
+                console.error("[DeployBridge] Deployment failed", error);
+                alert(error.message || "Deployment failed.");
+            }
         };
     </script>
 </body>
