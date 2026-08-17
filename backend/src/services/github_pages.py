@@ -177,27 +177,35 @@ class GitHubPagesService:
             github_token=github_token,
             owner=owner,
             repository=repository,
-            default_branch=context.selected_branch,
+            target_branch=context.selected_branch,
             keep_filename=profile_definition.workflow_filename,
         )
+        if context.selected_branch != context.default_branch:
+            await cls._remove_other_workflows(
+                github_token=github_token,
+                owner=owner,
+                repository=repository,
+                target_branch=context.default_branch,
+                keep_filename=None,
+            )
         await cls._upsert_workflow(
             github_token=github_token,
             owner=owner,
             repository=repository,
-            default_branch=context.selected_branch,
+            target_branch=context.selected_branch,
             profile_definition=profile_definition,
         )
         await cls._configure_pages(
             github_token=github_token,
             owner=owner,
             repository=repository,
-            default_branch=context.selected_branch,
+            target_branch=context.selected_branch,
         )
         await cls._dispatch_workflow(
             github_token=github_token,
             owner=owner,
             repository=repository,
-            default_branch=context.selected_branch,
+            target_branch=context.selected_branch,
             workflow_filename=profile_definition.workflow_filename,
         )
 
@@ -613,20 +621,25 @@ class GitHubPagesService:
         github_token: str,
         owner: str,
         repository: str,
-        default_branch: str,
-        keep_filename: str,
+        target_branch: str,
+        keep_filename: str | None,
     ) -> None:
         headers = cls._build_headers(github_token)
         all_workflows = {
             definition.workflow_filename
             for definition in cls.PROFILE_DEFINITIONS.values()
         }
-        stale_workflows = sorted(all_workflows - {keep_filename})
+        keep_filenames = {keep_filename} if keep_filename else set()
+        stale_workflows = sorted(all_workflows - keep_filenames)
 
         async with httpx.AsyncClient() as client:
             for workflow_filename in stale_workflows:
                 url = cls._workflow_contents_url(owner, repository, workflow_filename)
-                get_response = await client.get(url, headers=headers)
+                get_response = await client.get(
+                    url,
+                    headers=headers,
+                    params={"ref": target_branch},
+                )
                 if get_response.status_code != 200:
                     continue
 
@@ -637,11 +650,13 @@ class GitHubPagesService:
                 payload = {
                     "message": f"DeployBridge: Remove stale {workflow_filename} workflow",
                     "sha": sha,
-                    "branch": default_branch,
+                    "branch": target_branch,
                 }
                 delete_response = await client.delete(url, headers=headers, json=payload)
                 if delete_response.status_code in (200, 204):
-                    print(f"  ✓ Removed stale workflow {workflow_filename}")
+                    print(
+                        f'  ✓ Removed stale workflow {workflow_filename} from "{target_branch}"'
+                    )
 
     @classmethod
     async def _upsert_workflow(
@@ -649,12 +664,12 @@ class GitHubPagesService:
         github_token: str,
         owner: str,
         repository: str,
-        default_branch: str,
+        target_branch: str,
         profile_definition: DeploymentProfileDefinition,
     ) -> None:
         workflow = cls._read_template(profile_definition.workflow_template).replace(
             "__DEFAULT_BRANCH__",
-            default_branch,
+            target_branch,
         )
         encoded_workflow = base64.b64encode(workflow.encode("utf-8")).decode("utf-8")
         headers = cls._build_headers(github_token)
@@ -662,7 +677,11 @@ class GitHubPagesService:
 
         sha = None
         async with httpx.AsyncClient() as client:
-            get_response = await client.get(url, headers=headers)
+            get_response = await client.get(
+                url,
+                headers=headers,
+                params={"ref": target_branch},
+            )
             if get_response.status_code == 200:
                 sha = get_response.json().get("sha")
                 if sha:
@@ -671,7 +690,7 @@ class GitHubPagesService:
             payload = {
                 "message": f"DeployBridge: Add {profile_definition.key} GitHub Pages workflow",
                 "content": encoded_workflow,
-                "branch": default_branch,
+                "branch": target_branch,
             }
             if sha:
                 payload["sha"] = sha
@@ -698,13 +717,13 @@ class GitHubPagesService:
         github_token: str,
         owner: str,
         repository: str,
-        default_branch: str,
+        target_branch: str,
     ) -> None:
         headers = cls._build_headers(github_token)
         payload = {
             "build_type": "workflow",
             "source": {
-                "branch": default_branch,
+                "branch": target_branch,
                 "path": "/",
             },
         }
@@ -738,17 +757,17 @@ class GitHubPagesService:
         github_token: str,
         owner: str,
         repository: str,
-        default_branch: str,
+        target_branch: str,
         workflow_filename: str,
     ) -> None:
         headers = cls._build_headers(github_token)
-        payload = {"ref": default_branch}
+        payload = {"ref": target_branch}
         url = (
             f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repository}"
             f"/actions/workflows/{workflow_filename}/dispatches"
         )
 
-        print(f'  Triggering workflow_dispatch for "{workflow_filename}" on "{default_branch}"...')
+        print(f'  Triggering workflow_dispatch for "{workflow_filename}" on "{target_branch}"...')
 
         response = None
         async with httpx.AsyncClient() as client:

@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -30,6 +32,15 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+
+      - name: Prepare GitHub Pages base path
+        id: pages-base
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          BASE_PATH="/${REPO_NAME}/"
+          echo "repo_name=$REPO_NAME" >> "$GITHUB_OUTPUT"
+          echo "base_path=$BASE_PATH" >> "$GITHUB_OUTPUT"
+          echo "PUBLIC_URL=$BASE_PATH" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: |
@@ -41,8 +52,10 @@ jobs:
 
       - name: Resolve build command
         id: build-command
+        env:
+          REPO_NAME: ${{ steps.pages-base.outputs.repo_name }}
         run: |
-          BUILD_COMMAND=$(node -e "const pkg=require('./package.json'); if (pkg.scripts?.generate) { process.stdout.write('npm run generate'); } else if (pkg.scripts?.build) { process.stdout.write('npm run build'); } else { process.exit(1); }")
+          BUILD_COMMAND=$(node -e "const pkg=require('./package.json'); const scripts=pkg.scripts || {}; const deps={...(pkg.dependencies || {}), ...(pkg.devDependencies || {})}; const basePath='/' + process.env.REPO_NAME + '/'; let command=''; if (scripts.generate) { command='npm run generate'; } else if (scripts.build) { command='npm run build'; } else { process.exit(1); } if ('vite' in deps) { command += ' -- --base=' + basePath; } else if ('@angular/cli' in deps || '@angular/core' in deps) { command += ' -- --base-href=' + basePath; } process.stdout.write(command);")
           if [ -z "$BUILD_COMMAND" ]; then
             echo "No supported build command was found."
             exit 1
@@ -73,6 +86,13 @@ jobs:
           echo "No supported static build output directory was found."
           echo "Checked: dist, build, out, public, .output/public, dist/<package-name>/browser"
           exit 1
+
+      - name: Normalize root-relative asset paths
+        env:
+          BASE_PATH: ${{ steps.pages-base.outputs.base_path }}
+          ARTIFACT_PATH: ${{ steps.artifact.outputs.path }}
+        run: |
+          node -e "const fs=require('fs'); const path=require('path'); const root=process.env.ARTIFACT_PATH; const basePath=process.env.BASE_PATH; if (!root || !fs.existsSync(root)) process.exit(0); const exts=new Set(['.html','.css','.js']); const prefixes=['/assets/','/static/','/favicon','/manifest','/robots.txt','/logo','/icons/']; const walk=(dir)=>{ for (const entry of fs.readdirSync(dir,{withFileTypes:true})) { const full=path.join(dir, entry.name); if (entry.isDirectory()) { walk(full); continue; } if (!exts.has(path.extname(entry.name))) continue; let text=fs.readFileSync(full,'utf8'); let updated=text; for (const prefix of prefixes) { updated=updated.replaceAll('\"' + prefix, '\"' + basePath + prefix.slice(1)); updated=updated.replaceAll(\"'\" + prefix, \"'\" + basePath + prefix.slice(1)); updated=updated.replaceAll('url(' + prefix, 'url(' + basePath + prefix.slice(1)); } if (updated !== text) fs.writeFileSync(full, updated); } }; walk(root);"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
