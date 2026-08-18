@@ -1,43 +1,44 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeployBridge - Repositories</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
+
     <!-- ADDED: Read theme immediately to prevent screen flashing (FOUC) -->
     <script>
         const savedTheme = localStorage.getItem('db_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
     </script>
-    
+
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
         @import url('https://fonts.googleapis.com/css2?family=Montenegrin+Gothic+One&display=swap');
-        
+
         :root {
-            --bg-color: #f5f5dc; 
+            --bg-color: #f5f5dc;
             --surface-color: #ffffff;
             --text-color: #000000;
             --text-muted: #666666;
-            --primary-color: #000000; 
+            --primary-color: #000000;
             --primary-light: rgba(0, 0, 0, 0.05);
             --primary-hover: rgba(0, 0, 0, 0.08);
             --border-color: rgba(0, 0, 0, 0.1);
             --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
-            
+
             --table-header-bg: #e8e8d8;
             --table-header-text: #1a1a1a;
             --table-cell-bg: rgba(255, 255, 255, 0.85);
             --table-cell-alt: rgba(248, 248, 243, 0.95);
             --grid-color: rgba(0, 0, 0, 0.05);
-            
+
             --group-bg: rgba(0, 0, 0, 0.025);
             --group-border: rgba(0, 0, 0, 0.08);
-            
+
             --status-success-bg: rgba(34, 197, 94, 0.15);
             --status-success-text: #15803d;
             --status-danger-bg: rgba(239, 68, 68, 0.15);
@@ -45,11 +46,11 @@
         }
 
         [data-theme="dark"] {
-            --bg-color: #0a0a0a; 
+            --bg-color: #0a0a0a;
             --surface-color: #121212;
-            --text-color: #f5f5dc; 
+            --text-color: #f5f5dc;
             --text-muted: #a0a090;
-            --primary-color: #f5f5dc; 
+            --primary-color: #f5f5dc;
             --primary-light: rgba(245, 245, 220, 0.08);
             --primary-hover: rgba(245, 245, 220, 0.14);
             --border-color: rgba(245, 245, 220, 0.12);
@@ -61,10 +62,10 @@
             --table-cell-bg: #141414;
             --table-cell-alt: #1a1a1a;
             --grid-color: rgba(245, 245, 220, 0.05);
-            
+
             --group-bg: rgba(255, 255, 250, 0.03);
             --group-border: rgba(245, 245, 220, 0.1);
-            
+
             --status-success-bg: rgba(34, 197, 94, 0.2);
             --status-success-text: #4ade80;
             --status-danger-bg: rgba(239, 68, 68, 0.2);
@@ -86,8 +87,8 @@
             height: 100vh;
             overflow: hidden;
             transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s ease;
-            
-            background-image: 
+
+            background-image:
                 linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
                 linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
             background-size: 55px 55px;
@@ -145,15 +146,17 @@
             fill: var(--text-color);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), fill 0.25s ease;
             flex-shrink: 0;
-            transform: rotate(180deg); /* Points left when open */
+            transform: rotate(180deg);
+            /* Points left when open */
         }
 
         .sidebar-header:hover .chevron-right {
             fill: var(--primary-color);
         }
 
-        .sidebar-header input:checked ~ .chevron-right {
-            transform: rotate(0deg); /* Points right when collapsed */
+        .sidebar-header input:checked~.chevron-right {
+            transform: rotate(0deg);
+            /* Points right when collapsed */
         }
 
         .brand-lockup {
@@ -207,7 +210,8 @@
             background: var(--group-bg);
             border: 1px solid var(--group-border);
             border-radius: 12px;
-            overflow: hidden; /* Clips the straight-edged inner buttons */
+            overflow: hidden;
+            /* Clips the straight-edged inner buttons */
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
@@ -258,7 +262,7 @@
         .nav-link[data-active="true"] svg {
             color: var(--bg-color);
         }
-        
+
         .logout-link {
             color: #ef4444 !important;
         }
@@ -413,17 +417,46 @@
             transform: rotate(40deg);
         }
 
-        .st-sunMoonThemeToggleBtn svg .sunMoon { transform-origin: center; transition: inherit; transform: scale(1); }
-        .st-sunMoonThemeToggleBtn svg .sunRay { transform-origin: center; transform: scale(0); }
-        .st-sunMoonThemeToggleBtn svg mask>circle { transition: transform 0.64s cubic-bezier(.41,.64,.32,1.575); transform: translate(0,0); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg { transform: rotate(90deg); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg mask>circle { transform: translate(16px,-3px); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunMoon { transform: scale(.55); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunRay { animation: showRay1832 .4s ease forwards; }
+        .st-sunMoonThemeToggleBtn svg .sunMoon {
+            transform-origin: center;
+            transition: inherit;
+            transform: scale(1);
+        }
+
+        .st-sunMoonThemeToggleBtn svg .sunRay {
+            transform-origin: center;
+            transform: scale(0);
+        }
+
+        .st-sunMoonThemeToggleBtn svg mask>circle {
+            transition: transform 0.64s cubic-bezier(.41, .64, .32, 1.575);
+            transform: translate(0, 0);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg {
+            transform: rotate(90deg);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg mask>circle {
+            transform: translate(16px, -3px);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunMoon {
+            transform: scale(.55);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunRay {
+            animation: showRay1832 .4s ease forwards;
+        }
 
         @keyframes showRay1832 {
-            from { transform: scale(0); }
-            to { transform: scale(1); }
+            from {
+                transform: scale(0);
+            }
+
+            to {
+                transform: scale(1);
+            }
         }
 
         .page-heading {
@@ -550,26 +583,51 @@
         }
 
         @media (max-width: 1024px) {
-            .summary-partition { padding: 0 20px; }
+            .summary-partition {
+                padding: 0 20px;
+            }
         }
 
         @media (max-width: 900px) {
-            .repo-summary-bar { grid-template-columns: 1fr 1fr; height: auto; }
-            .summary-partition { height: 120px; }
-            .summary-partition:nth-child(2) { border-right: none; }
-            .summary-partition:nth-child(1), .summary-partition:nth-child(2) { border-bottom: 1px solid var(--border-color); }
+            .repo-summary-bar {
+                grid-template-columns: 1fr 1fr;
+                height: auto;
+            }
+
+            .summary-partition {
+                height: 120px;
+            }
+
+            .summary-partition:nth-child(2) {
+                border-right: none;
+            }
+
+            .summary-partition:nth-child(1),
+            .summary-partition:nth-child(2) {
+                border-bottom: 1px solid var(--border-color);
+            }
         }
 
         @media (max-width: 600px) {
-            .repo-summary-bar { grid-template-columns: 1fr; }
-            .summary-partition { border-right: none; border-bottom: 1px solid var(--border-color); height: 100px; }
-            .summary-partition:last-child { border-bottom: none; }
+            .repo-summary-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-partition {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                height: 100px;
+            }
+
+            .summary-partition:last-child {
+                border-bottom: none;
+            }
         }
 
         .db-table-wrapper {
             position: relative;
         }
-        
+
         .db-table-header-text {
             font-family: "Ubuntu", sans-serif;
             font-size: 20px;
@@ -655,7 +713,7 @@
         }
 
         [data-theme="dark"] .card-table__row.header-row .card-table__item {
-             background: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.02);
         }
 
         /* Status Chips */
@@ -668,7 +726,7 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        
+
         .status-success {
             background: var(--status-success-bg);
             color: var(--status-success-text);
@@ -678,7 +736,7 @@
             background: var(--status-danger-bg);
             color: var(--status-danger-text);
         }
-        
+
         .action-group {
             display: flex;
             align-items: center;
@@ -717,27 +775,50 @@
             color: var(--bg-color);
         }
 
-        .btn-label { display: inline; }
-        .btn-icon { display: none; }
+        .btn-label {
+            display: inline;
+        }
+
+        .btn-icon {
+            display: none;
+        }
 
         @media (max-width: 900px) {
-            .btn-label { display: none; }
-            .btn-icon { display: inline-block; }
-            .action-btn { padding: 6px 8px; }
-            .card-table__data {
-                grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr 1fr; /* Drop updated on medium to save space */
+            .btn-label {
+                display: none;
             }
-            .hide-on-tablet { display: none !important; }
+
+            .btn-icon {
+                display: inline-block;
+            }
+
+            .action-btn {
+                padding: 6px 8px;
+            }
+
+            .card-table__data {
+                grid-template-columns: 0.5fr 2fr 1fr 1fr 1fr 1fr;
+                /* Drop updated on medium to save space */
+            }
+
+            .hide-on-tablet {
+                display: none !important;
+            }
         }
 
         @media (max-width: 600px) {
             .main-shell {
                 padding: 24px 20px 80px 20px;
             }
+
             .card-table__data {
-                grid-template-columns: 2fr 1fr 1fr; /* Extreme collapse */
+                grid-template-columns: 2fr 1fr 1fr;
+                /* Extreme collapse */
             }
-            .hide-on-mobile { display: none !important; }
+
+            .hide-on-mobile {
+                display: none !important;
+            }
         }
 
         ::view-transition-old(root),
@@ -745,11 +826,13 @@
             animation: none;
             mix-blend-mode: normal;
         }
+
         ::view-transition-new(root) {
             z-index: 9999;
         }
     </style>
 </head>
+
 <body>
 
     <div class="app-shell" id="appShell">
@@ -764,22 +847,42 @@
                     </div>
                 </div>
                 <svg viewBox="0 0 320 512" class="chevron-right">
-                    <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"></path>
+                    <path
+                        d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z">
+                    </path>
                 </svg>
             </label>
 
             <nav class="sidebar-nav">
                 <div class="nav-group">
                     <a class="nav-link" href="./dashboard.html" data-tooltip="Overview">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
                         <span>Overview</span>
                     </a>
                     <a class="nav-link" data-active="true" href="./repositories.html" data-tooltip="Repositories">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
                         <span>Repositories</span>
                     </a>
                     <a class="nav-link" href="./deployments.html" data-tooltip="Deployments">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z">
+                            </path>
+                            <path
+                                d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z">
+                            </path>
+                        </svg>
                         <span>Deployments</span>
                     </a>
                 </div>
@@ -788,15 +891,30 @@
             <div class="sidebar-bottom">
                 <div class="nav-group">
                     <a class="nav-link" href="./settings.html" data-tooltip="Settings">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
                         <span>Settings</span>
                     </a>
                     <a class="nav-link" href="./profile.html" data-tooltip="Profile">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
                         <span>Profile</span>
                     </a>
                     <button class="nav-link logout-link" type="button" data-tooltip="Logout" data-logout>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
                         <span>Logout</span>
                     </button>
                 </div>
@@ -829,13 +947,15 @@
             <div class="page-heading">
                 <div class="section-kicker">Repositories</div>
                 <h1>Scan, review, and deploy.</h1>
-                <p>Inspect available repositories, analyze build structures, and execute deployments via automated pipelines.</p>
+                <p>Inspect available repositories, analyze build structures, and execute deployments via automated
+                    pipelines.</p>
             </div>
 
             <!-- 4-Partition Summary Bar -->
             <div class="repo-summary-bar">
                 <div class="summary-partition partition-user">
-                    <img id="summary-avatar" src="https://placehold.co/150x150/e0e0e0/000000?text=U" alt="User Avatar" class="partition-avatar">
+                    <img id="summary-avatar" src="https://placehold.co/150x150/e0e0e0/000000?text=U" alt="User Avatar"
+                        class="partition-avatar">
                     <div class="partition-user-info">
                         <h2 id="summary-username">GitHub User</h2>
                         <span>Authenticated</span>
@@ -859,7 +979,8 @@
                 <div class="card-table">
                     <div class="card-table__title">
                         <span>REPOSITORY_INDEX (<span id="repo-count">0</span> Total)</span>
-                        <span id="repo-sync-status" style="font-size:0.75rem; font-weight:normal; opacity:0.7;">STATUS: SYNCING...</span>
+                        <span id="repo-sync-status" style="font-size:0.75rem; font-weight:normal; opacity:0.7;">STATUS:
+                            SYNCING...</span>
                     </div>
 
                     <div class="card-table__data" id="repo-table-body">
@@ -874,7 +995,8 @@
                         </div>
 
                         <div class="card-table__row placeholder-row">
-                            <div class="card-table__item" style="grid-column: span 7; justify-content: center; opacity: 0.5;">
+                            <div class="card-table__item"
+                                style="grid-column: span 7; justify-content: center; opacity: 0.5;">
                                 Loading repository data...
                             </div>
                         </div>
@@ -982,10 +1104,10 @@
                 const userRes = await fetch("https://api.github.com/user", {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
-                
+
                 if (userRes.ok) {
                     const userData = await userRes.json();
-                    
+
                     const avatarImg = document.getElementById("summary-avatar");
                     const userNameEl = document.getElementById("summary-username");
                     const totalReposEl = document.getElementById("summary-total");
@@ -994,7 +1116,7 @@
 
                     if (avatarImg && userData.avatar_url) avatarImg.src = userData.avatar_url;
                     if (userNameEl) userNameEl.textContent = userData.name || userData.login || "GitHub User";
-                    
+
                     const publicCount = userData.public_repos || 0;
                     const privateCount = userData.total_private_repos || 0;
                     const totalCount = userData.total_private_repos !== undefined ? (publicCount + privateCount) : publicCount;
@@ -1033,12 +1155,12 @@
                     const updatedAt = new Date(repo.updated_at).toLocaleDateString("en-US", {
                         year: "numeric", month: "short", day: "numeric",
                     });
-                    
+
                     const isArchived = repo.archived;
                     const isDisabled = repo.disabled;
                     const statusText = isArchived ? "Archived" : (isDisabled ? "Disabled" : "Active");
                     const statusClass = (isArchived || isDisabled) ? "status-danger" : "status-success";
-                    
+
                     const visibilityColor = repo.private ? 'var(--status-danger-text)' : 'var(--status-success-text)';
                     const visibilityText = repo.private ? 'Private' : 'Public';
                     const indexStr = (index + 1).toString().padStart(2, '0');
@@ -1053,7 +1175,7 @@
                             <div class="card-table__item hide-on-tablet">${updatedAt}</div>
                             <div class="card-table__item">
                                 <div class="action-group">
-                                    <button class="action-btn" onclick="window.open('${repo.html_url}', '_blank')"><span class="btn-label">View</span><span class="btn-icon">&emsp;👁&emsp;</span></button>
+                                    <button class="action-btn" onclick="openRepoModal('${repo.owner?.login || ""}','${repo.name}', '${repo.html_url}')"><span class="btn-label">View</span><span class="btn-icon">&emsp;👁&emsp;</span></button>
                                     <button class="action-btn" onclick="window.analyzeRepo('${repo.name}')"><span class="btn-label">Analyze</span><span class="btn-icon">&emsp;⚡&emsp;</span></button>
                                     <button class="action-btn" onclick="window.deployGitHubPages('${repo.owner?.login || ""}','${repo.name}')"><span class="btn-label">Deploy</span><span class="btn-icon">&emsp;🚀&emsp;</span></button>
                                 </div>
@@ -1187,5 +1309,1080 @@
             }
         };
     </script>
+
+
+    <!-- ============================================ -->
+    <!-- REPOSITORY INFO MODAL                        -->
+    <!-- ============================================ -->
+
+    <!-- Modal Overlay -->
+    <div id="repo-info-modal" class="modal-overlay" style="display: none;">
+
+        <!-- Modal Container -->
+        <div class="modal-container">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <h2 class="modal-title" id="modal-repo-name">Repository Name</h2>
+                    <div class="modal-subtitle">
+                        <span id="modal-visibility-badge" class="visibility-badge public">Public</span>
+                        <span id="modal-repo-meta" class="modal-meta-text"></span>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeRepoModal()" title="Close">&times;</button>
+            </div>
+            <!-- Action Buttons Bar -->
+            <div class="modal-actions-bar">
+                <div class="action-btn-group">
+                    <button class="action-btn-group-item" id="btn-view-github" title="View on GitHub">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                        GitHub
+                    </button>
+                    <button class="action-btn-group-item" id="btn-actions" title="GitHub Actions">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        Actions
+                    </button>
+                    <button class="action-btn-group-item deploy-btn" id="btn-deploy-pages" title="Deploy to Pages">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Deploy
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="modal-loading" class="modal-loading">
+                <div class="loading-spinner"></div>
+                <p>Loading repository data...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="modal-error" class="modal-error" style="display: none;">
+                <span class="error-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </span>
+                <p id="modal-error-message">Failed to fetch data.</p>
+                <button class="retry-btn" onclick="retryFetchRepoInfo()">Retry</button>
+            </div>
+
+            <!-- Content Area (Sidebar + Tabs) -->
+            <div id="modal-content" class="modal-content-layout" style="display: none;">
+                
+                <div class="modal-sidebar">
+                    <button class="tab-btn active" data-tab="overview" onclick="scrollToSection('tab-overview')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Overview
+                    </button>
+                    <button class="tab-btn" data-tab="deployment" onclick="scrollToSection('tab-deployment')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Deployment Status
+                    </button>
+                    <button class="tab-btn" data-tab="languages" onclick="scrollToSection('tab-languages')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg> Languages
+                    </button>
+                    <button class="tab-btn" data-tab="techstack" onclick="scrollToSection('tab-techstack')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Tech Stack
+                    </button>
+                    <button class="tab-btn" data-tab="commits" onclick="scrollToSection('tab-commits')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><line x1="3" y1="12" x2="9" y2="12"></line><line x1="15" y1="12" x2="21" y2="12"></line></svg> Recent Commits
+                    </button>
+                    <button class="tab-btn" data-tab="contributors" onclick="scrollToSection('tab-contributors')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Contributors
+                    </button>
+                    <button class="tab-btn" data-tab="branches" onclick="scrollToSection('tab-branches')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg> Branches
+                    </button>
+                    <button class="tab-btn" data-tab="readme" onclick="scrollToSection('tab-readme')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> Readme
+                    </button>
+                </div>
+                
+                <div class="modal-main-content">
+                    <div class="tab-pane active" id="tab-overview">
+                        <div class="info-card no-border">
+                            <h3 class="card-title">
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span> Overview
+                            </h3>
+                            <div class="card-body" id="section-overview"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-deployment">
+                        <div class="info-card no-border">
+                            <h3 class="card-title">
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></span> Deployment Status
+                            </h3>
+                            <div class="card-body" id="section-deployment"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-languages">
+                        <div class="info-card no-border">
+                            <h3 class="card-title">
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></span> Languages
+                            </h3>
+                            <div class="card-body" id="section-languages"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-techstack">
+                        <div class="info-card no-border">
+                            <h3 class="card-title">
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></span> Tech Stack
+                            </h3>
+                            <div class="card-body" id="section-techstack"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-commits">
+                        <div class="info-card no-border">
+                            <h3 class="card-title">
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="3"></circle><line x1="3" y1="12" x2="9" y2="12"></line><line x1="15" y1="12" x2="21" y2="12"></line></svg></span> Recent Commits
+                            </h3>
+                            <div class="card-body" id="section-commits"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-contributors">
+                        <div class="info-card no-border">
+                            <h3 class="card-title">
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span> Contributors
+                            </h3>
+                            <div class="card-body" id="section-contributors"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-branches">
+                        <div class="info-card no-border">
+                            <h3 class="card-title">
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg></span> Branches
+                            </h3>
+                            <div class="card-body" id="section-branches"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-readme">
+                        <div class="info-card no-border">
+                            <h3 class="card-title">
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span> <span id="readme-filename">README.md</span>
+                            </h3>
+                            <div class="card-body readme-content" id="section-readme"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <span class="footer-info" id="modal-fetch-info"></span>
+                <span class="footer-errors" id="modal-errors-count"></span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal Styles -->
+    <style>
+        /* ====== MODAL OVERLAY ====== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ====== MODAL CONTAINER ====== */
+        .modal-container {
+            background: var(--surface-color);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        /* ====== MODAL HEADER ====== */
+        .modal-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--primary-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            position: relative;
+        }
+
+        .modal-title-section {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .modal-title {
+            font-family: 'Ubuntu', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .modal-subtitle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .visibility-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .visibility-badge.public {
+            background: var(--status-success-bg);
+            color: var(--status-success-text);
+        }
+
+        .visibility-badge.private {
+            background: var(--status-danger-bg);
+            color: var(--status-danger-text);
+        }
+
+        .modal-meta-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 44px;
+            height: 44px;
+            background: var(--surface-color);
+            border: none;
+            border-left: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 0 16px 0 12px;
+            font-size: 1.5rem;
+            line-height: 1;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .modal-close-btn:hover {
+            background: var(--status-danger-bg);
+            color: var(--status-danger-text);
+        }
+
+        .modal-actions-bar {
+            padding: 8px 28px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: var(--surface-color);
+            justify-content: flex-end;
+        }
+
+        .action-btn-group {
+            display: inline-flex;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--surface-color);
+        }
+
+        .action-btn-group-item {
+            background: transparent;
+            border: none;
+            border-right: 1px solid var(--border-color);
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .action-btn-group-item:last-child {
+            border-right: none;
+        }
+
+        .action-btn-group-item:hover {
+            background: var(--primary-hover);
+        }
+
+        .action-btn-group-item.deploy-btn {
+            background: var(--primary-color);
+            color: var(--bg-color);
+            border-right: none;
+        }
+
+        .action-btn-group-item.deploy-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* ====== LOADING STATE ====== */
+        .modal-loading {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            gap: 20px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .modal-loading p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* ====== ERROR STATE ====== */
+        .modal-error {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .error-icon {
+            font-size: 3rem;
+        }
+
+        .modal-error p {
+            color: var(--status-danger-text);
+            font-size: 1rem;
+            max-width: 400px;
+        }
+
+        .retry-btn {
+            padding: 10px 24px;
+            background: var(--primary-color);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .retry-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        /* ====== MODAL CONTENT LAYOUT (SIDEBAR & TABS) ====== */
+        .modal-content-layout {
+            display: flex;
+            flex-direction: row;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .modal-sidebar {
+            width: 240px;
+            background: var(--primary-light);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            text-align: left;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.7;
+        }
+
+        .tab-btn:hover {
+            background: var(--primary-hover);
+            color: var(--text-color);
+        }
+
+        .tab-btn.active {
+            background: var(--surface-color);
+            color: var(--text-color);
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-btn.active svg {
+            opacity: 1;
+            color: var(--primary-color);
+        }
+
+        .modal-main-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: var(--bg-color);
+        }
+
+        .tab-pane {
+            display: block;
+            margin-bottom: 24px;
+            scroll-margin-top: 24px;
+        }
+
+        .tab-pane:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .info-card.no-border {
+            border: none;
+            box-shadow: none;
+            background: transparent;
+        }
+
+        .info-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-title {
+            padding: 16px 20px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-color);
+            background: var(--primary-light);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Ubuntu', sans-serif;
+        }
+
+        .card-title.collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapse-icon {
+            margin-left: auto;
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .collapse-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .title-icon {
+            font-size: 1.1rem;
+        }
+
+        .card-body {
+            padding: 20px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .collapsible-content {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        /* ====== SECTION-SPECIFIC STYLES ====== */
+
+        /* Overview Section */
+        .overview-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .overview-item:last-child {
+            border-bottom: none;
+        }
+
+        .overview-label {
+            font-weight: 600;
+            color: var(--text-muted);
+            min-width: 120px;
+        }
+
+        .overview-value {
+            color: var(--text-color);
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .stat-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: var(--primary-light);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .topic-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #0366d6;
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin: 2px 4px 2px 0;
+        }
+
+        /* Deployment Section */
+        .deployment-status-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--primary-light);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-indicator.success {
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
+
+        .status-indicator.error {
+            background: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+
+        .status-indicator.warning {
+            background: #f59e0b;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+        }
+
+        .status-indicator.neutral {
+            background: var(--text-muted);
+        }
+
+        .deployment-url {
+            color: #0366d6;
+            text-decoration: none;
+            word-break: break-all;
+            font-weight: 500;
+        }
+
+        .deployment-url:hover {
+            text-decoration: underline;
+        }
+
+        .platform-detection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .platform-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: var(--primary-light);
+            color: var(--text-muted);
+        }
+
+        .platform-badge.detected {
+            background: var(--status-success-bg);
+            color: var(--status-success-text);
+        }
+
+        /* Languages Section */
+        .language-bar-container {
+            margin-bottom: 12px;
+        }
+
+        .language-bar-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+
+        .language-name {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .language-percentage {
+            color: var(--text-muted);
+        }
+
+        .language-bar {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .language-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Tech Stack Section */
+        .tech-stack-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .tech-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .tech-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tech-value {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .confidence-high {
+            background: var(--status-success-bg);
+            color: var(--status-success-text);
+        }
+
+        .confidence-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        [data-theme="dark"] .confidence-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .confidence-low {
+            background: var(--status-danger-bg);
+            color: var(--status-danger-text);
+        }
+
+        /* Commits Section */
+        .commit-item {
+            padding: 12px;
+            background: var(--primary-light);
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .commit-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .commit-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .commit-sha {
+            font-family: monospace;
+            font-size: 0.8rem;
+            background: var(--border-color);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        .commit-author-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .commit-author-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-color);
+        }
+
+        .commit-message {
+            color: var(--text-color);
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .commit-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Contributors Section */
+        .contributor-item {
+            display: flex;
+            align-items: stretch;
+            background: var(--primary-light);
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--primary-color);
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .contributor-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .contributor-avatar {
+            width: 48px;
+            height: auto;
+            border-radius: 0;
+            object-fit: cover;
+        }
+
+        .contributor-info {
+            flex: 1;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .contributor-name {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .contributor-stats {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .contributor-percentage {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1rem;
+            min-width: 45px;
+            text-align: right;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Branches Section */
+        .branch-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            background: var(--primary-light);
+        }
+
+        .branch-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .branch-item.default-branch {
+            background: var(--status-success-bg);
+            border: 1px solid var(--status-success-text);
+        }
+
+        .branch-icon {
+            font-size: 1rem;
+        }
+
+        .branch-name {
+            font-weight: 600;
+            color: var(--text-color);
+            flex: 1;
+            font-family: monospace;
+        }
+
+        .branch-sha {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .default-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            background: var(--status-success-text);
+            color: white;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* README Section */
+        .readme-content {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.7;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #ffffff;
+            color: #24292e;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        [data-theme="dark"] .readme-content {
+            background: #1a1a1a;
+            color: #c9d1d9;
+        }
+
+        .readme-content h1,
+        .readme-content h2,
+        .readme-content h3 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+        }
+
+        .readme-content code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        [data-theme="dark"] .readme-content code {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .readme-content pre {
+            background: #f6f8fa;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+
+        [data-theme="dark"] .readme-content pre {
+            background: #161b22;
+        }
+
+        .readme-content ul,
+        .readme-content ol {
+            padding-left: 2em;
+            margin: 0.5em 0;
+        }
+
+        .readme-content blockquote {
+            border-left: 4px solid var(--border-color);
+            padding-left: 16px;
+            margin: 12px 0;
+            color: var(--text-muted);
+        }
+
+        .readme-content a {
+            color: #0969da;
+            text-decoration: none;
+        }
+
+        .readme-content a:hover {
+            text-decoration: underline;
+        }
+
+        /* ====== MODAL FOOTER ====== */
+        .modal-footer {
+            padding: 12px 28px;
+            border-top: 1px solid var(--border-color);
+            background: var(--primary-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .footer-errors {
+            color: var(--status-danger-text);
+            font-weight: 600;
+        }
+
+        /* ====== RESPONSIVE DESIGN ====== */
+        @media (max-width: 900px) {
+            .modal-content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-stack-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-container {
+                width: 95%;
+                max-height: 95vh;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .modal-header {
+                padding: 16px 20px;
+            }
+
+            .modal-title {
+                font-size: 1.4rem;
+            }
+
+            .modal-actions-bar {
+                padding: 12px 20px;
+            }
+
+            .action-btn-primary,
+            .action-btn-secondary {
+                padding: 8px 14px;
+                font-size: 0.85rem;
+            }
+
+            .modal-content-grid {
+                padding: 16px;
+                gap: 16px;
+            }
+
+            .card-body {
+                padding: 16px;
+            }
+        }
+    </style>
+
+    <script src="../js/app-shell.js"></script>
+    <script src="../js/repositories.js"></script>
 </body>
+
 </html>
