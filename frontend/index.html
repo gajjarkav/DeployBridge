@@ -1,10 +1,414 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="light">
 <head>
-    <title>DeployBridge</title>
-    <link rel="stylesheet" href="static/css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeployBridge - Ship Code Faster</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <script>
+        const savedTheme = localStorage.getItem('db_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: ['class', '[data-theme="dark"]'],
+            theme: {
+                extend: {
+                    colors: {
+                        db_bg: 'var(--bg-color)',
+                        db_surface: 'var(--surface-color)',
+                        db_surface_alt: 'var(--surface-color-alt)',
+                        db_text: 'var(--text-color)',
+                        db_muted: 'var(--text-muted)',
+                        db_primary: 'var(--primary-color)',
+                        db_border: 'var(--border-color)',
+                        db_group: 'var(--group-bg)',
+                    },
+                    fontFamily: {
+                        ubuntu: ['Ubuntu', 'sans-serif'],
+                        gothic: ['"Montenegrin Gothic One"', 'serif'],
+                    },
+                    boxShadow: {
+                        'db-sm': 'var(--shadow-sm)',
+                        'db-md': 'var(--shadow-md)',
+                        'db-lg': 'var(--shadow-lg)',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: 0, transform: 'translateY(30px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
+        @import url('https://fonts.googleapis.com/css2?family=Montenegrin+Gothic+One&display=swap');
+
+        :root {
+            --bg-color: #f5f5dc; 
+            --surface-color: #ffffff;
+            --surface-color-alt: #fcfcfc;
+            --text-color: #000000;
+            --text-muted: #666666;
+            --primary-color: #000000; 
+            --primary-light: rgba(0, 0, 0, 0.03);
+            --primary-hover: rgba(0, 0, 0, 0.08);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --border-light: rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
+            --grid-color: rgba(0, 0, 0, 0.05);
+            --group-bg: rgba(255, 255, 255, 0.4);
+            
+            --gradient-start: #3b82f6;
+            --gradient-end: #8b5cf6;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0a0a0a; 
+            --surface-color: #121212;
+            --surface-color-alt: #181818;
+            --text-color: #f5f5dc; 
+            --text-muted: #a0a090;
+            --primary-color: #f5f5dc; 
+            --primary-light: rgba(245, 245, 220, 0.05);
+            --primary-hover: rgba(245, 245, 220, 0.14);
+            --border-color: rgba(245, 245, 220, 0.12);
+            --border-light: rgba(245, 245, 220, 0.08);
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.6);
+            --shadow-lg: 0 25px 50px rgba(0, 0, 0, 0.8);
+            --grid-color: rgba(245, 245, 220, 0.05);
+            --group-bg: rgba(18, 18, 18, 0.5);
+
+            --gradient-start: #60a5fa;
+            --gradient-end: #a78bfa;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s ease;
+            background-image: 
+                linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
+            background-size: 55px 55px;
+            background-attachment: fixed;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: var(--group-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Text Gradients */
+        .text-gradient {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Theme Toggle Styling */
+        .themeToggle { color: var(--primary-color); width: 22px; height: 22px; }
+        .st-sunMoonThemeToggleBtn { position: relative; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .st-sunMoonThemeToggleBtn .themeToggleInput { opacity: 0; width: 100%; aspect-ratio: 1; position: absolute; cursor: pointer; z-index: 10; }
+        .st-sunMoonThemeToggleBtn svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transition: transform 0.4s; transform: rotate(40deg); }
+        .st-sunMoonThemeToggleBtn svg .sunMoon { transform-origin: center; transition: inherit; transform: scale(1); }
+        .st-sunMoonThemeToggleBtn svg .sunRay { transform-origin: center; transform: scale(0); }
+        .st-sunMoonThemeToggleBtn svg mask>circle { transition: transform 0.64s cubic-bezier(.41,.64,.32,1.575); transform: translate(0,0); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg { transform: rotate(90deg); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg mask>circle { transform: translate(16px,-3px); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunMoon { transform: scale(.55); }
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunRay { animation: showRay1832 .4s ease forwards; }
+        @keyframes showRay1832 { from { transform: scale(0); } to { transform: scale(1); } }
+        
+        ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+        ::view-transition-new(root) { z-index: 9999; }
+
+        /* Animation Delays */
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+    </style>
 </head>
-<body>
-    <a href="templates/auth.html">Go to Authentication page</a>
+<body class="font-ubuntu min-h-screen flex flex-col antialiased selection:bg-db_primary selection:text-db_bg">
+
+    <header class="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
+        <nav class="w-full max-w-5xl glass-panel px-6 py-3.5 rounded-full flex items-center justify-between shadow-db-md border border-db_border backdrop-blur-xl">
+            
+            <!-- Brand -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="font-gothic text-2xl text-db_primary transition-transform group-hover:scale-105">DB</div>
+                <div class="flex flex-col justify-center">
+                    <strong class="text-[16px] font-bold leading-tight tracking-tight">DeployBridge</strong>
+                </div>
+            </a>
+
+            <!-- Nav Links (Desktop) -->
+            <div class="hidden md:flex items-center gap-8 font-semibold text-[14px] text-db_muted">
+                <a href="#features" class="hover:text-db_primary transition-colors">Features</a>
+                <a href="#how-it-works" class="hover:text-db_primary transition-colors">How it Works</a>
+                <a href="#docs" class="hover:text-db_primary transition-colors">Documentation</a>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-4">
+                <!-- Theme Toggle -->
+                <label for="themeToggle" class="themeToggle st-sunMoonThemeToggleBtn hover:opacity-80 transition-opacity">
+                    <input type="checkbox" id="themeToggle" class="themeToggleInput" aria-label="Toggle Theme" />
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" stroke="none">
+                        <mask id="moon-mask">
+                            <rect x="0" y="0" width="20" height="20" fill="white"></rect>
+                            <circle cx="11" cy="3" r="8" fill="black"></circle>
+                        </mask>
+                        <circle class="sunMoon" cx="10" cy="10" r="8" mask="url(#moon-mask)"></circle>
+                        <g>
+                            <circle class="sunRay" cx="18" cy="10" r="1.5"></circle>
+                            <circle class="sunRay" cx="14" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay" cx="6" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay" cx="2" cy="10" r="1.5"></circle>
+                            <circle class="sunRay" cx="6" cy="3.1718" r="1.5"></circle>
+                            <circle class="sunRay" cx="14" cy="3.1718" r="1.5"></circle>
+                        </g>
+                    </svg>
+                </label>
+
+                <!-- Auth Button -->
+                <a href="templates/auth.html" class="hidden sm:flex items-center justify-center px-5 py-2 bg-db_primary text-db_bg font-bold text-sm rounded-full hover:-translate-y-0.5 shadow-db-sm hover:shadow-db-md transition-all duration-300">
+                    Control Room
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow pt-40 pb-20 px-6 overflow-hidden relative">
+        <!-- Ambient Glow behind hero -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-[100px] -z-10 pointer-events-none opacity-50 dark:opacity-30"></div>
+
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-8 pt-10">
+            
+            <!-- Hero Copy -->
+            <div class="flex-1 text-center lg:text-left z-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-db_border glass-panel text-sm font-bold text-db_muted uppercase tracking-wider mb-6 opacity-0 animate-fade-in-up">
+                    <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                    v2.0 is now live
+                </div>
+                
+                <h1 class="text-5xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight opacity-0 animate-fade-in-up delay-100">
+                    Ship code faster, <br class="hidden lg:block"/>
+                    <span class="text-gradient">together.</span>
+                </h1>
+                
+                <p class="text-lg lg:text-xl text-db_muted mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed opacity-0 animate-fade-in-up delay-200">
+                    Seamlessly connect your GitHub repositories, analyze build structures, and execute automated deployments to your preferred environments in seconds.
+                </p>
+                
+                <div class="inline-flex items-center w-full max-w-lg p-1.5 rounded-full border border-db_border glass-panel shadow-db-md hover:shadow-db-lg transition-all duration-300 opacity-0 animate-fade-in-up delay-300">
+                    <a href="templates/auth.html" class="w-[60%] sm:w-[62%] py-3.5 px-5 bg-db_primary text-db_bg font-bold text-sm sm:text-base md:text-lg rounded-full flex items-center justify-center gap-2 hover:opacity-90 transition-all group">
+                        <span>Get Started Free</span>
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </a>
+                    
+                    <!-- Single line partition divider -->
+                    <div class="h-7 sm:h-8 w-[1px] bg-db_border mx-1 flex-shrink-0"></div>
+                    
+                    <a href="#docs" class="flex-1 py-3.5 px-4 text-db_text font-bold text-sm sm:text-base md:text-lg rounded-full flex items-center justify-center hover:bg-db_primary/10 transition-all text-center whitespace-nowrap">
+                        Read Docs
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hero Visual (Abstract Dashboard/Code Snippet) -->
+            <div class="flex-1 w-full max-w-lg lg:max-w-none opacity-0 animate-fade-in-up delay-300 perspective-1000">
+                <div class="relative w-full aspect-square md:aspect-[4/3] animate-float">
+                    <!-- Base Window -->
+                    <div class="absolute inset-0 glass-panel rounded-2xl shadow-db-lg overflow-hidden border border-[rgba(255,255,255,0.2)] dark:border-[rgba(255,255,255,0.05)] flex flex-col">
+                        <!-- Mac-style Window Header -->
+                        <div class="h-10 border-b border-db_border bg-db_surface/50 flex items-center px-4 gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                        </div>
+                        <!-- Fake Code / Status Area -->
+                        <div class="flex-1 p-6 font-mono text-sm leading-relaxed overflow-hidden bg-db_surface_alt">
+                            <div class="flex gap-2 text-db_muted mb-2">
+                                <span class="text-blue-500">➜</span>
+                                <span>~</span>
+                                <span class="text-db_text">deploybridge init</span>
+                            </div>
+                            <div class="text-db_text mb-4">Scanning repository configuration...</div>
+                            
+                            <div class="space-y-3 mb-6">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <span class="text-db_muted">Detected: React framework</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <span class="text-db_muted">CI/CD pipeline authenticated</span>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 text-db_muted mb-2">
+                                <span class="text-blue-500">➜</span>
+                                <span>~</span>
+                                <span class="text-db_text">deploybridge ship</span>
+                            </div>
+                            <div class="flex items-center gap-3 mt-4 p-3 border border-db_border rounded-lg bg-green-500/10">
+                                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                <span class="text-green-600 dark:text-green-400 font-semibold">Deployment live at app.deploybridge.dev</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating decorative card -->
+                    <div class="absolute -right-8 -bottom-8 w-48 glass-panel p-4 rounded-xl shadow-db-lg border border-db_border">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                            <div class="font-bold text-sm">Deploy Time</div>
+                        </div>
+                        <div class="text-2xl font-gothic text-db_primary">1.2s</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section id="features" class="py-24 border-t border-db_border relative z-10 bg-db_surface">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">Everything you need to ship.</h2>
+                <p class="text-lg text-db_muted max-w-2xl mx-auto">Stop worrying about infrastructure. Focus on writing great code and let our pipelines handle the rest.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass-panel p-8 rounded-2xl hover:shadow-db-md transition-shadow group">
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-db_text">Smart Analysis</h3>
+                    <p class="text-db_muted leading-relaxed">Automatically detect your framework, dependencies, and build scripts. Zero configuration required for most modern stacks.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass-panel p-8 rounded-2xl hover:shadow-db-md transition-shadow group">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-db_text">One-Click Deploy</h3>
+                    <p class="text-db_muted leading-relaxed">Push to GitHub and watch it go live. DeployBridge hooks into your Git workflow to trigger deployments automatically.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass-panel p-8 rounded-2xl hover:shadow-db-md transition-shadow group">
+                    <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-db_text">Secure Environments</h3>
+                    <p class="text-db_muted leading-relaxed">Manage secrets, configure custom domains, and enforce branch protections from a single, unified control room.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 relative z-10">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-5xl font-bold mb-6">Ready to cross the bridge?</h2>
+            <p class="text-lg text-db_muted mb-10">Join thousands of developers deploying faster and more reliably.</p>
+            <a href="templates/auth.html" class="inline-flex items-center justify-center px-10 py-5 bg-db_primary text-db_bg text-xl font-bold rounded-2xl hover:-translate-y-1 shadow-db-md hover:shadow-db-lg transition-all duration-300">
+                Start Deploying Now
+            </a>
+        </div>
+    </section>
+
+    <footer class="border-t border-db_border bg-db_surface_alt py-12 relative z-10">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <div class="font-gothic text-2xl text-db_primary">DB</div>
+                <span class="text-db_muted font-semibold">© 2026 DeployBridge Inc.</span>
+            </div>
+            
+            <div class="flex items-center gap-6 text-sm font-semibold text-db_muted">
+                <a href="#" class="hover:text-db_primary transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-db_primary transition-colors">Terms of Service</a>
+                <a href="#" class="hover:text-db_primary transition-colors">Twitter</a>
+                <a href="#" class="hover:text-db_primary transition-colors">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const themeToggle = document.getElementById("themeToggle");
+        
+        if (themeToggle) {
+            themeToggle.checked = document.documentElement.getAttribute('data-theme') === 'dark';
+        }
+
+        themeToggle.addEventListener("change", () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const nextTheme = isDark ? 'light' : 'dark';
+            themeToggle.checked = nextTheme === "dark";
+
+            localStorage.setItem('db_theme', nextTheme);
+
+            if (!document.startViewTransition) {
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                return;
+            }
+
+            const rect = themeToggle.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            const endRadius = Math.hypot(
+                Math.max(x, window.innerWidth - x),
+                Math.max(y, window.innerHeight - y)
+            );
+
+            const transition = document.startViewTransition(() => {
+                document.documentElement.setAttribute('data-theme', nextTheme);
+            });
+
+            transition.ready.then(() => {
+                document.documentElement.animate(
+                    {
+                        clipPath: [
+                            `circle(0px at ${x}px ${y}px)`,
+                            `circle(${endRadius}px at ${x}px ${y}px)`
+                        ]
+                    },
+                    {
+                        duration: 550,
+                        easing: "ease-in-out",
+                        pseudoElement: "::view-transition-new(root)",
+                    }
+                );
+            });
+        });
+    </script>
 </body>
 </html>
