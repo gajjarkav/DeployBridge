@@ -37,20 +37,6 @@
                         'db-sm': 'var(--shadow-sm)',
                         'db-md': 'var(--shadow-md)',
                         'db-lg': 'var(--shadow-lg)',
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-20px)' },
-                        },
-                        fadeInUp: {
-                            '0%': { opacity: 0, transform: 'translateY(30px)' },
-                            '100%': { opacity: 1, transform: 'translateY(0)' },
-                        }
                     }
                 }
             }
@@ -146,11 +132,6 @@
         
         ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
         ::view-transition-new(root) { z-index: 9999; }
-
-        /* Animation Delays */
-        .delay-100 { animation-delay: 100ms; }
-        .delay-200 { animation-delay: 200ms; }
-        .delay-300 { animation-delay: 300ms; }
     </style>
 </head>
 <body class="font-ubuntu min-h-screen flex flex-col antialiased selection:bg-db_primary selection:text-db_bg">
@@ -159,8 +140,8 @@
         <nav class="w-full max-w-5xl glass-panel px-6 py-3.5 rounded-full flex items-center justify-between shadow-db-md border border-db_border backdrop-blur-xl">
             
             <!-- Brand -->
-            <a href="#" class="flex items-center gap-3 group">
-                <div class="font-gothic text-2xl text-db_primary transition-transform group-hover:scale-105">DB</div>
+            <a href="#" class="flex items-center gap-3">
+                <div class="font-gothic text-2xl text-db_primary">DB</div>
                 <div class="flex flex-col justify-center">
                     <strong class="text-[16px] font-bold leading-tight tracking-tight">DeployBridge</strong>
                 </div>
@@ -196,7 +177,7 @@
                 </label>
 
                 <!-- Auth Button -->
-                <a href="templates/auth.html" class="hidden sm:flex items-center justify-center px-5 py-2 bg-db_primary text-db_bg font-bold text-sm rounded-full hover:-translate-y-0.5 shadow-db-sm hover:shadow-db-md transition-all duration-300">
+                <a href="templates/auth.html" class="hidden sm:flex items-center justify-center px-5 py-2 bg-db_primary text-db_bg font-bold text-sm rounded-full shadow-db-sm hover:shadow-db-md transition-shadow duration-300">
                     Control Room
                 </a>
             </div>
@@ -211,38 +192,35 @@
             
             <!-- Hero Copy -->
             <div class="flex-1 text-center lg:text-left z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-db_border glass-panel text-sm font-bold text-db_muted uppercase tracking-wider mb-6 opacity-0 animate-fade-in-up">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-db_border glass-panel text-sm font-bold text-db_muted uppercase tracking-wider mb-6">
                     <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
                     v2.0 is now live
                 </div>
                 
-                <h1 class="text-5xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight opacity-0 animate-fade-in-up delay-100">
+                <h1 class="text-5xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight">
                     Ship code faster, <br class="hidden lg:block"/>
                     <span class="text-gradient">together.</span>
                 </h1>
                 
-                <p class="text-lg lg:text-xl text-db_muted mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed opacity-0 animate-fade-in-up delay-200">
+                <p class="text-lg lg:text-xl text-db_muted mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
                     Seamlessly connect your GitHub repositories, analyze build structures, and execute automated deployments to your preferred environments in seconds.
                 </p>
                 
-                <div class="inline-flex items-center w-full max-w-lg p-1.5 rounded-full border border-db_border glass-panel shadow-db-md hover:shadow-db-lg transition-all duration-300 opacity-0 animate-fade-in-up delay-300">
-                    <a href="templates/auth.html" class="w-[60%] sm:w-[62%] py-3.5 px-5 bg-db_primary text-db_bg font-bold text-sm sm:text-base md:text-lg rounded-full flex items-center justify-center gap-2 hover:opacity-90 transition-all group">
+                <div class="inline-flex items-stretch w-full max-w-[420px] rounded-full border border-db_border glass-panel shadow-db-sm hover:shadow-db-md transition-shadow duration-300 overflow-hidden divide-x divide-db_border">
+                    <a href="templates/auth.html" class="flex-[1.5] py-4 px-6 bg-db_primary text-db_bg font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
                         <span>Get Started Free</span>
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </a>
                     
-                    <!-- Single line partition divider -->
-                    <div class="h-7 sm:h-8 w-[1px] bg-db_border mx-1 flex-shrink-0"></div>
-                    
-                    <a href="#docs" class="flex-1 py-3.5 px-4 text-db_text font-bold text-sm sm:text-base md:text-lg rounded-full flex items-center justify-center hover:bg-db_primary/10 transition-all text-center whitespace-nowrap">
+                    <a href="#docs" class="flex-1 py-4 px-6 text-db_text font-semibold text-sm flex items-center justify-center hover:bg-db_primary/5 transition-colors text-center whitespace-nowrap bg-transparent">
                         Read Docs
                     </a>
                 </div>
             </div>
 
             <!-- Hero Visual (Abstract Dashboard/Code Snippet) -->
-            <div class="flex-1 w-full max-w-lg lg:max-w-none opacity-0 animate-fade-in-up delay-300 perspective-1000">
-                <div class="relative w-full aspect-square md:aspect-[4/3] animate-float">
+            <div class="flex-1 w-full max-w-lg lg:max-w-none perspective-1000">
+                <div class="relative w-full aspect-square md:aspect-[4/3]">
                     <!-- Base Window -->
                     <div class="absolute inset-0 glass-panel rounded-2xl shadow-db-lg overflow-hidden border border-[rgba(255,255,255,0.2)] dark:border-[rgba(255,255,255,0.05)] flex flex-col">
                         <!-- Mac-style Window Header -->
@@ -277,7 +255,7 @@
                                 <span class="text-db_text">deploybridge ship</span>
                             </div>
                             <div class="flex items-center gap-3 mt-4 p-3 border border-db_border rounded-lg bg-green-500/10">
-                                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                <div class="w-2 h-2 rounded-full bg-green-500"></div>
                                 <span class="text-green-600 dark:text-green-400 font-semibold">Deployment live at app.deploybridge.dev</span>
                             </div>
                         </div>
@@ -300,37 +278,46 @@
 
     <section id="features" class="py-24 border-t border-db_border relative z-10 bg-db_surface">
         <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-5xl font-bold mb-4">Everything you need to ship.</h2>
-                <p class="text-lg text-db_muted max-w-2xl mx-auto">Stop worrying about infrastructure. Focus on writing great code and let our pipelines handle the rest.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Feature 1 -->
-                <div class="glass-panel p-8 rounded-2xl hover:shadow-db-md transition-shadow group">
-                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-6 group-hover:scale-110 transition-transform">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3 text-db_text">Smart Analysis</h3>
-                    <p class="text-db_muted leading-relaxed">Automatically detect your framework, dependencies, and build scripts. Zero configuration required for most modern stacks.</p>
+            <div class="glass-panel rounded-3xl overflow-hidden shadow-db-lg border border-db_border">
+                
+                <!-- Unified Header Area -->
+                <div class="text-center px-8 py-16 border-b border-db_border relative overflow-hidden">
+                    <!-- Subtle glow effect inside the header -->
+                    <div class="absolute inset-0 bg-gradient-to-b from-db_primary/5 to-transparent pointer-events-none"></div>
+                    <h2 class="text-3xl md:text-5xl font-bold mb-6 relative z-10">Everything you need to ship.</h2>
+                    <p class="text-lg text-db_muted max-w-2xl mx-auto relative z-10 leading-relaxed">Stop worrying about infrastructure. Focus on writing great code and let our pipelines handle the rest.</p>
                 </div>
 
-                <!-- Feature 2 -->
-                <div class="glass-panel p-8 rounded-2xl hover:shadow-db-md transition-shadow group">
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-6 group-hover:scale-110 transition-transform">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                <!-- Three-Column Partition Area -->
+                <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-db_border">
+                    
+                    <!-- Feature 1 -->
+                    <div class="p-10 lg:p-12 transition-colors duration-200 hover:bg-db_primary/5">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-8 shadow-inner">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4 text-db_text tracking-tight">Smart Analysis</h3>
+                        <p class="text-db_muted leading-relaxed font-medium">Automatically detect your framework, dependencies, and build scripts. Zero configuration required for most modern stacks.</p>
                     </div>
-                    <h3 class="text-xl font-bold mb-3 text-db_text">One-Click Deploy</h3>
-                    <p class="text-db_muted leading-relaxed">Push to GitHub and watch it go live. DeployBridge hooks into your Git workflow to trigger deployments automatically.</p>
-                </div>
 
-                <!-- Feature 3 -->
-                <div class="glass-panel p-8 rounded-2xl hover:shadow-db-md transition-shadow group">
-                    <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 mb-6 group-hover:scale-110 transition-transform">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <!-- Feature 2 -->
+                    <div class="p-10 lg:p-12 transition-colors duration-200 hover:bg-db_primary/5">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-8 shadow-inner">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4 text-db_text tracking-tight">One-Click Deploy</h3>
+                        <p class="text-db_muted leading-relaxed font-medium">Push to GitHub and watch it go live. DeployBridge hooks into your Git workflow to trigger deployments automatically.</p>
                     </div>
-                    <h3 class="text-xl font-bold mb-3 text-db_text">Secure Environments</h3>
-                    <p class="text-db_muted leading-relaxed">Manage secrets, configure custom domains, and enforce branch protections from a single, unified control room.</p>
+
+                    <!-- Feature 3 -->
+                    <div class="p-10 lg:p-12 transition-colors duration-200 hover:bg-db_primary/5">
+                        <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 mb-8 shadow-inner">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-4 text-db_text tracking-tight">Secure Environments</h3>
+                        <p class="text-db_muted leading-relaxed font-medium">Manage secrets, configure custom domains, and enforce branch protections from a single, unified control room.</p>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -340,7 +327,7 @@
         <div class="max-w-4xl mx-auto px-6 text-center">
             <h2 class="text-3xl md:text-5xl font-bold mb-6">Ready to cross the bridge?</h2>
             <p class="text-lg text-db_muted mb-10">Join thousands of developers deploying faster and more reliably.</p>
-            <a href="templates/auth.html" class="inline-flex items-center justify-center px-10 py-5 bg-db_primary text-db_bg text-xl font-bold rounded-2xl hover:-translate-y-1 shadow-db-md hover:shadow-db-lg transition-all duration-300">
+            <a href="templates/auth.html" class="inline-flex items-center justify-center px-10 py-5 bg-db_primary text-db_bg text-xl font-bold rounded-2xl shadow-db-md hover:shadow-db-lg transition-shadow duration-300">
                 Start Deploying Now
             </a>
         </div>

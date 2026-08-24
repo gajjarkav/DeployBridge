@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
@@ -9,9 +10,12 @@ from ...models.user import User
 from ...schemas.user import UserProfileResponse, UserDeployBranchUpdate
 from ...services.github import GitHubService
 from ...core.config import get_settings
+from ...core.constants import const
+from ...core.logger import logger
 
 
 settings = get_settings()
+constant = const()
 
 router = APIRouter()
 
@@ -95,38 +99,77 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
 
 
 def _extract_bearer_token(authorization: str | None) -> str:
+    """
+    parse the "Authorization: Bearer <token>" header.
+    returns the raw token string on success.
+    raise 401 with a WWW-Authenticate response header (RFC 6750) on failure.
+    """
+    
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing or invalid Authorization header.",
+            headers={"WWW-Authenticate": 'Bearer realm="DeployBridge'},
         )
 
     return authorization.split(" ", 1)[1]
 
+def _hash_token_for_logging(token: str) -> str:
+    """
+    returna truncated SHA-256 hex digest of the token for safe logging.
+    we log this on aith rejection so the team can correlate repeat offenders
+    and detect brute-force patterns, Without leaking the raw token into
+    log aggregators / dashboards / crash dumps.
+    """
+
+    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    return digest[:12]
 
 async def get_current_user_by_token(
     db: AsyncSession,
     authorization: str | None,
 ) -> User:
+    """
+    resolve the caller to a real user row from the database.
+    contract:
+        - the 'Authorization' header must be 'Bearer <toke>'
+        - <token> must math a stored User.github_token in the database
+        - otherwise: HTTP 401
+    
+    important: there is no fallback path. earlier versions fabricated a ghost User(github_id=0) for any token 
+    longer than 5 chars, which let anonymous callers bypass authentication on every endpoint that depends on this function.
+    that escape hatch has been removed deliberately
+    """
+
     token = _extract_bearer_token(authorization)
+
+    if len(token) < constant.MIN_TOKEN_LENGTH:
+        logger.warning(
+            "auth.rejected reason=too_short token_hash=%s len=%d",
+            _hash_token_for_logging(token),
+            len(token),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session token",
+            headers={"WWW-Authenticate": 'Bearer realm="DeployBridge"'},
+        )
 
     query = select(User).where(User.github_token == token)
     result = await db.execute(query)
     db_user = result.scalar_one_or_none()
 
-    if not db_user:
-        if token and len(token) > 5:
-            # Fallback for tokens directly supplied via frontend localStorage
-            db_user = User(
-                github_id=0,
-                username="GitHub User",
-                github_token=token,
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired session token.",
-            )
+
+    if db_user is None:
+        logger.warning(
+            "auth.rejected reason=no_match token_hash=%s",
+            _hash_token_for_logging(token),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session token",
+            headers={"WWW-Authenticate": 'Bearer realm="DeployBridge"'},
+        )
 
     return db_user
 
