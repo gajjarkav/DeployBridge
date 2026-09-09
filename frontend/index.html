@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeployBridge - Ship Code Faster</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
+
     <script>
         const savedTheme = localStorage.getItem('db_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
@@ -48,12 +49,12 @@
         @import url('https://fonts.googleapis.com/css2?family=Montenegrin+Gothic+One&display=swap');
 
         :root {
-            --bg-color: #f5f5dc; 
+            --bg-color: #f5f5dc;
             --surface-color: #ffffff;
             --surface-color-alt: #fcfcfc;
             --text-color: #000000;
             --text-muted: #666666;
-            --primary-color: #000000; 
+            --primary-color: #000000;
             --primary-light: rgba(0, 0, 0, 0.03);
             --primary-hover: rgba(0, 0, 0, 0.08);
             --border-color: rgba(0, 0, 0, 0.1);
@@ -63,18 +64,18 @@
             --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
             --grid-color: rgba(0, 0, 0, 0.05);
             --group-bg: rgba(255, 255, 255, 0.4);
-            
+
             --gradient-start: #3b82f6;
             --gradient-end: #8b5cf6;
         }
 
         [data-theme="dark"] {
-            --bg-color: #0a0a0a; 
+            --bg-color: #0a0a0a;
             --surface-color: #121212;
             --surface-color-alt: #181818;
-            --text-color: #f5f5dc; 
+            --text-color: #f5f5dc;
             --text-muted: #a0a090;
-            --primary-color: #f5f5dc; 
+            --primary-color: #f5f5dc;
             --primary-light: rgba(245, 245, 220, 0.05);
             --primary-hover: rgba(245, 245, 220, 0.14);
             --border-color: rgba(245, 245, 220, 0.12);
@@ -93,11 +94,81 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s ease;
-            background-image: 
+            background-image:
                 linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
                 linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
             background-size: 55px 55px;
+            background-position: center top;
             background-attachment: fixed;
+        }
+
+        /* Seamless Background Color Transition */
+        .blend-hero-to-features-bg {
+            background: linear-gradient(to bottom, var(--bg-color) 0%, var(--surface-color) 100%);
+        }
+
+        .blend-features-to-cta-bg {
+            background: linear-gradient(to bottom, var(--surface-color) 0%, var(--bg-color) 100%);
+        }
+
+        /* Hero to Features: Grid checks unevenly dissolve and disappear into next section */
+        .grid-blend-down {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
+            background-size: 55px 55px;
+            background-position: center top;
+            background-attachment: fixed;
+            -webkit-mask-image:
+                linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 15%, transparent 92%),
+                radial-gradient(ellipse 260px 140px at 12% 58%, rgba(0, 0, 0, 0.95) 10%, transparent 85%),
+                radial-gradient(ellipse 340px 180px at 28% 86%, rgba(0, 0, 0, 1) 15%, transparent 92%),
+                radial-gradient(ellipse 230px 120px at 43% 46%, rgba(0, 0, 0, 0.85) 10%, transparent 80%),
+                radial-gradient(ellipse 400px 200px at 60% 90%, rgba(0, 0, 0, 1) 20%, transparent 92%),
+                radial-gradient(ellipse 270px 140px at 77% 60%, rgba(0, 0, 0, 0.9) 15%, transparent 85%),
+                radial-gradient(ellipse 350px 170px at 92% 84%, rgba(0, 0, 0, 0.95) 15%, transparent 90%);
+            mask-image:
+                linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 15%, transparent 92%),
+                radial-gradient(ellipse 260px 140px at 12% 58%, rgba(0, 0, 0, 0.95) 10%, transparent 85%),
+                radial-gradient(ellipse 340px 180px at 28% 86%, rgba(0, 0, 0, 1) 15%, transparent 92%),
+                radial-gradient(ellipse 230px 120px at 43% 46%, rgba(0, 0, 0, 0.85) 10%, transparent 80%),
+                radial-gradient(ellipse 400px 200px at 60% 90%, rgba(0, 0, 0, 1) 20%, transparent 92%),
+                radial-gradient(ellipse 270px 140px at 77% 60%, rgba(0, 0, 0, 0.9) 15%, transparent 85%),
+                radial-gradient(ellipse 350px 170px at 92% 84%, rgba(0, 0, 0, 0.95) 15%, transparent 90%);
+            -webkit-mask-composite: source-over;
+            mask-composite: add;
+        }
+
+        /* Features to CTA: Grid checks unevenly emerge from surface into CTA section */
+        .grid-blend-up {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
+            background-size: 55px 55px;
+            background-position: center top;
+            background-attachment: fixed;
+            -webkit-mask-image:
+                linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 15%, transparent 92%),
+                radial-gradient(ellipse 280px 150px at 14% 48%, rgba(0, 0, 0, 0.95) 15%, transparent 85%),
+                radial-gradient(ellipse 350px 190px at 34% 16%, rgba(0, 0, 0, 1) 20%, transparent 90%),
+                radial-gradient(ellipse 240px 130px at 53% 54%, rgba(0, 0, 0, 0.85) 10%, transparent 80%),
+                radial-gradient(ellipse 380px 200px at 73% 20%, rgba(0, 0, 0, 1) 20%, transparent 90%),
+                radial-gradient(ellipse 270px 140px at 89% 50%, rgba(0, 0, 0, 0.9) 15%, transparent 85%);
+            mask-image:
+                linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 15%, transparent 92%),
+                radial-gradient(ellipse 280px 150px at 14% 48%, rgba(0, 0, 0, 0.95) 15%, transparent 85%),
+                radial-gradient(ellipse 350px 190px at 34% 16%, rgba(0, 0, 0, 1) 20%, transparent 90%),
+                radial-gradient(ellipse 240px 130px at 53% 54%, rgba(0, 0, 0, 0.85) 10%, transparent 80%),
+                radial-gradient(ellipse 380px 200px at 73% 20%, rgba(0, 0, 0, 1) 20%, transparent 90%),
+                radial-gradient(ellipse 270px 140px at 89% 50%, rgba(0, 0, 0, 0.9) 15%, transparent 85%);
+            -webkit-mask-composite: source-over;
+            mask-composite: add;
         }
 
         /* Glassmorphism Utilities */
@@ -117,28 +188,101 @@
         }
 
         /* Theme Toggle Styling */
-        .themeToggle { color: var(--primary-color); width: 22px; height: 22px; }
-        .st-sunMoonThemeToggleBtn { position: relative; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-        .st-sunMoonThemeToggleBtn .themeToggleInput { opacity: 0; width: 100%; aspect-ratio: 1; position: absolute; cursor: pointer; z-index: 10; }
-        .st-sunMoonThemeToggleBtn svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transition: transform 0.4s; transform: rotate(40deg); }
-        .st-sunMoonThemeToggleBtn svg .sunMoon { transform-origin: center; transition: inherit; transform: scale(1); }
-        .st-sunMoonThemeToggleBtn svg .sunRay { transform-origin: center; transform: scale(0); }
-        .st-sunMoonThemeToggleBtn svg mask>circle { transition: transform 0.64s cubic-bezier(.41,.64,.32,1.575); transform: translate(0,0); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg { transform: rotate(90deg); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg mask>circle { transform: translate(16px,-3px); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunMoon { transform: scale(.55); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunRay { animation: showRay1832 .4s ease forwards; }
-        @keyframes showRay1832 { from { transform: scale(0); } to { transform: scale(1); } }
-        
-        ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-        ::view-transition-new(root) { z-index: 9999; }
+        .themeToggle {
+            color: var(--primary-color);
+            width: 22px;
+            height: 22px;
+        }
+
+        .st-sunMoonThemeToggleBtn {
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput {
+            opacity: 0;
+            width: 100%;
+            aspect-ratio: 1;
+            position: absolute;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .st-sunMoonThemeToggleBtn svg {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.4s;
+            transform: rotate(40deg);
+        }
+
+        .st-sunMoonThemeToggleBtn svg .sunMoon {
+            transform-origin: center;
+            transition: inherit;
+            transform: scale(1);
+        }
+
+        .st-sunMoonThemeToggleBtn svg .sunRay {
+            transform-origin: center;
+            transform: scale(0);
+        }
+
+        .st-sunMoonThemeToggleBtn svg mask>circle {
+            transition: transform 0.64s cubic-bezier(.41, .64, .32, 1.575);
+            transform: translate(0, 0);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg {
+            transform: rotate(90deg);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg mask>circle {
+            transform: translate(16px, -3px);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunMoon {
+            transform: scale(.55);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunRay {
+            animation: showRay1832 .4s ease forwards;
+        }
+
+        @keyframes showRay1832 {
+            from {
+                transform: scale(0);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation: none;
+            mix-blend-mode: normal;
+        }
+
+        ::view-transition-new(root) {
+            z-index: 9999;
+        }
     </style>
 </head>
+
 <body class="font-ubuntu min-h-screen flex flex-col antialiased selection:bg-db_primary selection:text-db_bg">
 
     <header class="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
-        <nav class="w-full max-w-5xl glass-panel px-6 py-3.5 rounded-full flex items-center justify-between shadow-db-md border border-db_border backdrop-blur-xl">
-            
+        <nav
+            class="w-full max-w-5xl glass-panel px-6 py-3.5 rounded-full flex items-center justify-between shadow-db-md border border-db_border backdrop-blur-xl">
+
             <!-- Brand -->
             <a href="#" class="flex items-center gap-3">
                 <div class="font-gothic text-2xl text-db_primary">DB</div>
@@ -157,7 +301,8 @@
             <!-- Actions -->
             <div class="flex items-center gap-4">
                 <!-- Theme Toggle -->
-                <label for="themeToggle" class="themeToggle st-sunMoonThemeToggleBtn hover:opacity-80 transition-opacity">
+                <label for="themeToggle"
+                    class="themeToggle st-sunMoonThemeToggleBtn hover:opacity-80 transition-opacity">
                     <input type="checkbox" id="themeToggle" class="themeToggleInput" aria-label="Toggle Theme" />
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" stroke="none">
                         <mask id="moon-mask">
@@ -177,145 +322,294 @@
                 </label>
 
                 <!-- Auth Button -->
-                <a href="templates/auth.html" class="hidden sm:flex items-center justify-center px-5 py-2 bg-db_primary text-db_bg font-bold text-sm rounded-full shadow-db-sm hover:shadow-db-md transition-shadow duration-300">
+                <a href="templates/auth.html"
+                    class="hidden sm:flex items-center justify-center px-5 py-2 bg-db_primary text-db_bg font-bold text-sm rounded-full shadow-db-sm hover:shadow-db-md transition-shadow duration-300">
                     Control Room
                 </a>
             </div>
         </nav>
     </header>
 
-    <main class="flex-grow pt-40 pb-20 px-6 overflow-hidden relative">
-        <!-- Ambient Glow behind hero -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-[100px] -z-10 pointer-events-none opacity-50 dark:opacity-30"></div>
-
-        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-8 pt-10">
+    <!-- 1st Screen: Clean Centered Hero (Above the fold) -->
+    <main class="relative z-10 flex flex-col justify-center items-center min-h-[92vh] md:min-h-screen px-6 pt-28 pb-12 overflow-hidden">
+        <div class="max-w-4xl mx-auto text-center my-auto flex flex-col items-center">
             
-            <!-- Hero Copy -->
-            <div class="flex-1 text-center lg:text-left z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-db_border glass-panel text-sm font-bold text-db_muted uppercase tracking-wider mb-6">
-                    <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                    v2.0 is now live
-                </div>
-                
-                <h1 class="text-5xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight">
-                    Ship code faster, <br class="hidden lg:block"/>
-                    <span class="text-gradient">together.</span>
-                </h1>
-                
-                <p class="text-lg lg:text-xl text-db_muted mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                    Seamlessly connect your GitHub repositories, analyze build structures, and execute automated deployments to your preferred environments in seconds.
-                </p>
-                
-                <div class="inline-flex items-stretch w-full max-w-[420px] rounded-full border border-db_border glass-panel shadow-db-sm hover:shadow-db-md transition-shadow duration-300 overflow-hidden divide-x divide-db_border">
-                    <a href="templates/auth.html" class="flex-[1.5] py-4 px-6 bg-db_primary text-db_bg font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-                        <span>Get Started Free</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </a>
-                    
-                    <a href="#docs" class="flex-1 py-4 px-6 text-db_text font-semibold text-sm flex items-center justify-center hover:bg-db_primary/5 transition-colors text-center whitespace-nowrap bg-transparent">
-                        Read Docs
-                    </a>
-                </div>
+            <!-- Status Pill / Tagline -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-db_border glass-panel text-xs md:text-sm font-semibold text-db_muted tracking-wide mb-8 hover:border-db_primary/40 transition-colors">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                <span class="text-db_text font-bold">Agentic AI Intelligence</span>
+                <span class="text-db_muted/40">•</span>
+                <span>One-Click Repository Deployment</span>
             </div>
 
-            <!-- Hero Visual (Abstract Dashboard/Code Snippet) -->
-            <div class="flex-1 w-full max-w-lg lg:max-w-none perspective-1000">
-                <div class="relative w-full aspect-square md:aspect-[4/3]">
-                    <!-- Base Window -->
-                    <div class="absolute inset-0 glass-panel rounded-2xl shadow-db-lg overflow-hidden border border-[rgba(255,255,255,0.2)] dark:border-[rgba(255,255,255,0.05)] flex flex-col">
-                        <!-- Mac-style Window Header -->
-                        <div class="h-10 border-b border-db_border bg-db_surface/50 flex items-center px-4 gap-2">
-                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
-                            <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
-                            <div class="w-3 h-3 rounded-full bg-green-400"></div>
-                        </div>
-                        <!-- Fake Code / Status Area -->
-                        <div class="flex-1 p-6 font-mono text-sm leading-relaxed overflow-hidden bg-db_surface_alt">
-                            <div class="flex gap-2 text-db_muted mb-2">
-                                <span class="text-blue-500">➜</span>
-                                <span>~</span>
-                                <span class="text-db_text">deploybridge init</span>
-                            </div>
-                            <div class="text-db_text mb-4">Scanning repository configuration...</div>
-                            
-                            <div class="space-y-3 mb-6">
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    <span class="text-db_muted">Detected: React framework</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    <span class="text-db_muted">CI/CD pipeline authenticated</span>
-                                </div>
-                            </div>
+            <!-- Monumental Headline (Punchy, Short, Professional) -->
+            <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight text-db_text leading-[1.08] mb-6">
+                Analyze with AI. <br class="hidden sm:inline" />
+                <span class="text-gradient">Deploy in One Click.</span>
+            </h1>
 
-                            <div class="flex gap-2 text-db_muted mb-2">
-                                <span class="text-blue-500">➜</span>
-                                <span>~</span>
-                                <span class="text-db_text">deploybridge ship</span>
+            <!-- Subheading (Short, One-Line, Value-Focused) -->
+            <p class="text-lg md:text-xl text-db_muted max-w-2xl mx-auto leading-relaxed mb-10 font-normal">
+                Agentic AI deeply inspects your GitHub repository, provides full stack reports, and auto-deploys your app in a single click.
+            </p>
+
+            <!-- Action CTAs (Bento Single Capsule with Line Partition) -->
+            <div class="inline-flex items-center rounded-full glass-panel border border-db_border shadow-db-md p-1.5 mb-8 hover:border-db_primary/30 transition-all bg-db_surface/90 backdrop-blur-xl">
+                <a href="templates/auth.html"
+                    class="px-6 sm:px-7 py-3 bg-db_primary text-db_bg font-bold text-sm md:text-base rounded-full shadow-db-sm hover:opacity-90 active:scale-[0.98] transition-all flex items-center gap-2.5">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                    </svg>
+                    <span>Start Free with GitHub</span>
+                </a>
+
+                <!-- Single Line Partition -->
+                <div class="h-6 w-[1px] bg-db_border mx-2"></div>
+
+                <a href="templates/dashboard.html"
+                    class="px-5 sm:px-6 py-3 text-db_text hover:text-db_primary hover:bg-db_primary/5 font-semibold text-sm md:text-base rounded-full transition-all flex items-center gap-2 group">
+                    <span>Live Control Room</span>
+                    <svg class="w-4 h-4 text-db_muted group-hover:text-db_text group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Trust Micro-Pills (3 Key Capabilities) -->
+            <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-db_muted font-medium">
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Agentic AI Code Analysis
+                </span>
+                <span class="text-db_border hidden sm:inline">•</span>
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    One-Click Auto Deploy
+                </span>
+                <span class="text-db_border hidden sm:inline">•</span>
+                <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Full Feasibility Report
+                </span>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator to Second Screen -->
+        <a href="#pipeline-deck" class="mt-8 flex flex-col items-center gap-1.5 text-xs font-semibold text-db_muted hover:text-db_text transition-colors opacity-75 hover:opacity-100 group">
+            <span>Explore Pipeline</span>
+            <svg class="w-4 h-4 text-db_muted group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+        </a>
+    </main>
+
+    <!-- 2nd Screen: Panoramic Architectural Pipeline Deck -->
+    <section id="pipeline-deck" class="relative z-10 px-6 py-20 md:py-28 overflow-hidden">
+        <div class="max-w-5xl mx-auto">
+            
+            <!-- Section Kicker & Header -->
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-db_primary/5 border border-db_border text-db_muted mb-3">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>System Workflow</span>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-db_text mb-3">From Repo Inspection to Live Cloud</h2>
+                <p class="text-sm md:text-base text-db_muted">How DeployBridge evaluates your code and automates your production release.</p>
+            </div>
+
+            <!-- The Panoramic Showcase Box -->
+            <div class="glass-panel rounded-2xl shadow-db-lg border border-db_border overflow-hidden bg-db_surface/75 backdrop-blur-xl">
+                
+                <!-- Showcase Control Bar -->
+                <div class="px-6 py-4 border-b border-db_border flex flex-wrap items-center justify-between gap-4 bg-db_surface_alt/50">
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-red-500/60 inline-block"></span>
+                            <span class="w-3 h-3 rounded-full bg-amber-500/60 inline-block"></span>
+                            <span class="w-3 h-3 rounded-full bg-emerald-500/60 inline-block"></span>
+                        </div>
+                        <span class="h-4 w-[1px] bg-db_border mx-1"></span>
+                        <div class="flex items-center gap-2 text-xs font-mono text-db_text font-semibold">
+                            <span class="text-db_muted">pipeline:</span>
+                            <span class="px-2 py-0.5 rounded bg-db_primary/5 border border-db_border">acme / web-store</span>
+                            <span class="text-db_muted">•</span>
+                            <span class="text-blue-500 font-medium">refs/heads/main</span>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Live Badge -->
+                    <div class="flex items-center gap-3">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Target: GitHub Pages & Render</span>
+                        </div>
+                        <span class="text-xs font-mono text-db_muted hidden sm:inline">1-Click Ready</span>
+                    </div>
+                </div>
+
+                <!-- 3-Stage Connected Architecture Flow -->
+                <div class="p-6 md:p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                        
+                        <!-- Node 1: Code Ingestion -->
+                        <div class="p-5 rounded-xl border border-db_border bg-db_surface_alt/40 flex flex-col justify-between relative group hover:border-db_primary/30 transition-colors">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-db_muted px-2 py-0.5 rounded bg-db_primary/5 border border-db_border">01 // Source</span>
+                                </div>
+                                <div class="text-sm font-bold text-db_text mb-1">Repo Ingestion & Sync</div>
+                                <p class="text-xs text-db_muted leading-relaxed mb-4">Connects with GitHub repository metadata, branches, commits, and structure in real time.</p>
                             </div>
-                            <div class="flex items-center gap-3 mt-4 p-3 border border-db_border rounded-lg bg-green-500/10">
-                                <div class="w-2 h-2 rounded-full bg-green-500"></div>
-                                <span class="text-green-600 dark:text-green-400 font-semibold">Deployment live at app.deploybridge.dev</span>
+                            <div class="pt-3 border-t border-db_border/60 flex items-center justify-between text-xs font-mono">
+                                <span class="text-db_muted">branch: main</span>
+                                <span class="text-emerald-500 font-semibold flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    Connected
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Node 2: Agentic AI Core -->
+                        <div class="p-5 rounded-xl border-2 border-db_primary/30 bg-db_surface_alt/70 flex flex-col justify-between relative shadow-db-sm">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-500 px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20">02 // Agentic AI</span>
+                                </div>
+                                <div class="text-sm font-bold text-db_text mb-1">Deep AI Repo Analysis</div>
+                                <p class="text-xs text-db_muted leading-relaxed mb-4">Inspects framework, dependencies, and configuration. Generates an in-depth deployment feasibility report.</p>
+                            </div>
+                            <div class="pt-3 border-t border-db_border/60 flex items-center justify-between text-xs font-mono">
+                                <span class="text-purple-600 dark:text-purple-400 font-semibold">Report Generated</span>
+                                <span class="text-emerald-500 font-semibold">100% Ready</span>
+                            </div>
+                        </div>
+
+                        <!-- Node 3: One-Click Deploy -->
+                        <div class="p-5 rounded-xl border border-db_border bg-db_surface_alt/40 flex flex-col justify-between relative group hover:border-db_primary/30 transition-colors">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    </div>
+                                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-db_muted px-2 py-0.5 rounded bg-db_primary/5 border border-db_border">03 // 1-Click Deploy</span>
+                                </div>
+                                <div class="text-sm font-bold text-db_text mb-1">Automated Cloud Shipping</div>
+                                <p class="text-xs text-db_muted leading-relaxed mb-4">One click deploys to GitHub Pages or Render with automated routing, SSL, and instant live URL.</p>
+                            </div>
+                            <div class="pt-3 border-t border-db_border/60 flex items-center justify-between text-xs font-mono">
+                                <a href="https://app.deploybridge.dev" class="text-blue-500 hover:underline font-semibold flex items-center gap-1">
+                                    <span>app.deploybridge.dev</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                </a>
+                                <span class="text-emerald-500 font-semibold">200 OK</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Floating decorative card -->
-                    <div class="absolute -right-8 -bottom-8 w-48 glass-panel p-4 rounded-xl shadow-db-lg border border-db_border">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            </div>
-                            <div class="font-bold text-sm">Deploy Time</div>
+                    <!-- Live Telemetry Dock at bottom of the showcase -->
+                    <div class="mt-6 pt-5 border-t border-db_border grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                        <div class="p-3 rounded-lg bg-db_primary/[0.02] border border-db_border/50">
+                            <div class="text-base sm:text-lg font-bold font-mono text-db_text">1-Click</div>
+                            <div class="text-[11px] text-db_muted font-medium mt-0.5">Deployment Action</div>
                         </div>
-                        <div class="text-2xl font-gothic text-db_primary">1.2s</div>
+                        <div class="p-3 rounded-lg bg-db_primary/[0.02] border border-db_border/50">
+                            <div class="text-base sm:text-lg font-bold font-mono text-purple-500">Agentic AI</div>
+                            <div class="text-[11px] text-db_muted font-medium mt-0.5">Deep Repo Inspection</div>
+                        </div>
+                        <div class="p-3 rounded-lg bg-db_primary/[0.02] border border-db_border/50">
+                            <div class="text-base sm:text-lg font-bold font-mono text-emerald-500">Full Report</div>
+                            <div class="text-[11px] text-db_muted font-medium mt-0.5">Build Readiness Feasibility</div>
+                        </div>
+                        <div class="p-3 rounded-lg bg-db_primary/[0.02] border border-db_border/50">
+                            <div class="text-base sm:text-lg font-bold font-mono text-blue-500">Pages & Render</div>
+                            <div class="text-[11px] text-db_muted font-medium mt-0.5">Cloud Target Support</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </section>
 
-    <section id="features" class="py-24 border-t border-db_border relative z-10 bg-db_surface">
-        <div class="max-w-7xl mx-auto px-6">
+    <section id="features" class="relative z-10 bg-db_surface overflow-hidden">
+        <!-- Hero -> Features Transition Blend Edge -->
+        <div class="relative w-full h-28 md:h-40 overflow-hidden pointer-events-none select-none">
+            <!-- Background Color Gradient Blend -->
+            <div class="absolute inset-0 blend-hero-to-features-bg"></div>
+
+            <!-- Grid Checks Layer with Uneven Dissolve Mask -->
+            <div class="grid-blend-down"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 pb-20 md:pb-28">
             <div class="glass-panel rounded-3xl overflow-hidden shadow-db-lg border border-db_border">
-                
+
                 <!-- Unified Header Area -->
                 <div class="text-center px-8 py-16 border-b border-db_border relative overflow-hidden">
                     <!-- Subtle glow effect inside the header -->
-                    <div class="absolute inset-0 bg-gradient-to-b from-db_primary/5 to-transparent pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-gradient-to-b from-db_primary/5 to-transparent pointer-events-none">
+                    </div>
                     <h2 class="text-3xl md:text-5xl font-bold mb-6 relative z-10">Everything you need to ship.</h2>
-                    <p class="text-lg text-db_muted max-w-2xl mx-auto relative z-10 leading-relaxed">Stop worrying about infrastructure. Focus on writing great code and let our pipelines handle the rest.</p>
+                    <p class="text-lg text-db_muted max-w-2xl mx-auto relative z-10 leading-relaxed">Stop worrying about
+                        infrastructure. Focus on writing great code and let our pipelines handle the rest.</p>
                 </div>
 
                 <!-- Three-Column Partition Area -->
                 <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-db_border">
-                    
+
                     <!-- Feature 1 -->
                     <div class="p-10 lg:p-12 transition-colors duration-200 hover:bg-db_primary/5">
-                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-8 shadow-inner">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <div
+                            class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-8 shadow-inner">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
                         </div>
                         <h3 class="text-xl font-bold mb-4 text-db_text tracking-tight">Smart Analysis</h3>
-                        <p class="text-db_muted leading-relaxed font-medium">Automatically detect your framework, dependencies, and build scripts. Zero configuration required for most modern stacks.</p>
+                        <p class="text-db_muted leading-relaxed font-medium">Automatically detect your framework,
+                            dependencies, and build scripts. Zero configuration required for most modern stacks.</p>
                     </div>
 
                     <!-- Feature 2 -->
                     <div class="p-10 lg:p-12 transition-colors duration-200 hover:bg-db_primary/5">
-                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-8 shadow-inner">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        <div
+                            class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-8 shadow-inner">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                </path>
+                            </svg>
                         </div>
                         <h3 class="text-xl font-bold mb-4 text-db_text tracking-tight">One-Click Deploy</h3>
-                        <p class="text-db_muted leading-relaxed font-medium">Push to GitHub and watch it go live. DeployBridge hooks into your Git workflow to trigger deployments automatically.</p>
+                        <p class="text-db_muted leading-relaxed font-medium">Push to GitHub and watch it go live.
+                            DeployBridge hooks into your Git workflow to trigger deployments automatically.</p>
                     </div>
 
                     <!-- Feature 3 -->
                     <div class="p-10 lg:p-12 transition-colors duration-200 hover:bg-db_primary/5">
-                        <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 mb-8 shadow-inner">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <div
+                            class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 mb-8 shadow-inner">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                                </path>
+                            </svg>
                         </div>
                         <h3 class="text-xl font-bold mb-4 text-db_text tracking-tight">Secure Environments</h3>
-                        <p class="text-db_muted leading-relaxed font-medium">Manage secrets, configure custom domains, and enforce branch protections from a single, unified control room.</p>
+                        <p class="text-db_muted leading-relaxed font-medium">Manage secrets, configure custom domains,
+                            and enforce branch protections from a single, unified control room.</p>
                     </div>
 
                 </div>
@@ -323,11 +617,23 @@
         </div>
     </section>
 
-    <section class="py-20 relative z-10">
-        <div class="max-w-4xl mx-auto px-6 text-center">
+    <!-- Ready to cross the bridge section -->
+    <section class="relative z-10 overflow-hidden">
+        <!-- Features -> CTA Transition Blend Edge (Top Blend) -->
+        <div class="relative w-full h-28 md:h-40 overflow-hidden pointer-events-none select-none">
+            <!-- Background Color Gradient Blend -->
+            <div class="absolute inset-0 blend-features-to-cta-bg"></div>
+
+            <!-- Grid Checks Layer with Uneven Emerge Mask -->
+            <div class="grid-blend-up"></div>
+        </div>
+
+        <!-- CTA Content with Grid Background -->
+        <div class="max-w-4xl mx-auto px-6 text-center py-16 md:py-24 relative z-10">
             <h2 class="text-3xl md:text-5xl font-bold mb-6">Ready to cross the bridge?</h2>
             <p class="text-lg text-db_muted mb-10">Join thousands of developers deploying faster and more reliably.</p>
-            <a href="templates/auth.html" class="inline-flex items-center justify-center px-10 py-5 bg-db_primary text-db_bg text-xl font-bold rounded-2xl shadow-db-md hover:shadow-db-lg transition-shadow duration-300">
+            <a href="templates/auth.html"
+                class="inline-flex items-center justify-center px-10 py-5 bg-db_primary text-db_bg text-xl font-bold rounded-2xl shadow-db-md hover:shadow-db-lg transition-shadow duration-300">
                 Start Deploying Now
             </a>
         </div>
@@ -339,7 +645,7 @@
                 <div class="font-gothic text-2xl text-db_primary">DB</div>
                 <span class="text-db_muted font-semibold">© 2026 DeployBridge Inc.</span>
             </div>
-            
+
             <div class="flex items-center gap-6 text-sm font-semibold text-db_muted">
                 <a href="#" class="hover:text-db_primary transition-colors">Privacy Policy</a>
                 <a href="#" class="hover:text-db_primary transition-colors">Terms of Service</a>
@@ -351,7 +657,7 @@
 
     <script>
         const themeToggle = document.getElementById("themeToggle");
-        
+
         if (themeToggle) {
             themeToggle.checked = document.documentElement.getAttribute('data-theme') === 'dark';
         }
@@ -398,4 +704,5 @@
         });
     </script>
 </body>
+
 </html>
