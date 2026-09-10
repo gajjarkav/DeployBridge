@@ -5,6 +5,7 @@ const APP_DEPLOYMENTS_KEY = "deploybridge_recent_deployments";
 function getAuthSession() {
     return {
         token: localStorage.getItem("gh_access_token"),
+        dbSessionToken: localStorage.getItem("db_session_token"),
         username: localStorage.getItem("gh_username"),
         avatar: localStorage.getItem("gh_avatar"),
         email: localStorage.getItem("gh_email"),
@@ -17,7 +18,7 @@ function getAuthSession() {
 
 function requireAuthSession() {
     const session = getAuthSession();
-    if (!session.token) {
+    if (!session.dbSessionToken) {
         window.location.href = "../templates/auth.html";
         return null;
     }
@@ -100,7 +101,7 @@ function bindLogoutButtons() {
 }
 
 function logoutUser() {
-    localStorage.removeItem("gh_access_token");
+    localStorage.removeItem("db_session_token");
     localStorage.removeItem("gh_username");
     localStorage.removeItem("gh_avatar");
     localStorage.removeItem("gh_email");

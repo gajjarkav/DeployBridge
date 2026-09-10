@@ -2,7 +2,7 @@ const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
 
 window.onload = async () => {
 
-    if (localStorage.getItem("gh_access_token")) {
+    if (localStorage.getItem("db_session_token")) {
         window.location.href = "../templates/dashboard.html";
         return;
     }
@@ -48,7 +48,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
 });
 
 function checkExistingSession() {
-    const token = localStorage.getItem("gh_access_token");
+    const token = localStorage.getItem("db_session_token");
     if (token) {
         window.location.href = "../templates/dashboard.html";
     } else {
@@ -66,6 +66,7 @@ async function handleGitHubCallback(code) {
         const data = await response.json();
 
         localStorage.setItem("gh_access_token", data.github_access_token);
+        localStorage.setItem("db_session_token", data.session_token || "");
         localStorage.setItem("gh_username", data.user.username || "");
         localStorage.setItem("gh_avatar", data.user.avatar_url || "");
         localStorage.setItem("gh_email", data.user.email || "");
@@ -77,7 +78,7 @@ async function handleGitHubCallback(code) {
         window.location.href = '../templates/dashboard.html';
     } catch (error) {
         console.error("Login failed: ", error);
-        alert("Authentication failed. Please try agein.");
+        alert("Authentication failed. Please try again.");
         window.location.reload();
     }
 }

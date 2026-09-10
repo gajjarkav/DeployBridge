@@ -1,7 +1,8 @@
 import hashlib
+
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -11,7 +12,9 @@ from ...schemas.user import UserProfileResponse, UserDeployBranchUpdate
 from ...services.github import GitHubService
 from ...core.config import get_settings
 from ...core.constants import const
-from ...core.logger import logger
+from ...core.security import create_session_jwt
+from ..dependencies import get_current_user
+from ...core.crypto import encrypt_secret
 
 
 settings = get_settings()
@@ -62,7 +65,7 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
             username=github_user["username"],
             email=github_user["email"],
             avatar_url=github_user["avatar_url"],
-            github_token=token_data["access_token"],
+            github_token=encrypt_secret(token_data["access_token"]),
             github_token_type=token_data["token_type"],
             github_scope=token_data["scope"],
             last_login=datetime.now(timezone.utc),
@@ -72,13 +75,15 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
         db_user.username = github_user["username"]
         db_user.email = github_user["email"]
         db_user.avatar_url = github_user["avatar_url"]
-        db_user.github_token = token_data["access_token"]
+        db_user.github_token = encrypt_secret(token_data["access_token"])
         db_user.github_token_type = token_data["token_type"]
         db_user.github_scope = token_data["scope"]
         db_user.last_login = datetime.now(timezone.utc)
 
     await db.commit()
     await db.refresh(db_user)
+
+    session_token = create_session_jwt(db_user.id)
 
     return {
         "message": "Login successful",
@@ -91,6 +96,7 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
             "scope": db_user.github_scope,
             "token_type": db_user.github_token_type,
         },
+        "session_token": session_token,
         "github_access_token": token_data["access_token"],
         "scope": db_user.github_scope,
         "token_type": db_user.github_token_type,
@@ -98,103 +104,83 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
     }
 
 
-def _extract_bearer_token(authorization: str | None) -> str:
-    """
-    parse the "Authorization: Bearer <token>" header.
-    returns the raw token string on success.
-    raise 401 with a WWW-Authenticate response header (RFC 6750) on failure.
-    """
-    
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing or invalid Authorization header.",
-            headers={"WWW-Authenticate": 'Bearer realm="DeployBridge'},
-        )
-
-    return authorization.split(" ", 1)[1]
-
-def _hash_token_for_logging(token: str) -> str:
-    """
-    returna truncated SHA-256 hex digest of the token for safe logging.
-    we log this on aith rejection so the team can correlate repeat offenders
-    and detect brute-force patterns, Without leaking the raw token into
-    log aggregators / dashboards / crash dumps.
-    """
-
-    digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
-    return digest[:12]
-
-async def get_current_user_by_token(
-    db: AsyncSession,
-    authorization: str | None,
-) -> User:
-    """
-    resolve the caller to a real user row from the database.
-    contract:
-        - the 'Authorization' header must be 'Bearer <toke>'
-        - <token> must math a stored User.github_token in the database
-        - otherwise: HTTP 401
-    
-    important: there is no fallback path. earlier versions fabricated a ghost User(github_id=0) for any token 
-    longer than 5 chars, which let anonymous callers bypass authentication on every endpoint that depends on this function.
-    that escape hatch has been removed deliberately
-    """
-
-    token = _extract_bearer_token(authorization)
-
-    if len(token) < constant.MIN_TOKEN_LENGTH:
-        logger.warning(
-            "auth.rejected reason=too_short token_hash=%s len=%d",
-            _hash_token_for_logging(token),
-            len(token),
-        )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired session token",
-            headers={"WWW-Authenticate": 'Bearer realm="DeployBridge"'},
-        )
-
-    query = select(User).where(User.github_token == token)
-    result = await db.execute(query)
-    db_user = result.scalar_one_or_none()
-
-
-    if db_user is None:
-        logger.warning(
-            "auth.rejected reason=no_match token_hash=%s",
-            _hash_token_for_logging(token),
-        )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired session token",
-            headers={"WWW-Authenticate": 'Bearer realm="DeployBridge"'},
-        )
-
-    return db_user
-
 
 @router.get("/profile", response_model=UserProfileResponse, summary="Get current user profile")
 async def get_user_profile(
-    authorization: str | None = Header(None),
-    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    db_user = await get_current_user_by_token(db, authorization)
-    return UserProfileResponse.model_validate(db_user)
+    """
+    returns the profile of the authenticated caller
+    
+    Auth is handled by the `get_current_user` dependency, which accepts
+    ONLY session JWTs -- the legacy raw-github-token fallback was removed
+    in Item 3c once the frontend stopped sending raw GitHub tokens.
+    """
+    return UserProfileResponse.model_validate(current_user)
 
 
 @router.patch("/profile", response_model=UserProfileResponse, summary="Update current user profile")
 async def update_user_profile(
     payload: UserDeployBranchUpdate,
-    authorization: str | None = Header(None),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    db_user = await get_current_user_by_token(db, authorization)
+    """
+    Updates the deploy branch preference for the authenticated caller.
+    
+    Note: we need `db` here because we're modifying the user row. The
+    `get_current_user` dependency already loaded the user via the same
+    session, so the same session is reused (FastAPI caches dependency
+    results within a single request).
+    """
 
     branch = payload.deploy_branch.strip() if payload.deploy_branch else None
-    db_user.deploy_branch = branch or None
+    
+    current_user.deploy_branch = branch or None
 
     await db.commit()
-    await db.refresh(db_user)
+    await db.refresh(current_user)
 
-    return UserProfileResponse.model_validate(db_user)
+    return UserProfileResponse.model_validate(current_user)
+
+
+@router.post('/refresh', summary="Refresh session token")
+async def refresh_session(
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Exchange a valid (non-expired) session JWT for a fresh one.
+    
+    Used by the frontend to keep the user logged in without forcing
+    re-authentication through GitHub. The frontend should call this
+    endpoint shortly before the current JWT expires.
+    
+    Returns a new `session_token` field. The old token remains valid
+    until its own `exp` -- in a future iteration we will denylist the
+    old `jti` on refresh (token rotation).
+    """
+
+    new_token = create_session_jwt(current_user.id)
+
+    return {"session_token": new_token}
+
+
+@router.post('/logout', summary="Logout")
+async def logout(
+    authorization: str | None = Header(None),
+):
+    """
+    Mark the current session as ended.
+    
+    In Item 3a this is effectively a no-op: we don't have a token denylist
+    yet, so the JWT remains valid until its `exp` expires. We return 200
+    so the frontend can call this on user-initiated logout (the frontend
+    will also clear its localStorage).
+    
+    TODO (Item 7): add the JWT's `jti` to a `revoked_tokens` table on
+    logout, and have `get_current_user` check that table.
+    """
+
+    return {
+        "message": "Logged out"
+    }

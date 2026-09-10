@@ -167,7 +167,7 @@ async function retryFetchRepoInfo() {
  * Fetches repository info from backend and populates all sections.
  */
 async function fetchAndDisplayRepoInfo(owner, repository) {
-    const token = (typeof getAuthSession === 'function' ? getAuthSession()?.token : null) || localStorage.getItem("gh_access_token");
+    const token = (typeof getAuthSession === 'function' ? getAuthSession()?.dbSessionToken : null) || localStorage.getItem("db_session_token");
     
     if (!token) {
         showModalError('Authentication required. Please sign in again.');

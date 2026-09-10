@@ -34,6 +34,14 @@ class Settings(BaseSettings):
     PORT: Optional[int] = Field(default=8000)
 
 
+    CORS_ALLOWED_ORIGINS: str = Field(
+        default=(
+            "http://127.0.0.1:5500,http://localhost:5500,"
+            "http://127.0.0.1:5501,http://localhost:5501"
+        )
+    )
+
+
     LOG_LEVEL: Optional[str] = Field(default="INFO")
 
 
@@ -42,11 +50,20 @@ class Settings(BaseSettings):
 
     GITHUB_CLIENT_ID: str = Field(...)
     GITHUB_CLIENT_SECRET: str = Field(...)
+    GITHUB_TOKEN_ENCRYPTION_KEY: str = Field(...)
 
 
     JWT_SECRET_KEY: str = Field(...)
     JWT_ALGORITHM: str = Field(default="HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=10000)
+
+
+    SESSION_COOKIE_NAME: str = Field(default="deploybridge_session")
+    SESSION_COOKIE_SECURE: bool = Field(default=False)  # True in prod (HTTPS only)
+    SESSION_COOKIE_SAMESITE: str = Field(default="lax")  # "lax" | "strict" | "none"
+    SESSION_COOKIE_DOMAIN: Optional[str] = Field(default=None)  # e.g. ".deploybridge.dev"
+    SESSION_COOKIE_PATH: str = Field(default="/")
+
 
     @field_validator("DEBUG", mode="before")
     @classmethod

@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...core.exception import GitHubPagesError
-from ...db.session import get_db
+from ...models.user import User
 from ...schemas.github_pages import (
     GitHubPagesDeployRequest,
     GitHubPagesDeployResponse,
@@ -10,7 +10,8 @@ from ...schemas.github_pages import (
     GitHubPagesRepositoryRequest,
 )
 from ...services.github_pages import GitHubPagesService
-from .auth import get_current_user_by_token
+from ..dependencies import get_current_user
+from ...core.crypto import TokenDecryptionError, decrypt_secret
 
 
 router = APIRouter()
@@ -23,22 +24,27 @@ router = APIRouter()
 )
 async def detect_github_pages_profile(
     request: GitHubPagesRepositoryRequest,
-    authorization: str | None = Header(None),
-    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    db_user = await get_current_user_by_token(db, authorization)
-    github_token = db_user.github_token
-
-    if not github_token:
-        raise HTTPException(status_code=401, detail="Missing GitHub access token.")
+    if not current_user.github_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Your GitHub access token is missing from our records. Please re-authenticate.",
+        )
 
     try:
+        github_token = decrypt_secret(current_user.github_token)
         return await GitHubPagesService.detect(
             github_token=github_token,
             owner=request.owner,
             repository=request.repository,
-            preferred_branch=db_user.deploy_branch,
+            preferred_branch=current_user.deploy_branch,
         )
+    except TokenDecryptionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        ) from exc
     except GitHubPagesError as exc:
         raise HTTPException(
             status_code=exc.status_code,
@@ -53,23 +59,25 @@ async def detect_github_pages_profile(
 )
 async def deploy_to_github_pages(
     request: GitHubPagesDeployRequest,
-    authorization: str | None = Header(None),
-    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    db_user = await get_current_user_by_token(db, authorization)
-    github_token = db_user.github_token
-
-    if not github_token:
-        raise HTTPException(status_code=401, detail="Missing GitHub access token.")
+    if not current_user.github_token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Your GitHub access token is missing from our records. Please re-authenticate.")
 
     try:
+        github_token = decrypt_secret(current_user.github_token)
         return await GitHubPagesService.deploy(
             github_token=github_token,
             owner=request.owner,
             repository=request.repository,
             deployment_profile=request.deployment_profile,
-            preferred_branch=db_user.deploy_branch,
+            preferred_branch=current_user.deploy_branch,
         )
+    except TokenDecryptionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        ) from exc
     except GitHubPagesError as exc:
         raise HTTPException(
             status_code=exc.status_code,
