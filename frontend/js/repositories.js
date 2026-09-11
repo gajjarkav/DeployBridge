@@ -78,7 +78,7 @@ async function fetchAndRenderRepos(token) {
                 <td>
                     <div class="row-actions">
                         <button class="table-button view" onclick="openRepoModal('${repo.owner.login}','${repo.name}', '${repo.html_url}')">View</button>
-                        <button class="table-button scan" onclick="analyzeRepo('${repo.name}')">Analyze</button>
+                        <button class="table-button scan" onclick="analyzeRepo('${repo.owner?.login || ""}','${repo.name}')">Analyze</button>
                         <button class="table-button deploy" onclick="deployGitHubPages('${repo.owner.login}','${repo.name}')">Deploy</button>
                     </div>
                 </td>
@@ -106,28 +106,30 @@ async function fetchAndRenderRepos(token) {
 async function openRepoModal(owner, repository, htmlUrl = '') {
     currentRepoOwner = owner;
     currentRepoName = repository;
-    
+
     // Store URL for action buttons
     currentRepoInfo = { owner, repository, html_url: htmlUrl };
-    
+
     // Show modal with loading state
     const modal = document.getElementById('repo-info-modal');
     const loadingEl = document.getElementById('modal-loading');
     const contentEl = document.getElementById('modal-content');
     const errorEl = document.getElementById('modal-error');
-    
+
     // Reset states
     loadingEl.style.display = 'flex';
     contentEl.style.display = 'none';
     errorEl.style.display = 'none';
-    
+
+    resetAIReportSection();
+
     // Set initial title
     document.getElementById('modal-repo-name').textContent = `${owner}/${repository}`;
-    
+
     // Show modal
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    
+
     // Fetch repository info
     await fetchAndDisplayRepoInfo(owner, repository);
 }
@@ -139,12 +141,12 @@ function closeRepoModal() {
     const modal = document.getElementById('repo-info-modal');
     modal.style.display = 'none';
     document.body.style.overflow = ''; // Restore scrolling
-    
+
     // Reset state
     currentRepoInfo = null;
     currentRepoOwner = '';
     currentRepoName = '';
-    
+
     // Hide readme section when closing
     document.getElementById('readme-section').style.display = 'none';
     document.getElementById('btn-toggle-readme').classList.remove('active');
@@ -168,12 +170,12 @@ async function retryFetchRepoInfo() {
  */
 async function fetchAndDisplayRepoInfo(owner, repository) {
     const token = (typeof getAuthSession === 'function' ? getAuthSession()?.dbSessionToken : null) || localStorage.getItem("db_session_token");
-    
+
     if (!token) {
         showModalError('Authentication required. Please sign in again.');
         return;
     }
-    
+
     try {
         const response = await fetch(`${BACKEND_API_URL}/github/repos/info`, {
             method: 'POST',
@@ -186,26 +188,26 @@ async function fetchAndDisplayRepoInfo(owner, repository) {
                 repository: repository,
             }),
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.detail || `Failed to fetch repository info (${response.status})`);
         }
-        
+
         const data = await response.json();
-        
+
         // Store full data for action buttons
         currentRepoInfo = { ...currentRepoInfo, ...data };
-        
+
         // Hide loading, show content
         document.getElementById('modal-loading').style.display = 'none';
         document.getElementById('modal-content').style.display = 'flex';
-        
+
         // Instead of tab switching, scroll to overview to reset position
         const mainContent = document.querySelector('.modal-main-content');
         if (mainContent) {
             mainContent.scrollTop = 0;
-        }        
+        }
         // Populate all sections
         populateModalHeader(data.basic_info);
         populateOverviewSection(data.basic_info);
@@ -215,18 +217,18 @@ async function fetchAndDisplayRepoInfo(owner, repository) {
         populateCommitsSection(data.commits);
         populateContributorsSection(data.contributors);
         populateBranchesSection(data.branches);
-        
+
         // Store README data (not shown by default)
         if (data.readme && data.readme.content) {
             populateReadmeSection(data.readme);
         }
-        
+
         // Update footer info
         updateModalFooter(data);
-        
+
         // Setup action button URLs
         setupActionButtons(data.basic_info);
-        
+
     } catch (error) {
         console.error('Error fetching repo info:', error);
         showModalError(error.message || 'Failed to load repository information.');
@@ -252,16 +254,16 @@ function showModalError(message) {
  */
 function populateModalHeader(basicInfo) {
     if (!basicInfo) return;
-    
+
     // Title
-    document.getElementById('modal-repo-name').textContent = 
+    document.getElementById('modal-repo-name').textContent =
         basicInfo.full_name || basicInfo.name || 'Repository';
-    
+
     // Visibility badge
     const badge = document.getElementById('modal-visibility-badge');
     badge.textContent = basicInfo.private ? 'Private' : 'Public';
     badge.className = `visibility-badge ${basicInfo.private ? 'private' : 'public'}`;
-    
+
     // Meta text (stars, forks, updated)
     const metaParts = [];
     if (basicInfo.stars_count > 0) metaParts.push(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;margin-right:2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> ${basicInfo.stars_count}`);
@@ -274,7 +276,7 @@ function populateModalHeader(basicInfo) {
         });
         metaParts.push(`Updated ${updatedDate}`);
     }
-    
+
     document.getElementById('modal-repo-meta').textContent = metaParts.join(' • ');
 }
 
@@ -283,14 +285,14 @@ function populateModalHeader(basicInfo) {
  */
 function populateOverviewSection(info) {
     const container = document.getElementById('section-overview');
-    
+
     if (!info) {
         container.innerHTML = '<p style="color: var(--text-muted);">No overview data available.</p>';
         return;
     }
-    
+
     let html = '';
-    
+
     // Description
     if (info.description) {
         html += `<div class="overview-item">
@@ -298,7 +300,7 @@ function populateOverviewSection(info) {
             <span class="overview-value">${escapeHtml(info.description)}</span>
         </div>`;
     }
-    
+
     // Owner
     if (info.owner_login) {
         html += `<div class="overview-item">
@@ -306,26 +308,26 @@ function populateOverviewSection(info) {
             <span class="overview-value">@${escapeHtml(info.owner_login)}</span>
         </div>`;
     }
-    
+
     // License
     html += `<div class="overview-item">
         <span class="overview-label">License</span>
         <span class="overview-value">${info.license_name || 'None'}</span>
     </div>`;
-    
+
     // Default Branch
     html += `<div class="overview-item">
         <span class="overview-label">Default Branch</span>
         <span class="overview-value" style="font-family: monospace;">${escapeHtml(info.default_branch)}</span>
     </div>`;
-    
+
     // Size
     const sizeFormatted = formatFileSize(info.size);
     html += `<div class="overview-item">
         <span class="overview-label">Size</span>
         <span class="overview-value">${sizeFormatted}</span>
     </div>`;
-    
+
     // Created date
     if (info.created_at) {
         const createdDate = new Date(info.created_at).toLocaleDateString('en-US', {
@@ -338,7 +340,7 @@ function populateOverviewSection(info) {
             <span class="overview-value">${createdDate}</span>
         </div>`;
     }
-    
+
     // Last push
     if (info.pushed_at) {
         const pushedDate = new Date(info.pushed_at).toLocaleDateString('en-US', {
@@ -351,7 +353,7 @@ function populateOverviewSection(info) {
             <span class="overview-value">${pushedDate}</span>
         </div>`;
     }
-    
+
     // Stats row (stars, forks, size, license)
     html += `<div style="display: flex; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-top: 16px; text-align: center;">
         <div style="flex: 1; padding: 16px; border-right: 1px solid var(--border-color);">
@@ -371,7 +373,7 @@ function populateOverviewSection(info) {
             <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px;">License</div>
         </div>
     </div>`;
-    
+
     // Topics/Tags (Breadcrumbs)
     if (info.topics && info.topics.length > 0) {
         html += `<div style="margin-top: 16px;">
@@ -380,20 +382,20 @@ function populateOverviewSection(info) {
             </div>
         </div>`;
     }
-    
+
     // Status flags
     const statusFlags = [];
     if (info.is_archived) statusFlags.push('<span style="color: var(--status-danger-text);">Archived</span>');
     if (info.has_wiki) statusFlags.push('Wiki');
     if (info.has_issues) statusFlags.push('Issues');
     if (info.has_projects) statusFlags.push('Projects');
-    
+
     if (statusFlags.length > 0) {
         html += `<div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
             ${statusFlags.join('')}
         </div>`;
     }
-    
+
     container.innerHTML = html;
 }
 
@@ -402,20 +404,20 @@ function populateOverviewSection(info) {
  */
 function populateDeploymentSection(deployment) {
     const container = document.getElementById('section-deployment');
-    
+
     if (!deployment) {
         container.innerHTML = '<p style="color: var(--text-muted);">No deployment data available.</p>';
         return;
     }
-    
+
     let html = '';
-    
+
     // GitHub Pages Status
     if (deployment.enabled) {
         const buildStatus = deployment.latest_build?.status;
         let statusClass = 'neutral';
         let statusText = 'Unknown';
-        
+
         if (buildStatus === 'success' || deployment.status === 'built') {
             statusClass = 'success';
             statusText = 'Active';
@@ -428,7 +430,7 @@ function populateDeploymentSection(deployment) {
         } else {
             statusText = deployment.status || 'Configured';
         }
-        
+
         html += `<div class="deployment-status-row">
             <span class="status-indicator ${statusClass}"></span>
             <div>
@@ -436,7 +438,7 @@ function populateDeploymentSection(deployment) {
                 <span style="font-size: 0.85rem; color: var(--text-muted);">${statusText}</span>
             </div>
         </div>`;
-        
+
         // Pages URL
         if (deployment.url) {
             html += `<div style="margin-bottom: 12px;">
@@ -444,7 +446,7 @@ function populateDeploymentSection(deployment) {
                 <a href="${escapeHtml(deployment.url)}" target="_blank" class="deployment-url">${escapeHtml(deployment.url)}</a>
             </div>`;
         }
-        
+
         // Custom Domain
         if (deployment.cname) {
             html += `<div style="margin-bottom: 12px;">
@@ -453,14 +455,14 @@ function populateDeploymentSection(deployment) {
                 ${deployment.https_enabled ? '<span style="color: var(--status-success-text); margin-left: 8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;display:inline-block;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> HTTPS</span>' : ''}
             </div>`;
         }
-        
+
         // Source Branch
         if (deployment.source_branch) {
             html += `<div style="margin-bottom: 12px; font-size: 0.85rem; color: var(--text-muted);">
                 Source branch: <code style="background: var(--primary-light); padding: 2px 6px; border-radius: 4px;">${escapeHtml(deployment.source_branch)}</code>
             </div>`;
         }
-        
+
         // Latest Build Info
         if (deployment.latest_build) {
             const build = deployment.latest_build;
@@ -483,11 +485,11 @@ function populateDeploymentSection(deployment) {
             Use the Deploy button to set up GitHub Pages for this repository.
         </p>`;
     }
-    
+
     // Other Platform Detection
     const otherPlatforms = deployment.other_platforms || {};
     const detectedPlatforms = Object.entries(otherPlatforms).filter(([_, detected]) => detected);
-    
+
     if (detectedPlatforms.length > 0) {
         html += `<div style="margin-top: 16px;">
             <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 8px;">Other Platforms Detected:</strong>
@@ -498,7 +500,7 @@ function populateDeploymentSection(deployment) {
             </div>
         </div>`;
     }
-    
+
     container.innerHTML = html;
 }
 
@@ -507,12 +509,12 @@ function populateDeploymentSection(deployment) {
  */
 function populateLanguagesSection(languages) {
     const container = document.getElementById('section-languages');
-    
+
     if (!languages || !languages.languages || languages.languages.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted);">No language data available.</p>';
         return;
     }
-    
+
     // Language colors (GitHub's approximate colors)
     const languageColors = {
         'JavaScript': '#f1e05a',
@@ -542,12 +544,12 @@ function populateLanguagesSection(languages) {
         'Lua': '#000080',
         'Rust': '#dea584',
     };
-    
+
     let html = '';
-    
+
     languages.languages.forEach(lang => {
         const color = languageColors[lang.name] || getLanguageColorFromName(lang.name);
-        
+
         html += `
             <div class="language-bar-container">
                 <div class="language-bar-header">
@@ -560,7 +562,7 @@ function populateLanguagesSection(languages) {
             </div>
         `;
     });
-    
+
     // Total info
     if (languages.total_bytes > 0) {
         const totalKB = Math.round(languages.total_bytes / 1024);
@@ -568,7 +570,7 @@ function populateLanguagesSection(languages) {
             Total: ${languages.languages.length} language${languages.languages.length !== 1 ? 's' : ''} • ~${totalKB.toLocaleString()} KB of code
         </div>`;
     }
-    
+
     container.innerHTML = html;
 }
 
@@ -577,31 +579,31 @@ function populateLanguagesSection(languages) {
  */
 function populateTechStackSection(techStack) {
     const container = document.getElementById('section-techstack');
-    
+
     if (!techStack) {
         container.innerHTML = '<p style="color: var(--text-muted);">No tech stack data detected.</p>';
         return;
     }
-    
+
     let html = '<div class="tech-stack-grid">';
-    
+
     // Framework
     html += createTechItem('Framework', techStack.framework);
-    
+
     // Build Tool
     html += createTechItem('Build Tool', techStack.build_tool);
-    
+
     // Runtime
     html += createTechItem('Runtime', techStack.runtime);
-    
+
     // Package Manager
     html += createTechItem('Package Manager', techStack.package_manager);
-    
+
     // Styling
     html += createTechItem('Styling', techStack.styling);
-    
+
     html += '</div>'; // End grid
-    
+
     // Testing tools
     if (techStack.testing && techStack.testing.length > 0) {
         html += `<div style="margin-top: 12px;">
@@ -611,18 +613,18 @@ function populateTechStackSection(techStack) {
             </div>
         </div>`;
     }
-    
+
     // Confidence badge
     if (techStack.confidence) {
         const confidenceClass = techStack.confidence === 'high' ? 'confidence-high' :
-                               techStack.confidence === 'medium' ? 'confidence-medium' : 'confidence-low';
+            techStack.confidence === 'medium' ? 'confidence-medium' : 'confidence-low';
         html += `<div style="margin-top: 12px;">
             <span class="confidence-badge ${confidenceClass}">
                 Detection Confidence: ${techStack.confidence.toUpperCase()}
             </span>
         </div>`;
     }
-    
+
     // Deployment Profile (from your detection)
     if (techStack.deployment_profile) {
         html += `<div style="margin-top: 8px; padding: 10px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; border-radius: 8px; text-align: center;">
@@ -630,7 +632,7 @@ function populateTechStackSection(techStack) {
             <span style="font-size: 1.1rem; font-weight: 700; font-family: monospace;">${escapeHtml(techStack.deployment_profile)}</span>
         </div>`;
     }
-    
+
     container.innerHTML = html;
 }
 
@@ -651,19 +653,19 @@ function createTechItem(label, value) {
  */
 function populateCommitsSection(commits) {
     const container = document.getElementById('section-commits');
-    
+
     if (!commits || !commits.commits || commits.commits.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted);">No commit history available.</p>';
         return;
     }
-    
+
     let html = '';
-    
+
     commits.commits.forEach(commit => {
         const authorAvatar = commit.author?.avatar_url || '';
         const authorName = commit.author?.login || 'Unknown';
         const commitDate = commit.date ? formatDateRelative(commit.date) : '';
-        
+
         html += `
             <div class="commit-item">
                 <div class="commit-header">
@@ -676,7 +678,7 @@ function populateCommitsSection(commits) {
             </div>
         `;
     });
-    
+
     container.innerHTML = html;
 }
 
@@ -685,18 +687,18 @@ function populateCommitsSection(commits) {
  */
 function populateContributorsSection(contributors) {
     const container = document.getElementById('section-contributors');
-    
+
     if (!contributors || !contributors.contributors || contributors.contributors.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted);">No contributor data available.</p>';
         return;
     }
-    
+
     let html = '';
-    
+
     contributors.contributors.forEach(contributor => {
         const avatarUrl = contributor.avatar_url || `https://github.com/${contributor.login}.png?size=36`;
         const profileUrl = `https://github.com/${contributor.login}`;
-        
+
         html += `<div class="contributor-item">
                 <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(contributor.login)}" class="contributor-avatar">
                 <div class="contributor-info">
@@ -706,14 +708,14 @@ function populateContributorsSection(contributors) {
                 <span class="contributor-percentage">${contributor.percentage}%</span>
             </div>`;
     });
-    
+
     // Total count
     if (contributors.total_count > 0) {
         html += `<div style="margin-top: 12px; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
             ${contributors.total_count} contributor${contributors.total_count !== 1 ? 's' : ''} total
         </div>`;
     }
-    
+
     container.innerHTML = html;
 }
 
@@ -722,14 +724,14 @@ function populateContributorsSection(contributors) {
  */
 function populateBranchesSection(branches) {
     const container = document.getElementById('section-branches');
-    
+
     if (!branches || !branches.branches || branches.branches.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted);">No branches data available.</p>';
         return;
     }
-    
+
     let html = '';
-    
+
     branches.branches.forEach(branch => {
         const isDefault = branch.is_default || branch.name === branches.default_branch;
         html += `
@@ -743,7 +745,7 @@ function populateBranchesSection(branches) {
             </div>
         `;
     });
-    
+
     container.innerHTML = html;
 }
 
@@ -753,19 +755,19 @@ function populateBranchesSection(branches) {
 function populateReadmeSection(readme) {
     const container = document.getElementById('section-readme');
     const filenameEl = document.getElementById('readme-filename');
-    
+
     if (!readme || !readme.content) {
         container.innerHTML = '<p style="color: var(--text-muted);">No README found in this repository.</p>';
         filenameEl.textContent = 'README';
         return;
     }
-    
+
     // Set filename
     filenameEl.textContent = readme.filename || 'README.md';
-    
+
     // Simple markdown to HTML conversion (basic)
     let htmlContent = simpleMarkdownToHtml(readme.content);
-    
+
     container.innerHTML = htmlContent;
 }
 
@@ -775,13 +777,13 @@ function populateReadmeSection(readme) {
 function updateModalFooter(data) {
     const infoEl = document.getElementById('modal-fetch-info');
     const errorsEl = document.getElementById('modal-errors-count');
-    
+
     // Fetch timestamp
     if (data.fetched_at) {
         const fetchedDate = new Date(data.fetched_at).toLocaleTimeString();
         infoEl.textContent = `Fetched at ${fetchedDate} • ${data.api_calls_made || 0} API calls`;
     }
-    
+
     // Errors count
     if (data.errors && data.errors.length > 0) {
         errorsEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> ${data.errors.length} section(s) had errors`;
@@ -798,23 +800,23 @@ function setupActionButtons(basicInfo) {
     const githubBtn = document.getElementById('btn-view-github');
     const actionsBtn = document.getElementById('btn-actions');
     const deployBtn = document.getElementById('btn-deploy-pages');
-    
+
     const repoUrl = basicInfo?.html_url || currentRepoInfo?.html_url || '';
     const owner = currentRepoOwner;
     const repo = currentRepoName;
-    
+
     // View on GitHub button
     githubBtn.onclick = () => {
         if (repoUrl) window.open(repoUrl, '_blank');
     };
-    
+
     // GitHub Actions button
     actionsBtn.onclick = () => {
         if (owner && repo) {
             window.open(`https://github.com/${owner}/${repo}/actions`, '_blank');
         }
     };
-    
+
     // Deploy button - triggers existing deploy function
     deployBtn.onclick = () => {
         if (owner && repo) {
@@ -840,7 +842,7 @@ function scrollToSection(sectionId) {
     if (pane) {
         pane.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    
+
     // Update active state in sidebar
     const tabBtns = document.querySelectorAll('.modal-sidebar .tab-btn');
     tabBtns.forEach(btn => {
@@ -872,16 +874,16 @@ function escapeHtml(text) {
  */
 function formatFileSize(kb) {
     if (!kb || kb === 0) return '0 B';
-    
+
     const units = ['B', 'KB', 'MB', 'GB'];
     let size = kb * 1024; // Convert KB to bytes first
     let unitIndex = 0;
-    
+
     while (size >= 1024 && unitIndex < units.length - 1) {
         size /= 1024;
         unitIndex++;
     }
-    
+
     return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
 
@@ -890,7 +892,7 @@ function formatFileSize(kb) {
  */
 function formatDateRelative(dateStr) {
     if (!dateStr) return '';
-    
+
     const date = new Date(dateStr);
     const now = new Date();
     const diffMs = now - date;
@@ -901,7 +903,7 @@ function formatDateRelative(dateStr) {
     const diffWeeks = Math.floor(diffDays / 7);
     const diffMonths = Math.floor(diffDays / 30);
     const diffYears = Math.floor(diffDays / 365);
-    
+
     if (diffSecs < 60) return 'just now';
     if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
     if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
@@ -923,7 +925,7 @@ function getPlatformIcon(platform) {
         'heroku': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"><path d="M4 14.5V11a7 7 0 0 1 14 0v3.5"></path><path d="M4 14.5A2.5 2.5 0 0 0 6.5 17h11a2.5 2.5 0 0 0 2.5-2.5"></path><path d="M12 17v4"></path></svg>',
         'docker': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>',
     };
-    
+
     return icons[platform] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>';
 }
 
@@ -932,13 +934,13 @@ function getPlatformIcon(platform) {
  */
 function getLanguageColorFromName(name) {
     if (!name) return '#888888';
-    
+
     // Simple hash to generate consistent colors
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
         hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
+
     const hue = Math.abs(hash % 360);
     return `hsl(${hue}, 65%, 50%)`;
 }
@@ -949,59 +951,177 @@ function getLanguageColorFromName(name) {
  */
 function simpleMarkdownToHtml(markdown) {
     if (!markdown) return '';
-    
+
     let html = escapeHtml(markdown);
-    
+
     // Headers
     html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
     html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
     html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-    
+
     // Bold and Italic
     html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-    
+
     // Code blocks (inline and block)
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
     html = html.replace(/```[\s\S]*?```/g, (match) => {
         const code = match.replace(/```\w*\n?/, '').replace(/\n?```$/, '');
         return `<pre><code>${code}</code></pre>`;
     });
-    
+
     // Links
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-    
+
     // Lists (basic)
     html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
     html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
-    
+
     // Numbered lists
     html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-    
+
     // Blockquotes
     html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
-    
+
     // Horizontal rules
     html = html.replace(/^---$/gm, '<hr>');
-    
+
     // Paragraphs (double newline)
     html = html.replace(/\n\n/g, '</p><p>');
     html = `<p>${html}</p>`;
-    
+
     // Clean up empty paragraphs
     html = html.replace(/<p><\/p>/g, '');
     html = html.replace(/<p>(<h[1-6]>)/g, '$1');
     html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
     html = html.replace(/<p>(<ul>|<ol>|<blockquote>|<pre>|<hr>)/g, '$1');
     html = html.replace(/(<\/ul>|<\/ol>|<\/blockquote>|<\/pre>)<\/p>/g, '$1');
-    
+
     // Line breaks within paragraphs
     html = html.replace(/\n/g, '<br>');
-    
+
     return html;
 }
 
 
 // Duplicate functions removed. They are defined in repositories.html inline script.
 
+// ============================================================================
+// AI REPORT GENERATION
+// ============================================================================
+
+/**
+ * Resets the AI report section back to its initial loading/empty state.
+ */
+function resetAIReportSection() {
+    const container = document.getElementById('section-aireport');
+    const statusEl = document.getElementById('aireport-status');
+    const generateBtn = document.getElementById('btn-generate-report');
+    
+    if (container) container.innerHTML = '<p style="color: var(--text-muted);">Click <b>Generate Report</b> to trigger an AI analysis.</p>';
+    if (statusEl) statusEl.textContent = '';
+    if (generateBtn) generateBtn.style.display = 'inline-block';
+}
+
+/**
+ * Populates the AI report section with the generated markdown + cost stats.
+ */
+function populateAIReportSection(data) {
+    const container = document.getElementById('section-aireport');
+    const statusEl = document.getElementById('aireport-status');
+    const generateBtn = document.getElementById('btn-generate-report');
+    
+    if (!container) return;
+
+    // Simple markdown to HTML for the AI report text
+    let htmlContent = simpleMarkdownToHtml(data.report_markdown || '');
+    
+    // Build stats block
+    const costStatsHtml = `
+        <div style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-size: 12px; color: var(--text-muted);">
+            <strong>Cost & Performance Data:</strong><br>
+            Model: <code>${data.model_used}</code><br>
+            Prompt Tokens: ${data.prompt_tokens}<br>
+            Completion Tokens: ${data.completion_tokens}<br>
+            Duration: ${data.duration_ms}ms
+        </div>
+    `;
+    
+    container.innerHTML = htmlContent + costStatsHtml;
+    
+    if (statusEl) {
+        statusEl.textContent = `Generated at ${new Date(data.generated_at).toLocaleTimeString()}`;
+    }
+    
+    if (generateBtn) {
+        generateBtn.style.display = 'none'; // hide generate once generated
+    }
+}
+
+/**
+ * Triggers the AI report backend endpoint.
+ */
+async function generateAIReport(owner, repository) {
+    const statusEl = document.getElementById('aireport-status');
+    const generateBtn = document.getElementById('btn-generate-report');
+    const container = document.getElementById('section-aireport');
+
+    if (!container) return;
+
+    // Show loading state
+    if (generateBtn) generateBtn.style.display = 'none';
+    if (statusEl) statusEl.textContent = 'AI is analyzing code & generating report...';
+    
+    container.innerHTML = `
+        <div style="display: flex; justify-content: center; padding: 40px 0;">
+            <div class="spinner" style="border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;"></div>
+        </div>
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    `;
+
+    try {
+        const token = (typeof getAuthSession === 'function' ? getAuthSession()?.dbSessionToken : null) || localStorage.getItem("db_session_token");
+        if (!token) {
+            throw new Error("You must be logged in. Please sign in again.");
+        }
+
+        const response = await fetch(`${BACKEND_API_URL}/reports/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ owner, repository })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            populateAIReportSection(data);
+        } else {
+            throw new Error(data.detail || data.message || "Failed to generate report");
+        }
+    } catch (error) {
+        console.error("AI Report error:", error);
+        if (statusEl) statusEl.textContent = 'Generation failed';
+        if (generateBtn) generateBtn.style.display = 'inline-block';
+        
+        container.innerHTML = `
+            <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 12px; margin-bottom: 16px;">
+                <h4 style="margin: 0 0 8px 0; color: #ef4444;">AI Generation Error</h4>
+                <p style="margin: 0; color: var(--text-color); font-size: 14px;">${escapeHtml(error.message)}</p>
+            </div>
+            <p style="color: var(--text-muted);">Please try again.</p>
+        `;
+    }
+}
+window.generateAIReport = generateAIReport;
+
+window.generateAIReportFromModal = () => {
+    if (currentRepoOwner && currentRepoName) {
+        generateAIReport(currentRepoOwner, currentRepoName);
+    } else {
+        alert("Cannot determine which repository to analyze. Please close and re-open the modal.");
+    }
+};

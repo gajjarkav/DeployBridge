@@ -65,6 +65,13 @@ class Settings(BaseSettings):
     SESSION_COOKIE_PATH: str = Field(default="/")
 
 
+    # Groq / LLM Configuration
+    GROQ_API_KEY: Optional[str] = Field(default=None)
+    GROQ_BASE_URL: str = Field(default="https://api.groq.com/openai/v1")
+    GROQ_MODEL: str = Field(default="llama-3.3-70b-versatile")
+    GROQ_TIMEOUT_SECONDS: float = Field(default=60.0)
+
+
     @field_validator("DEBUG", mode="before")
     @classmethod
     def parse_debug(cls, value):
@@ -76,7 +83,7 @@ class Settings(BaseSettings):
                 return True
         return value
 
-    @field_validator("DOCS_URL", "REDOC_URL", "HOST", "LOG_LEVEL", mode="before")
+    @field_validator("DOCS_URL", "REDOC_URL", "HOST", "LOG_LEVEL", "GROQ_API_KEY", mode="before")
     @classmethod
     def parse_blank_optional_strings(cls, value):
         if isinstance(value, str) and not value.strip():

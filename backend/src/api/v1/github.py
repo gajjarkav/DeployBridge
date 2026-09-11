@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Header, status
 
 from ...core.exception import GitHubAPIError
+from ...models.user import User
 from ...schemas.repo_info import RepositoryInfoResponse, RepositoryInfoRequest
 from ...services.github import GitHubService
 from ..dependencies import get_current_user

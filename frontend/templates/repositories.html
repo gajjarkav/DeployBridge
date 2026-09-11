@@ -1178,7 +1178,7 @@
                             <div class="card-table__item">
                                 <div class="action-group">
                                     <button class="action-btn" onclick="openRepoModal('${repo.owner?.login || ""}','${repo.name}', '${repo.html_url}')"><span class="btn-label">View</span><span class="btn-icon">&emsp;👁&emsp;</span></button>
-                                    <button class="action-btn" onclick="window.analyzeRepo('${repo.name}')"><span class="btn-label">Analyze</span><span class="btn-icon">&emsp;⚡&emsp;</span></button>
+                                    <button class="action-btn" onclick="window.analyzeRepo('${repo.owner?.login || ""}','${repo.name}')"><span class="btn-label">Analyze</span><span class="btn-icon">&emsp;⚡&emsp;</span></button>
                                     <button class="action-btn" onclick="window.deployGitHubPages('${repo.owner?.login || ""}','${repo.name}')"><span class="btn-label">Deploy</span><span class="btn-icon">&emsp;🚀&emsp;</span></button>
                                 </div>
                             </div>
@@ -1243,8 +1243,19 @@
         }
 
         // Exposing specific action handlers globally so buttons can access them
-        window.analyzeRepo = (repoName) => {
-            alert(`Initializing deep scan for: ${repoName}...\n\n(Backend hit attached to logic)`);
+        window.analyzeRepo = async (owner, repoName) => {
+            // v0: wake the AI agent — open the repo modal and auto-trigger report generation.
+            if (!owner || !repoName) {
+                alert('Repository owner or name missing — please refresh and try again.');
+                return;
+            }
+            // Open the modal with full repo info (existing flow), then trigger the AI report.
+            openRepoModal(owner, repoName, `https://github.com/${owner}/${repoName}`);
+            setTimeout(() => {
+                if (typeof window.generateAIReport === 'function') {
+                    window.generateAIReport(owner, repoName);
+                }
+            }, 350);
         };
 
         window.deployGitHubPages = async (owner, repository) => {
@@ -1338,15 +1349,26 @@
             <div class="modal-actions-bar">
                 <div class="action-btn-group">
                     <button class="action-btn-group-item" id="btn-view-github" title="View on GitHub">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                            <path
+                                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                            </path>
+                        </svg>
                         GitHub
                     </button>
                     <button class="action-btn-group-item" id="btn-actions" title="GitHub Actions">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
                         Actions
                     </button>
                     <button class="action-btn-group-item deploy-btn" id="btn-deploy-pages" title="Deploy to Pages">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
                         Deploy
                     </button>
                 </div>
@@ -1361,7 +1383,14 @@
             <!-- Error State -->
             <div id="modal-error" class="modal-error" style="display: none;">
                 <span class="error-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" style="width: 48px; height: 48px;">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                        </path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
                 </span>
                 <p id="modal-error-message">Failed to fetch data.</p>
                 <button class="retry-btn" onclick="retryFetchRepoInfo()">Retry</button>
@@ -1369,39 +1398,92 @@
 
             <!-- Content Area (Sidebar + Tabs) -->
             <div id="modal-content" class="modal-content-layout" style="display: none;">
-                
+
                 <div class="modal-sidebar">
                     <button class="tab-btn active" data-tab="overview" onclick="scrollToSection('tab-overview')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Overview
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg> Overview
                     </button>
                     <button class="tab-btn" data-tab="deployment" onclick="scrollToSection('tab-deployment')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Deployment Status
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg> Deployment Status
                     </button>
                     <button class="tab-btn" data-tab="languages" onclick="scrollToSection('tab-languages')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg> Languages
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                        </svg> Languages
                     </button>
                     <button class="tab-btn" data-tab="techstack" onclick="scrollToSection('tab-techstack')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Tech Stack
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                            </path>
+                        </svg> Tech Stack
                     </button>
                     <button class="tab-btn" data-tab="commits" onclick="scrollToSection('tab-commits')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><line x1="3" y1="12" x2="9" y2="12"></line><line x1="15" y1="12" x2="21" y2="12"></line></svg> Recent Commits
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <line x1="3" y1="12" x2="9" y2="12"></line>
+                            <line x1="15" y1="12" x2="21" y2="12"></line>
+                        </svg> Recent Commits
                     </button>
                     <button class="tab-btn" data-tab="contributors" onclick="scrollToSection('tab-contributors')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Contributors
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg> Contributors
                     </button>
                     <button class="tab-btn" data-tab="branches" onclick="scrollToSection('tab-branches')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg> Branches
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="6" y1="3" x2="6" y2="15"></line>
+                            <circle cx="18" cy="6" r="3"></circle>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <path d="M18 9a9 9 0 0 1-9 9"></path>
+                        </svg> Branches
                     </button>
                     <button class="tab-btn" data-tab="readme" onclick="scrollToSection('tab-readme')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> Readme
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg> Readme
+                    </button>
+                    <button class="tab-btn" data-tab="aireport" onclick="scrollToSection('tab-aireport')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg> AI Report
                     </button>
                 </div>
-                
+
                 <div class="modal-main-content">
                     <div class="tab-pane active" id="tab-overview">
                         <div class="info-card no-border">
                             <h3 class="card-title">
-                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span> Overview
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="width:20px;height:20px;">
+                                        <rect x="3" y="3" width="7" height="7"></rect>
+                                        <rect x="14" y="3" width="7" height="7"></rect>
+                                        <rect x="14" y="14" width="7" height="7"></rect>
+                                        <rect x="3" y="14" width="7" height="7"></rect>
+                                    </svg></span> Overview
                             </h3>
                             <div class="card-body" id="section-overview"></div>
                         </div>
@@ -1410,7 +1492,12 @@
                     <div class="tab-pane" id="tab-deployment">
                         <div class="info-card no-border">
                             <h3 class="card-title">
-                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></span> Deployment Status
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="width:20px;height:20px;">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg></span> Deployment Status
                             </h3>
                             <div class="card-body" id="section-deployment"></div>
                         </div>
@@ -1419,7 +1506,12 @@
                     <div class="tab-pane" id="tab-languages">
                         <div class="info-card no-border">
                             <h3 class="card-title">
-                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></span> Languages
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="width:20px;height:20px;">
+                                        <polyline points="16 18 22 12 16 6"></polyline>
+                                        <polyline points="8 6 2 12 8 18"></polyline>
+                                    </svg></span> Languages
                             </h3>
                             <div class="card-body" id="section-languages"></div>
                         </div>
@@ -1428,7 +1520,13 @@
                     <div class="tab-pane" id="tab-techstack">
                         <div class="info-card no-border">
                             <h3 class="card-title">
-                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></span> Tech Stack
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="width:20px;height:20px;">
+                                        <path
+                                            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                                        </path>
+                                    </svg></span> Tech Stack
                             </h3>
                             <div class="card-body" id="section-techstack"></div>
                         </div>
@@ -1437,7 +1535,13 @@
                     <div class="tab-pane" id="tab-commits">
                         <div class="info-card no-border">
                             <h3 class="card-title">
-                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><circle cx="12" cy="12" r="3"></circle><line x1="3" y1="12" x2="9" y2="12"></line><line x1="15" y1="12" x2="21" y2="12"></line></svg></span> Recent Commits
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="width:20px;height:20px;">
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <line x1="3" y1="12" x2="9" y2="12"></line>
+                                        <line x1="15" y1="12" x2="21" y2="12"></line>
+                                    </svg></span> Recent Commits
                             </h3>
                             <div class="card-body" id="section-commits"></div>
                         </div>
@@ -1446,7 +1550,14 @@
                     <div class="tab-pane" id="tab-contributors">
                         <div class="info-card no-border">
                             <h3 class="card-title">
-                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span> Contributors
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="width:20px;height:20px;">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="9" cy="7" r="4"></circle>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                    </svg></span> Contributors
                             </h3>
                             <div class="card-body" id="section-contributors"></div>
                         </div>
@@ -1455,7 +1566,14 @@
                     <div class="tab-pane" id="tab-branches">
                         <div class="info-card no-border">
                             <h3 class="card-title">
-                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg></span> Branches
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="width:20px;height:20px;">
+                                        <line x1="6" y1="3" x2="6" y2="15"></line>
+                                        <circle cx="18" cy="6" r="3"></circle>
+                                        <circle cx="6" cy="18" r="3"></circle>
+                                        <path d="M18 9a9 9 0 0 1-9 9"></path>
+                                    </svg></span> Branches
                             </h3>
                             <div class="card-body" id="section-branches"></div>
                         </div>
@@ -1464,9 +1582,40 @@
                     <div class="tab-pane" id="tab-readme">
                         <div class="info-card no-border">
                             <h3 class="card-title">
-                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span> <span id="readme-filename">README.md</span>
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="width:20px;height:20px;">
+                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                    </svg></span> <span id="readme-filename">README.md</span>
                             </h3>
                             <div class="card-body readme-content" id="section-readme"></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane" id="tab-aireport">
+                        <div class="info-card no-border">
+                            <h3 class="card-title">
+                                <span class="title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        style="width:20px;height:20px;">
+                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                    </svg></span>
+                                <span id="aireport-title">AI Analysis Report</span>
+                            </h3>
+                            <div id="aireport-controls"
+                                style="margin-bottom: 12px; display: flex; gap: 10px; align-items: center;">
+                                <button class="action-btn" id="btn-generate-report"
+                                    onclick="window.generateAIReportFromModal()" style="display:none;">
+                                    <span class="btn-label">Generate Report</span><span
+                                        class="btn-icon">&emsp;⚡&emsp;</span>
+                                </button>
+                                <span id="aireport-status" style="font-size: 12.5px; color: var(--text-muted);"></span>
+                            </div>
+                            <div class="card-body readme-content" id="section-aireport">
+                                <p style="color: var(--text-muted);">Click <b>Analyze</b> on a repository, or the button
+                                    above, to generate an AI architecture &amp; business-logic report.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
