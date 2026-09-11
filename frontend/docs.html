@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation | DeployBridge - Automated Git Deployment Engine</title>
+    <meta name="description" content="Official documentation for DeployBridge. Learn how to connect GitHub, detect static frameworks, automate CI/CD workflows, and integrate with the DeployBridge REST API.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Montenegrin+Gothic+One&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Immediate Theme Application to prevent FOUC -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('db_theme') || localStorage.getItem('deploybridge_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: ['class', '[data-theme="dark"]'],
+            theme: {
+                extend: {
+                    colors: {
+                        db_bg: 'var(--bg-color)',
+                        db_surface: 'var(--surface-color)',
+                        db_surface_alt: 'var(--surface-color-alt)',
+                        db_surface_subtle: 'var(--surface-subtle)',
+                        db_text: 'var(--text-color)',
+                        db_muted: 'var(--text-muted)',
+                        db_primary: 'var(--primary-color)',
+                        db_border: 'var(--border-color)',
+                        db_border_light: 'var(--border-light)',
+                        db_code_bg: 'var(--code-bg)',
+                    },
+                    fontFamily: {
+                        ubuntu: ['Ubuntu', 'sans-serif'],
+                        gothic: ['"Montenegrin Gothic One"', 'serif'],
+                        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+                    },
+                    boxShadow: {
+                        'db-sm': 'var(--shadow-sm)',
+                        'db-md': 'var(--shadow-md)',
+                        'db-lg': 'var(--shadow-lg)',
+                        'db-glow': 'var(--shadow-glow)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #f5f5dc;
+            --surface-color: #ffffff;
+            --surface-color-alt: #fdfdf9;
+            --surface-subtle: rgba(0, 0, 0, 0.025);
+            --text-color: #111111;
+            --text-muted: #555555;
+            --primary-color: #000000;
+            --primary-light: rgba(0, 0, 0, 0.04);
+            --primary-hover: rgba(0, 0, 0, 0.08);
+            --border-color: rgba(0, 0, 0, 0.09);
+            --border-light: rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.09);
+            --shadow-glow: 0 0 20px rgba(0, 0, 0, 0.06);
+            --grid-color: rgba(0, 0, 0, 0.04);
+            --code-bg: #1e1e24;
+            --code-text: #e2e8f0;
+            --inline-code-bg: rgba(0, 0, 0, 0.06);
+            --inline-code-color: #0f172a;
+            --accent-green: #10b981;
+            --accent-blue: #2563eb;
+            --accent-amber: #d97706;
+            --accent-purple: #7c3aed;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0a0a0a;
+            --surface-color: #121212;
+            --surface-color-alt: #171717;
+            --surface-subtle: rgba(245, 245, 220, 0.03);
+            --text-color: #f5f5dc;
+            --text-muted: #9e9e90;
+            --primary-color: #f5f5dc;
+            --primary-light: rgba(245, 245, 220, 0.06);
+            --primary-hover: rgba(245, 245, 220, 0.12);
+            --border-color: rgba(245, 245, 220, 0.12);
+            --border-light: rgba(245, 245, 220, 0.06);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.7);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.85);
+            --shadow-glow: 0 0 25px rgba(245, 245, 220, 0.08);
+            --grid-color: rgba(245, 245, 220, 0.035);
+            --code-bg: #0d0d0f;
+            --code-text: #f1f5f9;
+            --inline-code-bg: rgba(245, 245, 220, 0.08);
+            --inline-code-color: #f5f5dc;
+            --accent-green: #34d399;
+            --accent-blue: #60a5fa;
+            --accent-amber: #fbbf24;
+            --accent-purple: #a78bfa;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Ubuntu', system-ui, -apple-system, sans-serif;
+            background-image: 
+                linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
+            background-size: 55px 55px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            scroll-behavior: smooth;
+        }
+
+        /* Glass Panel */
+        .glass-panel {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Smooth Anchor Scrolling offset for sticky header */
+        .doc-section {
+            scroll-margin-top: 90px;
+        }
+
+        /* Active Nav Link */
+        .nav-tree-link.active {
+            color: var(--primary-color);
+            background: var(--primary-light);
+            font-weight: 600;
+            border-left: 2px solid var(--primary-color);
+        }
+
+        /* TOC Active Link */
+        .toc-link.active {
+            color: var(--primary-color);
+            font-weight: 600;
+            border-left: 2px solid var(--primary-color);
+            padding-left: 10px;
+        }
+
+        /* Inline Code */
+        code:not(pre code) {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.86em;
+            background: var(--inline-code-bg);
+            color: var(--inline-code-color);
+            padding: 0.15em 0.4em;
+            border-radius: 4px;
+            border: 1px solid var(--border-light);
+        }
+
+        /* Pre Code Block */
+        pre {
+            background-color: var(--code-bg) !important;
+            color: var(--code-text);
+            font-family: 'JetBrains Mono', monospace;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Theme toggle animation styles matching index.html */
+        .st-sunMoonThemeToggleBtn {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--surface-color);
+            transition: transform 0.2s ease, background-color 0.3s ease;
+        }
+        .st-sunMoonThemeToggleBtn:hover {
+            transform: scale(1.05);
+        }
+        .themeToggleInput {
+            display: none;
+        }
+        .sunRay {
+            transform-origin: center center;
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+        .sunMoon {
+            transition: transform 0.4s ease;
+        }
+        [data-theme="dark"] .sunRay {
+            opacity: 0;
+            transform: scale(0);
+        }
+        [data-theme="dark"] .sunMoon {
+            transform: scale(0.65);
+        }
+
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation: none;
+            mix-blend-mode: normal;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Top Sticky Header -->
+    <header class="sticky top-0 z-40 w-full border-b border-db_border bg-db_surface/90 backdrop-blur-md transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            
+            <!-- Left: Brand Logo & Version -->
+            <div class="flex items-center gap-3">
+                <button id="mobileSidebarToggle" class="lg:hidden p-2 rounded-lg text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-colors" aria-label="Toggle Navigation">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+
+                <a href="../index.html" class="flex items-center gap-2.5 group">
+                    <div class="font-gothic text-2xl text-db_primary tracking-tight">DB</div>
+                    <span class="font-bold text-base tracking-tight text-db_text font-ubuntu">DeployBridge</span>
+                </a>
+
+                <div class="hidden sm:flex items-center gap-2 ml-2">
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full border border-db_border bg-db_surface_subtle text-db_muted">
+                        Docs
+                    </span>
+                    <span class="text-[11px] font-mono text-db_muted px-1.5 py-0.5 rounded border border-db_border_light">
+                        v1.4.0
+                    </span>
+                </div>
+            </div>
+
+            <!-- Center: Quick Search Bar -->
+            <div class="flex-1 max-w-md mx-2 sm:mx-6">
+                <button id="searchTriggerBtn" class="w-full flex items-center justify-between px-3.5 py-2 text-xs sm:text-sm text-db_muted bg-db_surface_subtle hover:bg-db_surface border border-db_border rounded-lg shadow-sm transition-all group">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-db_muted group-hover:text-db_text transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <span class="hidden sm:inline">Search docs, guides & API...</span>
+                        <span class="sm:hidden">Search docs...</span>
+                    </div>
+                    <kbd class="hidden md:flex items-center gap-0.5 font-mono text-[10px] bg-db_surface px-1.5 py-0.5 rounded border border-db_border font-semibold shadow-xs">
+                        <span class="text-xs">⌘</span>K
+                    </kbd>
+                </button>
+            </div>
+
+            <!-- Right: Actions & Theme Toggle -->
+            <div class="flex items-center gap-2.5 sm:gap-4">
+                <a href="templates/dashboard.html" class="hidden md:flex items-center gap-1.5 text-xs font-medium text-db_muted hover:text-db_text transition-colors px-2.5 py-1.5 rounded-md hover:bg-db_surface_subtle">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="hidden sm:flex items-center text-db_muted hover:text-db_text transition-colors p-2" title="GitHub Repository">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                </a>
+
+                <!-- Theme Toggle -->
+                <label for="themeToggle" class="st-sunMoonThemeToggleBtn" title="Toggle Light/Dark Theme">
+                    <input type="checkbox" id="themeToggle" class="themeToggleInput" aria-label="Toggle Theme" />
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" stroke="none">
+                        <mask id="moon-mask">
+                            <rect x="0" y="0" width="20" height="20" fill="white"></rect>
+                            <circle cx="11" cy="3" r="8" fill="black"></circle>
+                        </mask>
+                        <circle class="sunMoon" cx="10" cy="10" r="8" mask="url(#moon-mask)"></circle>
+                        <g>
+                            <circle class="sunRay" cx="18" cy="10" r="1.5"></circle>
+                            <circle class="sunRay" cx="14" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay" cx="6" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay" cx="2" cy="10" r="1.5"></circle>
+                            <circle class="sunRay" cx="6" cy="3.1718" r="1.5"></circle>
+                            <circle class="sunRay" cx="14" cy="3.1718" r="1.5"></circle>
+                        </g>
+                    </svg>
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container Layout: 3 Columns -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex">
+        
+        <!-- Left Sidebar: Navigation Tree -->
+        <aside id="docsSidebar" class="fixed inset-y-0 left-0 z-30 w-72 pt-16 bg-db_surface lg:bg-transparent lg:static lg:w-64 lg:pt-8 lg:block border-r border-db_border/50 lg:border-r-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto">
+            <div class="px-4 py-4 lg:p-0 lg:pr-6 space-y-7">
+                
+                <!-- Quick Filter Input -->
+                <div class="relative">
+                    <input type="text" id="navFilterInput" placeholder="Filter topics..." class="w-full text-xs px-3 py-1.5 pl-8 bg-db_surface_alt border border-db_border rounded-md text-db_text placeholder:text-db_muted focus:outline-none focus:border-db_primary transition-colors">
+                    <svg class="w-3.5 h-3.5 text-db_muted absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                </div>
+
+                <!-- Navigation Groups -->
+                <nav class="space-y-6 text-sm">
+                    
+                    <!-- Group 1: Getting Started -->
+                    <div>
+                        <div class="text-[11px] font-bold tracking-wider text-db_muted uppercase mb-2.5 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Getting Started
+                        </div>
+                        <ul class="space-y-1">
+                            <li><a href="#overview" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Overview & Architecture</a></li>
+                            <li><a href="#quickstart" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">5-Minute Quickstart</a></li>
+                            <li><a href="#auth-flow" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">OAuth & Authentication</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Group 2: Core Concepts & Detection -->
+                    <div>
+                        <div class="text-[11px] font-bold tracking-wider text-db_muted uppercase mb-2.5 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            Core Concepts
+                        </div>
+                        <ul class="space-y-1">
+                            <li><a href="#framework-profiles" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Deployment Profiles</a></li>
+                            <li><a href="#detection-engine" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Auto-Detection Engine</a></li>
+                            <li><a href="#actions-workflows" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">GitHub Actions Generator</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Group 3: Deployment Profiles Breakdown -->
+                    <div>
+                        <div class="text-[11px] font-bold tracking-wider text-db_muted uppercase mb-2.5 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Framework Guides
+                        </div>
+                        <ul class="space-y-1">
+                            <li><a href="#profile-html" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Static HTML / CSS / JS</a></li>
+                            <li><a href="#profile-node-static" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">React / Vite / Astro</a></li>
+                            <li><a href="#profile-next-static" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Next.js Static Export</a></li>
+                            <li><a href="#profile-jekyll" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Jekyll / Ruby Sites</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Group 4: REST API Reference -->
+                    <div>
+                        <div class="text-[11px] font-bold tracking-wider text-db_muted uppercase mb-2.5 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                            REST API Reference
+                        </div>
+                        <ul class="space-y-1">
+                            <li><a href="#api-overview" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">API Overview & Auth</a></li>
+                            <li><a href="#api-auth" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Authentication Endpoints</a></li>
+                            <li><a href="#api-github" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Repository Inspection</a></li>
+                            <li><a href="#api-github-pages" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Detection & Deploy</a></li>
+                            <li><a href="#api-health" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Health & Diagnostics</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Group 5: Security & Troubleshooting -->
+                    <div>
+                        <div class="text-[11px] font-bold tracking-wider text-db_muted uppercase mb-2.5 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            Security & Operations
+                        </div>
+                        <ul class="space-y-1">
+                            <li><a href="#security" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Encryption & Scopes</a></li>
+                            <li><a href="#troubleshooting" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Troubleshooting & FAQ</a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Sidebar Backdrop for Mobile -->
+        <div id="sidebarBackdrop" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-20 hidden lg:hidden"></div>
+
+        <!-- Center: Main Documentation Content -->
+        <main class="flex-1 min-w-0 py-8 lg:px-10 lg:border-l lg:border-r border-db_border/40">
+            <div class="max-w-3xl mx-auto space-y-16">
+
+                <!-- Page Intro Banner -->
+                <div class="border-b border-db_border/60 pb-8">
+                    <div class="flex items-center gap-2 text-xs font-semibold text-db_muted uppercase tracking-wider mb-2">
+                        <span>DeployBridge</span>
+                        <span>/</span>
+                        <span class="text-db_text">Developer Documentation</span>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-db_text font-ubuntu mb-4">
+                        DeployBridge Documentation
+                    </h1>
+                    <p class="text-base sm:text-lg text-db_muted leading-relaxed">
+                        DeployBridge is an automated deployment bridge connecting GitHub repositories to production static environments via GitHub Pages and modern CI/CD actions.
+                    </p>
+                    
+                    <div class="mt-6 flex flex-wrap gap-3 text-xs">
+                        <a href="#quickstart" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-db_primary text-db_bg font-semibold hover:opacity-90 transition-opacity">
+                            <span>Get Started</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </a>
+                        <a href="#api-overview" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-db_border bg-db_surface hover:bg-db_surface_subtle text-db_text font-medium transition-colors">
+                            <span>Explore API</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        </a>
+                        <a href="templates/dashboard.html" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-db_border bg-db_surface hover:bg-db_surface_subtle text-db_text font-medium transition-colors">
+                            <span>Open Console</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Section 1: Overview & Architecture -->
+                <section id="overview" class="doc-section space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-db_text font-ubuntu flex items-center gap-2.5">
+                            <span>Overview & Architecture</span>
+                            <a href="#overview" class="text-db_muted hover:text-db_primary text-lg opacity-0 hover:opacity-100 transition-opacity">#</a>
+                        </h2>
+                        <p class="mt-2 text-db_muted leading-relaxed">
+                            DeployBridge eliminates the friction of configuring static web hosting, YAML pipelines, and automated artifact publishing. By analyzing repository metadata, folder structure, and dependency graphs, it dynamically produces tailored GitHub Actions workflows that compile, bundle, and deploy projects to GitHub Pages.
+                        </p>
+                    </div>
+
+                    <!-- Architecture Diagram Box -->
+                    <div class="p-5 rounded-xl border border-db_border bg-db_surface_alt space-y-4 shadow-sm">
+                        <div class="flex items-center justify-between text-xs font-semibold text-db_muted pb-2 border-b border-db_border/50">
+                            <span>System Architecture Pipeline</span>
+                            <span class="font-mono">End-to-End Flow</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center text-xs">
+                            <div class="p-3 rounded-lg border border-db_border bg-db_surface flex flex-col items-center justify-center gap-1.5">
+                                <div class="w-7 h-7 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">1</div>
+                                <span class="font-semibold text-db_text">GitHub OAuth</span>
+                                <span class="text-[11px] text-db_muted">Secure token exchange & AES storage</span>
+                            </div>
+                            <div class="p-3 rounded-lg border border-db_border bg-db_surface flex flex-col items-center justify-center gap-1.5">
+                                <div class="w-7 h-7 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">2</div>
+                                <span class="font-semibold text-db_text">Profile Detector</span>
+                                <span class="text-[11px] text-db_muted">Inspection of tree & package.json</span>
+                            </div>
+                            <div class="p-3 rounded-lg border border-db_border bg-db_surface flex flex-col items-center justify-center gap-1.5">
+                                <div class="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">3</div>
+                                <span class="font-semibold text-db_text">Workflow Engine</span>
+                                <span class="text-[11px] text-db_muted">Synthesizes Actions YAML files</span>
+                            </div>
+                            <div class="p-3 rounded-lg border border-db_border bg-db_surface flex flex-col items-center justify-center gap-1.5">
+                                <div class="w-7 h-7 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">4</div>
+                                <span class="font-semibold text-db_text">GitHub Pages</span>
+                                <span class="text-[11px] text-db_muted">Automated build & live URL</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Callout: Note -->
+                    <div class="p-4 rounded-lg border-l-4 border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 text-sm text-db_text">
+                        <div class="font-semibold flex items-center gap-1.5 text-blue-600 dark:text-blue-400 mb-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Zero Infrastructure Overhead
+                        </div>
+                        <p class="text-db_muted text-xs leading-normal">
+                            DeployBridge builds directly inside GitHub Actions runners utilizing your repository's native permissions, meaning there are no third-party container hosting fees or external proxy servers required.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Section 2: 5-Minute Quickstart -->
+                <section id="quickstart" class="doc-section space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-db_text font-ubuntu flex items-center gap-2.5">
+                            <span>5-Minute Quickstart</span>
+                            <a href="#quickstart" class="text-db_muted hover:text-db_primary text-lg opacity-0 hover:opacity-100 transition-opacity">#</a>
+                        </h2>
+                        <p class="mt-2 text-db_muted leading-relaxed">
+                            Deploy your first static application or website in four simple steps without writing a single line of CI/CD configuration.
+                        </p>
+                    </div>
+
+                    <!-- Steps Timeline -->
+                    <div class="space-y-6 border-l-2 border-db_border pl-4 ml-2">
+                        
+                        <!-- Step 1 -->
+                        <div class="relative space-y-2">
+                            <div class="absolute -left-[23px] top-0 w-3.5 h-3.5 rounded-full bg-db_primary border-2 border-db_bg"></div>
+                            <h3 class="text-base font-bold text-db_text">Step 1: Sign in with GitHub</h3>
+                            <p class="text-sm text-db_muted">
+                                Navigate to <a href="templates/auth.html" class="text-db_primary underline hover:opacity-80">Sign In</a> and authorize DeployBridge. This requests necessary permissions (<code>read:user</code>, <code>repo</code>, and <code>workflow</code>) to configure repository Actions.
+                            </p>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="relative space-y-2">
+                            <div class="absolute -left-[23px] top-0 w-3.5 h-3.5 rounded-full bg-db_primary border-2 border-db_bg"></div>
+                            <h3 class="text-base font-bold text-db_text">Step 2: Choose Repository</h3>
+                            <p class="text-sm text-db_muted">
+                                Open the <a href="templates/repositories.html" class="text-db_primary underline hover:opacity-80">Repositories Browser</a>. DeployBridge automatically indexes all your public and private repositories, showing languages, branches, and commit statistics.
+                            </p>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="relative space-y-2">
+                            <div class="absolute -left-[23px] top-0 w-3.5 h-3.5 rounded-full bg-db_primary border-2 border-db_bg"></div>
+                            <h3 class="text-base font-bold text-db_text">Step 3: Trigger Profile Detection</h3>
+                            <p class="text-sm text-db_muted">
+                                Click the <strong>Deploy to Pages</strong> action on any repository. DeployBridge calls <code>/api/v1/github-pages/detect</code> to inspect repository files and determine whether it is plain HTML, React/Vite, Next.js, or Jekyll.
+                            </p>
+                            <div class="p-3 rounded-lg bg-db_surface border border-db_border text-xs font-mono text-db_muted">
+                                Detected: <span class="text-emerald-600 dark:text-emerald-400 font-bold">node-static</span> (Vite build detected via package.json dependencies)
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="relative space-y-2">
+                            <div class="absolute -left-[23px] top-0 w-3.5 h-3.5 rounded-full bg-db_primary border-2 border-db_bg"></div>
+                            <h3 class="text-base font-bold text-db_text">Step 4: Confirm & Launch</h3>
+                            <p class="text-sm text-db_muted">
+                                Confirm the deployment. DeployBridge commits the optimized workflow template to <code>.github/workflows/deploybridge-&lt;profile&gt;.yml</code> on your default branch and activates GitHub Pages via the GitHub REST API.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: OAuth & Authentication -->
+                <section id="auth-flow" class="doc-section space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-db_text font-ubuntu flex items-center gap-2.5">
+                            <span>OAuth & Authentication</span>
+                            <a href="#auth-flow" class="text-db_muted hover:text-db_primary text-lg opacity-0 hover:opacity-100 transition-opacity">#</a>
+                        </h2>
+                        <p class="mt-2 text-db_muted leading-relaxed">
+                            DeployBridge uses standard GitHub OAuth 2.0 Web Application flow combined with cryptographically signed JSON Web Tokens (JWT) for authenticated API sessions.
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-xl border border-db_border bg-db_surface_alt space-y-3">
+                        <div class="font-bold text-xs uppercase tracking-wide text-db_muted">OAuth Scope Breakdown</div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="border-b border-db_border text-db_text">
+                                        <th class="py-2 pr-4 font-semibold">Scope</th>
+                                        <th class="py-2 pr-4 font-semibold">Usage Purpose</th>
+                                        <th class="py-2 font-semibold">Requirement</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-db_border/40 text-db_muted">
+                                    <tr>
+                                        <td class="py-2 font-mono font-bold text-db_text">read:user</td>
+                                        <td class="py-2">Retrieves basic public profile information and avatar.</td>
+                                        <td class="py-2 text-emerald-600 dark:text-emerald-400 font-semibold">Mandatory</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 font-mono font-bold text-db_text">user:email</td>
+                                        <td class="py-2">Fetches primary verified email for user account identification.</td>
+                                        <td class="py-2 text-emerald-600 dark:text-emerald-400 font-semibold">Mandatory</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 font-mono font-bold text-db_text">repo</td>
+                                        <td class="py-2">Enables repository inspection, reading tree, and writing workflows to public & private repos.</td>
+                                        <td class="py-2 text-emerald-600 dark:text-emerald-400 font-semibold">Mandatory</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 font-mono font-bold text-db_text">workflow</td>
+                                        <td class="py-2">Required by GitHub API to create and update files under <code>.github/workflows/</code>.</td>
+                                        <td class="py-2 text-emerald-600 dark:text-emerald-400 font-semibold">Mandatory</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 4: Deployment Profiles -->
+                <section id="framework-profiles" class="doc-section space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-db_text font-ubuntu flex items-center gap-2.5">
+                            <span>Supported Deployment Profiles</span>
+                            <a href="#framework-profiles" class="text-db_muted hover:text-db_primary text-lg opacity-0 hover:opacity-100 transition-opacity">#</a>
+                        </h2>
+                        <p class="mt-2 text-db_muted leading-relaxed">
+                            DeployBridge supports four specialized deployment profiles to accommodate modern web development stacks:
+                        </p>
+                    </div>
+
+                    <!-- Profile Cards Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        
+                        <!-- Card 1: HTML -->
+                        <div id="profile-html" class="p-5 rounded-xl border border-db_border bg-db_surface hover:border-db_primary/40 transition-colors space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">html</span>
+                                <span class="text-[11px] text-db_muted">Zero Build Step</span>
+                            </div>
+                            <h3 class="text-base font-bold text-db_text">Static HTML / Vanilla JS</h3>
+                            <p class="text-xs text-db_muted leading-normal">
+                                Direct publication of plain HTML5, CSS, and vanilla JavaScript repositories without package managers or compilation.
+                            </p>
+                            <div class="text-[11px] font-mono text-db_muted bg-db_surface_subtle p-2 rounded border border-db_border_light">
+                                Output: Root directory (<code>./</code>)
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Node Static -->
+                        <div id="profile-node-static" class="p-5 rounded-xl border border-db_border bg-db_surface hover:border-db_primary/40 transition-colors space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">node-static</span>
+                                <span class="text-[11px] text-db_muted">Node 20 + Package Managers</span>
+                            </div>
+                            <h3 class="text-base font-bold text-db_text">React / Vite / Vue / Astro</h3>
+                            <p class="text-xs text-db_muted leading-normal">
+                                Automated dependency install (<code>npm ci</code>, <code>yarn install</code>, or <code>pnpm install</code>) and build execution with multi-dist directory resolution.
+                            </p>
+                            <div class="text-[11px] font-mono text-db_muted bg-db_surface_subtle p-2 rounded border border-db_border_light">
+                                Output: <code>dist/</code>, <code>build/</code>, <code>out/</code>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Next.js Static -->
+                        <div id="profile-next-static" class="p-5 rounded-xl border border-db_border bg-db_surface hover:border-db_primary/40 transition-colors space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">next-static</span>
+                                <span class="text-[11px] text-db_muted">Static Export</span>
+                            </div>
+                            <h3 class="text-base font-bold text-db_text">Next.js Static Generation</h3>
+                            <p class="text-xs text-db_muted leading-normal">
+                                Tailored for Next.js applications configured with <code>output: 'export'</code> in <code>next.config.js</code> or <code>next.config.mjs</code>.
+                            </p>
+                            <div class="text-[11px] font-mono text-db_muted bg-db_surface_subtle p-2 rounded border border-db_border_light">
+                                Output: <code>out/</code> directory
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Jekyll -->
+                        <div id="profile-jekyll" class="p-5 rounded-xl border border-db_border bg-db_surface hover:border-db_primary/40 transition-colors space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">jekyll</span>
+                                <span class="text-[11px] text-db_muted">Ruby Actions</span>
+                            </div>
+                            <h3 class="text-base font-bold text-db_text">Jekyll Static Sites</h3>
+                            <p class="text-xs text-db_muted leading-normal">
+                                Automated Jekyll compilation using Ruby actions and Bundler with <code>_site</code> artifact packaging.
+                            </p>
+                            <div class="text-[11px] font-mono text-db_muted bg-db_surface_subtle p-2 rounded border border-db_border_light">
+                                Output: <code>_site/</code> directory
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 5: Auto-Detection Engine -->
+                <section id="detection-engine" class="doc-section space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-db_text font-ubuntu flex items-center gap-2.5">
+                            <span>Auto-Detection Engine</span>
+                            <a href="#detection-engine" class="text-db_muted hover:text-db_primary text-lg opacity-0 hover:opacity-100 transition-opacity">#</a>
+                        </h2>
+                        <p class="mt-2 text-db_muted leading-relaxed">
+                            When deploying in <code>auto</code> mode (the default), the backend performs heuristic analysis across multiple layers of your repository:
+                        </p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-xl border border-db_border bg-db_surface space-y-2">
+                            <div class="flex items-center gap-2 text-xs font-bold text-db_text">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                1. Root File Tree Inspection
+                            </div>
+                            <p class="text-xs text-db_muted leading-relaxed">
+                                Checks for configuration files such as <code>next.config.js</code>, <code>next.config.mjs</code>, <code>vite.config.js</code>, <code>astro.config.mjs</code>, <code>_config.yml</code>, and <code>Gemfile</code>.
+                            </p>
+                        </div>
+
+                        <div class="p-4 rounded-xl border border-db_border bg-db_surface space-y-2">
+                            <div class="flex items-center gap-2 text-xs font-bold text-db_text">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                2. Dependency Graph Parsing
+                            </div>
+                            <p class="text-xs text-db_muted leading-relaxed">
+                                Decodes <code>package.json</code> and inspects both <code>dependencies</code> and <code>devDependencies</code> for framework keys (e.g. <code>react</code>, <code>vite</code>, <code>vue</code>, <code>svelte</code>, <code>@angular/core</code>).
+                            </p>
+                        </div>
+
+                        <div class="p-4 rounded-xl border border-db_border bg-db_surface space-y-2">
+                            <div class="flex items-center gap-2 text-xs font-bold text-db_text">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                3. Server-Side Guardrail
+                            </div>
+                            <p class="text-xs text-db_muted leading-relaxed">
+                                Prevents failed builds by detecting backend server markers (<code>express</code>, <code>fastify</code>, <code>@nestjs/core</code>, <code>hono</code>). If pure backend code is detected, DeployBridge warns the user that the project requires container hosting instead of static pages.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 6: GitHub Actions Generator -->
+                <section id="actions-workflows" class="doc-section space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-db_text font-ubuntu flex items-center gap-2.5">
+                            <span>GitHub Actions Generator</span>
+                            <a href="#actions-workflows" class="text-db_muted hover:text-db_primary text-lg opacity-0 hover:opacity-100 transition-opacity">#</a>
+                        </h2>
+                        <p class="mt-2 text-db_muted leading-relaxed">
+                            DeployBridge writes standardized, enterprise-grade GitHub Actions workflows using official GitHub Pages actions.
+                        </p>
+                    </div>
+
+                    <!-- Code snippet block with Copy button -->
+                    <div class="relative group">
+                        <div class="flex items-center justify-between px-4 py-2 bg-db_surface_alt border-t border-l border-r border-db_border rounded-t-lg text-xs font-mono text-db_muted">
+                            <span>.github/workflows/deploybridge-node-static.yml</span>
+                            <button class="copy-code-btn px-2 py-0.5 rounded hover:bg-db_surface text-db_text text-[11px] font-sans flex items-center gap-1 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+                        <pre class="p-4 text-xs overflow-x-auto leading-relaxed border-b border-l border-r border-db_border rounded-b-lg m-0"><code class="language-yaml">name: Deploy to GitHub Pages (DeployBridge)
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4</code></pre>
+                    </div>
+                </section>
+
+                <!-- Section 7: REST API Reference -->
+                <section id="api-overview" class="doc-section space-y-8">
+                    <div>
+                        <div class="inline-block text-xs font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 mb-2">API v1</div>
+                        <h2 class="text-2xl font-bold text-db_text font-ubuntu flex items-center gap-2.5">
+                            <span>REST API Reference</span>
+                            <a href="#api-overview" class="text-db_muted hover:text-db_primary text-lg opacity-0 hover:opacity-100 transition-opacity">#</a>
+                        </h2>
+                        <p class="mt-2 text-db_muted leading-relaxed">
+                            The DeployBridge backend provides a FastAPI REST interface. All endpoints except public login require an HTTP <code>Authorization: Bearer &lt;session_jwt&gt;</code> header.
+                        </p>
+                    </div>
+
+                    <!-- API Base URL Box -->
+                    <div class="p-3.5 rounded-lg border border-db_border bg-db_surface_alt flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-mono">
+                        <span class="text-db_muted">Base URL:</span>
+                        <code class="text-db_primary font-bold">http://localhost:8000/api/v1</code>
+                    </div>
+
+                    <!-- API Endpoint 1: Auth Login -->
+                    <div id="api-auth" class="space-y-4 pt-4 border-t border-db_border/40">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono font-bold text-xs">GET</span>
+                            <span class="font-mono text-sm font-bold text-db_text">/auth/login</span>
+                        </div>
+                        <p class="text-xs text-db_muted">
+                            Generates the official GitHub authorization URL with required OAuth parameters and scopes.
+                        </p>
+                        
+                        <div class="p-3 bg-db_surface border border-db_border rounded-lg space-y-2">
+                            <div class="text-[11px] font-semibold text-db_muted uppercase tracking-wider">Example Response (200 OK)</div>
+                            <pre class="p-3 text-xs overflow-x-auto m-0"><code>{
+  "login_url": "https://github.com/login/oauth/authorize?client_id=...&scope=read:user%20user:email%20repo%20workflow"
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- API Endpoint 2: Repository Info -->
+                    <div id="api-github" class="space-y-4 pt-6 border-t border-db_border/40">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-xs">POST</span>
+                            <span class="font-mono text-sm font-bold text-db_text">/github/repos/info</span>
+                        </div>
+                        <p class="text-xs text-db_muted">
+                            Fetches in-depth repository telemetry including branch trees, detected tech stack, commits, language breakdown, and Pages status.
+                        </p>
+
+                        <div class="p-3 bg-db_surface border border-db_border rounded-lg space-y-2">
+                            <div class="text-[11px] font-semibold text-db_muted uppercase tracking-wider">Request Body</div>
+                            <pre class="p-3 text-xs overflow-x-auto m-0"><code>{
+  "owner": "octocat",
+  "repository": "my-portfolio"
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- API Endpoint 3: Profile Detection -->
+                    <div id="api-github-pages" class="space-y-4 pt-6 border-t border-db_border/40">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-xs">POST</span>
+                            <span class="font-mono text-sm font-bold text-db_text">/github-pages/detect</span>
+                        </div>
+                        <p class="text-xs text-db_muted">
+                            Evaluates the repository tree and package dependencies to resolve the best-fitting GitHub Pages deployment profile.
+                        </p>
+
+                        <div class="p-3 bg-db_surface border border-db_border rounded-lg space-y-2">
+                            <div class="text-[11px] font-semibold text-db_muted uppercase tracking-wider">Example Response</div>
+                            <pre class="p-3 text-xs overflow-x-auto m-0"><code>{
+  "owner": "octocat",
+  "repository": "my-portfolio",
+  "detected_profile": "node-static",
+  "reason": "Vite detected in package.json devDependencies",
+  "workflow_template": "node-static.yml",
+  "default_branch": "main",
+  "selected_branch": "main"
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- API Endpoint 4: Deploy -->
+                    <div class="space-y-4 pt-6 border-t border-db_border/40">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-xs">POST</span>
+                            <span class="font-mono text-sm font-bold text-db_text">/github-pages/deploy</span>
+                        </div>
+                        <p class="text-xs text-db_muted">
+                            Creates or updates the GitHub Pages configuration via the GitHub API, injects the deployment workflow into <code>.github/workflows/</code>, and returns the live preview URL.
+                        </p>
+
+                        <div class="p-3 bg-db_surface border border-db_border rounded-lg space-y-2">
+                            <div class="text-[11px] font-semibold text-db_muted uppercase tracking-wider">Request Payload</div>
+                            <pre class="p-3 text-xs overflow-x-auto m-0"><code>{
+  "owner": "octocat",
+  "repository": "my-portfolio",
+  "deployment_profile": "auto"
+}</code></pre>
+                        </div>
+
+                        <div class="p-3 bg-db_surface border border-db_border rounded-lg space-y-2">
+                            <div class="text-[11px] font-semibold text-db_muted uppercase tracking-wider">Deploy Response (200 OK)</div>
+                            <pre class="p-3 text-xs overflow-x-auto m-0"><code>{
+  "message": "GitHub Pages deployment configured successfully",
+  "pages_url": "https://octocat.github.io/my-portfolio/",
+  "profile": "node-static",
+  "workflow_path": ".github/workflows/deploybridge-node-static.yml",
+  "status": "active"
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- API Endpoint 5: Health -->
+                    <div id="api-health" class="space-y-4 pt-6 border-t border-db_border/40">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono font-bold text-xs">GET</span>
+                            <span class="font-mono text-sm font-bold text-db_text">/health</span>
+                        </div>
+                        <p class="text-xs text-db_muted">
+                            Lightweight liveness probe used for container orchestration and status monitoring.
+                        </p>
+                        <div class="p-3 bg-db_surface border border-db_border rounded-lg">
+                            <pre class="p-2 text-xs overflow-x-auto m-0"><code>{ "status": "ok" }</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 8: Security & Operations -->
+                <section id="security" class="doc-section space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-db_text font-ubuntu flex items-center gap-2.5">
+                            <span>Security & Token Encryption</span>
+                            <a href="#security" class="text-db_muted hover:text-db_primary text-lg opacity-0 hover:opacity-100 transition-opacity">#</a>
+                        </h2>
+                        <p class="mt-2 text-db_muted leading-relaxed">
+                            Security is built into DeployBridge from the ground up to protect your sensitive GitHub OAuth credentials and repository privileges.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div class="p-4 rounded-xl border border-db_border bg-db_surface space-y-2">
+                            <div class="font-bold text-db_text flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                AES-GCM Encrypted Storage
+                            </div>
+                            <p class="text-db_muted leading-relaxed">
+                                Access tokens are never stored in plaintext. They are encrypted using AES symmetric cryptography with a unique initialization vector (IV) per record before persisting to PostgreSQL.
+                            </p>
+                        </div>
+
+                        <div class="p-4 rounded-xl border border-db_border bg-db_surface space-y-2">
+                            <div class="font-bold text-db_text flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                Stateless JWT Sessions
+                            </div>
+                            <p class="text-db_muted leading-relaxed">
+                                User client sessions communicate using signed HMAC-SHA256 JWT tokens. Sensitive GitHub tokens never travel across client browser calls after authentication.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 9: Troubleshooting & FAQ -->
+                <section id="troubleshooting" class="doc-section space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-db_text font-ubuntu flex items-center gap-2.5">
+                            <span>Troubleshooting & FAQ</span>
+                            <a href="#troubleshooting" class="text-db_muted hover:text-db_primary text-lg opacity-0 hover:opacity-100 transition-opacity">#</a>
+                        </h2>
+                        <p class="mt-2 text-db_muted leading-relaxed">
+                            Solutions to commonly encountered scenarios when deploying repositories.
+                        </p>
+                    </div>
+
+                    <!-- FAQ Accordions -->
+                    <div class="space-y-3">
+                        <details class="group p-4 rounded-xl border border-db_border bg-db_surface open:bg-db_surface_alt transition-colors">
+                            <summary class="font-bold text-xs sm:text-sm text-db_text cursor-pointer flex items-center justify-between list-none">
+                                <span>Why did my GitHub Actions workflow fail with "Resource not accessible by integration"?</span>
+                                <svg class="w-4 h-4 text-db_muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </summary>
+                            <p class="mt-3 text-xs text-db_muted leading-relaxed">
+                                In GitHub repository settings under <strong>Settings &gt; Actions &gt; General &gt; Workflow permissions</strong>, ensure that "Read and write permissions" is selected and "Allow GitHub Actions to create and approve pull requests" is enabled.
+                            </p>
+                        </details>
+
+                        <details class="group p-4 rounded-xl border border-db_border bg-db_surface open:bg-db_surface_alt transition-colors">
+                            <summary class="font-bold text-xs sm:text-sm text-db_text cursor-pointer flex items-center justify-between list-none">
+                                <span>How do I configure Next.js for static export?</span>
+                                <svg class="w-4 h-4 text-db_muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </summary>
+                            <div class="mt-3 text-xs text-db_muted leading-relaxed space-y-2">
+                                <p>In your <code>next.config.js</code> or <code>next.config.mjs</code>, specify <code>output: 'export'</code> and disable image optimization if not using a cloud loader:</p>
+                                <pre class="p-2.5 text-[11px] overflow-x-auto m-0"><code>const nextConfig = {
+  output: 'export',
+  images: { unoptimized: true }
+};
+module.exports = nextConfig;</code></pre>
+                            </div>
+                        </details>
+
+                        <details class="group p-4 rounded-xl border border-db_border bg-db_surface open:bg-db_surface_alt transition-colors">
+                            <summary class="font-bold text-xs sm:text-sm text-db_text cursor-pointer flex items-center justify-between list-none">
+                                <span>Can I manually override the detected framework?</span>
+                                <svg class="w-4 h-4 text-db_muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </summary>
+                            <p class="mt-3 text-xs text-db_muted leading-relaxed">
+                                Yes! In the dashboard deployment confirmation dialog, you can select any profile (<code>html</code>, <code>node-static</code>, <code>next-static</code>, <code>jekyll</code>) from the dropdown selector before submitting the deploy action.
+                            </p>
+                        </details>
+                    </div>
+                </section>
+
+                <!-- Footer in Main Content -->
+                <div class="pt-8 border-t border-db_border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-db_muted">
+                    <div>
+                        © 2026 DeployBridge Platform. Capstone Project.
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <a href="../index.html" class="hover:text-db_primary transition-colors">Home</a>
+                        <a href="templates/dashboard.html" class="hover:text-db_primary transition-colors">Dashboard</a>
+                        <a href="templates/repositories.html" class="hover:text-db_primary transition-colors">Repositories</a>
+                        <a href="#overview" class="hover:text-db_primary transition-colors">Back to top ↑</a>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Right Sidebar: On This Page (TOC) -->
+        <aside class="hidden xl:block w-56 pt-8 pl-6 overflow-y-auto shrink-0 sticky top-16 h-[calc(100vh-4rem)]">
+            <div class="space-y-4 text-xs">
+                <div class="font-bold text-[11px] uppercase tracking-wider text-db_muted">
+                    On This Page
+                </div>
+                <ul class="space-y-2 border-l border-db_border/60 pl-2" id="tocList">
+                    <li><a href="#overview" class="toc-link block text-db_muted hover:text-db_text transition-colors">Overview</a></li>
+                    <li><a href="#quickstart" class="toc-link block text-db_muted hover:text-db_text transition-colors">Quickstart</a></li>
+                    <li><a href="#auth-flow" class="toc-link block text-db_muted hover:text-db_text transition-colors">OAuth Flow</a></li>
+                    <li><a href="#framework-profiles" class="toc-link block text-db_muted hover:text-db_text transition-colors">Profiles Matrix</a></li>
+                    <li><a href="#detection-engine" class="toc-link block text-db_muted hover:text-db_text transition-colors">Detection Engine</a></li>
+                    <li><a href="#actions-workflows" class="toc-link block text-db_muted hover:text-db_text transition-colors">Workflow Template</a></li>
+                    <li><a href="#api-overview" class="toc-link block text-db_muted hover:text-db_text transition-colors">REST API Spec</a></li>
+                    <li><a href="#security" class="toc-link block text-db_muted hover:text-db_text transition-colors">Security Model</a></li>
+                    <li><a href="#troubleshooting" class="toc-link block text-db_muted hover:text-db_text transition-colors">Troubleshooting</a></li>
+                </ul>
+
+                <div class="pt-6 border-t border-db_border/50 space-y-2">
+                    <a href="templates/dashboard.html" class="flex items-center gap-1.5 text-db_muted hover:text-db_text transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        <span>Open Dashboard</span>
+                    </a>
+                    <a href="../index.html" class="flex items-center gap-1.5 text-db_muted hover:text-db_text transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        <span>Landing Page</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Live Search Modal (Cmd+K / Ctrl+K) -->
+    <div id="searchModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-start justify-center pt-20 px-4">
+        <div class="w-full max-w-xl bg-db_surface border border-db_border rounded-xl shadow-db-lg overflow-hidden flex flex-col max-h-[75vh]">
+            
+            <!-- Modal Search Input -->
+            <div class="p-3 border-b border-db_border flex items-center gap-2.5">
+                <svg class="w-5 h-5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="modalSearchInput" placeholder="Search documentation, API routes, profiles..." class="w-full text-sm bg-transparent border-none text-db_text placeholder:text-db_muted focus:outline-none">
+                <button id="closeSearchBtn" class="text-xs px-1.5 py-0.5 rounded border border-db_border text-db_muted hover:text-db_text">ESC</button>
+            </div>
+
+            <!-- Search Results List -->
+            <div id="searchResultsList" class="p-2 overflow-y-auto space-y-1 divide-y divide-db_border/30">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div class="p-2.5 border-t border-db_border bg-db_surface_alt text-[11px] text-db_muted flex items-center justify-between">
+                <span>Navigate with <kbd class="font-mono bg-db_surface px-1 py-0.5 rounded border border-db_border">↑</kbd> <kbd class="font-mono bg-db_surface px-1 py-0.5 rounded border border-db_border">↓</kbd></span>
+                <span>Select with <kbd class="font-mono bg-db_surface px-1 py-0.5 rounded border border-db_border">↵ Enter</kbd></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script: Interactivity, Theme Toggle, ScrollSpy, Search & Copy Buttons -->
+    <script>
+        // 1. Theme Toggle with View Transition
+        const themeToggle = document.getElementById("themeToggle");
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        if (themeToggle) {
+            themeToggle.checked = currentTheme === 'dark';
+        }
+
+        themeToggle.addEventListener("change", () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const nextTheme = isDark ? 'light' : 'dark';
+            themeToggle.checked = nextTheme === "dark";
+
+            localStorage.setItem('db_theme', nextTheme);
+            localStorage.setItem('deploybridge_theme', nextTheme);
+
+            if (!document.startViewTransition) {
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                return;
+            }
+
+            const rect = themeToggle.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            const endRadius = Math.hypot(
+                Math.max(x, window.innerWidth - x),
+                Math.max(y, window.innerHeight - y)
+            );
+
+            const transition = document.startViewTransition(() => {
+                document.documentElement.setAttribute('data-theme', nextTheme);
+            });
+
+            transition.ready.then(() => {
+                document.documentElement.animate(
+                    {
+                        clipPath: [
+                            `circle(0px at ${x}px ${y}px)`,
+                            `circle(${endRadius}px at ${x}px ${y}px)`
+                        ]
+                    },
+                    {
+                        duration: 500,
+                        easing: "ease-in-out",
+                        pseudoElement: "::view-transition-new(root)",
+                    }
+                );
+            });
+        });
+
+        // 2. Mobile Sidebar Toggle
+        const mobileSidebarToggle = document.getElementById("mobileSidebarToggle");
+        const docsSidebar = document.getElementById("docsSidebar");
+        const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+
+        function toggleMobileSidebar() {
+            const isOpen = !docsSidebar.classList.contains("-translate-x-full");
+            if (isOpen) {
+                docsSidebar.classList.add("-translate-x-full");
+                sidebarBackdrop.classList.add("hidden");
+            } else {
+                docsSidebar.classList.remove("-translate-x-full");
+                sidebarBackdrop.classList.remove("hidden");
+            }
+        }
+
+        if (mobileSidebarToggle) {
+            mobileSidebarToggle.addEventListener("click", toggleMobileSidebar);
+        }
+        if (sidebarBackdrop) {
+            sidebarBackdrop.addEventListener("click", toggleMobileSidebar);
+        }
+
+        // Close sidebar on mobile when a link is clicked
+        document.querySelectorAll(".nav-tree-link").forEach(link => {
+            link.addEventListener("click", () => {
+                if (window.innerWidth < 1024) {
+                    toggleMobileSidebar();
+                }
+            });
+        });
+
+        // 3. Quick Nav Filter
+        const navFilterInput = document.getElementById("navFilterInput");
+        if (navFilterInput) {
+            navFilterInput.addEventListener("input", (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                document.querySelectorAll(".nav-tree-link").forEach(link => {
+                    const text = link.textContent.toLowerCase();
+                    const parentLi = link.closest("li");
+                    if (!query || text.includes(query)) {
+                        parentLi.style.display = "";
+                    } else {
+                        parentLi.style.display = "none";
+                    }
+                });
+            });
+        }
+
+        // 4. Copy Code Snippet Button
+        document.querySelectorAll(".copy-code-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const pre = btn.closest(".group").querySelector("pre code");
+                if (!pre) return;
+                try {
+                    await navigator.clipboard.writeText(pre.innerText);
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = `<span class="text-emerald-500 font-bold">✓ Copied!</span>`;
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+                } catch (err) {
+                    console.error("Failed to copy:", err);
+                }
+            });
+        });
+
+        // 5. ScrollSpy for TOC and Navigation Tree
+        const sections = document.querySelectorAll(".doc-section");
+        const tocLinks = document.querySelectorAll(".toc-link");
+        const navLinks = document.querySelectorAll(".nav-tree-link");
+
+        function updateActiveSection() {
+            let currentActiveId = "";
+            const scrollPos = window.scrollY + 120;
+
+            sections.forEach(section => {
+                const top = section.offsetTop;
+                const height = section.offsetHeight;
+                if (scrollPos >= top && scrollPos < top + height) {
+                    currentActiveId = section.id;
+                }
+            });
+
+            if (!currentActiveId && sections.length > 0 && window.scrollY < sections[0].offsetTop) {
+                currentActiveId = sections[0].id;
+            }
+
+            if (currentActiveId) {
+                tocLinks.forEach(link => {
+                    if (link.getAttribute("href") === `#${currentActiveId}`) {
+                        link.classList.add("active");
+                    } else {
+                        link.classList.remove("active");
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    if (link.getAttribute("href") === `#${currentActiveId}`) {
+                        link.classList.add("active");
+                    } else {
+                        link.classList.remove("active");
+                    }
+                });
+            }
+        }
+
+        window.addEventListener("scroll", updateActiveSection, { passive: true });
+        updateActiveSection();
+
+        // 6. Search Index & Modal Implementation
+        const searchIndex = [
+            { title: "Overview & Architecture", desc: "Core platform design, CI/CD pipeline and GitHub Pages engine.", href: "#overview" },
+            { title: "5-Minute Quickstart", desc: "Step-by-step setup guide from sign-in to live URL.", href: "#quickstart" },
+            { title: "OAuth & Authentication", desc: "GitHub OAuth token exchange, scopes, and session JWTs.", href: "#auth-flow" },
+            { title: "Supported Framework Profiles", desc: "html, node-static, next-static, and jekyll profiles matrix.", href: "#framework-profiles" },
+            { title: "Auto-Detection Engine", desc: "How DeployBridge inspects files, folders, and package.json.", href: "#detection-engine" },
+            { title: "GitHub Actions Generator", desc: "Automated YAML workflow synthesis for GitHub Pages.", href: "#actions-workflows" },
+            { title: "REST API Reference", desc: "FastAPI endpoints overview, headers, and status codes.", href: "#api-overview" },
+            { title: "GET /api/v1/auth/login", desc: "Initiate GitHub OAuth flow with client authorization URL.", href: "#api-auth" },
+            { title: "POST /api/v1/github/repos/info", desc: "Deep repository metadata, language breakdown, and tech stack.", href: "#api-github" },
+            { title: "POST /api/v1/github-pages/detect", desc: "Detect repository deployment profile and branch setup.", href: "#api-github-pages" },
+            { title: "POST /api/v1/github-pages/deploy", desc: "Execute automated GitHub Pages workflow creation & publish.", href: "#api-github-pages" },
+            { title: "GET /api/v1/health", desc: "Liveness and diagnostics endpoint.", href: "#api-health" },
+            { title: "Security & Encryption", desc: "AES-GCM encrypted database credentials & JWT protection.", href: "#security" },
+            { title: "Troubleshooting & FAQ", desc: "Common issues, GitHub Actions permissions, and static export fixes.", href: "#troubleshooting" }
+        ];
+
+        const searchModal = document.getElementById("searchModal");
+        const searchTriggerBtn = document.getElementById("searchTriggerBtn");
+        const closeSearchBtn = document.getElementById("closeSearchBtn");
+        const modalSearchInput = document.getElementById("modalSearchInput");
+        const searchResultsList = document.getElementById("searchResultsList");
+
+        function openSearch() {
+            searchModal.classList.remove("hidden");
+            searchModal.classList.add("flex");
+            modalSearchInput.value = "";
+            renderSearchResults("");
+            setTimeout(() => modalSearchInput.focus(), 50);
+        }
+
+        function closeSearch() {
+            searchModal.classList.add("hidden");
+            searchModal.classList.remove("flex");
+        }
+
+        function renderSearchResults(query) {
+            const q = query.toLowerCase().trim();
+            const filtered = q 
+                ? searchIndex.filter(item => item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q))
+                : searchIndex.slice(0, 6);
+
+            if (filtered.length === 0) {
+                searchResultsList.innerHTML = `<div class="p-4 text-center text-xs text-db_muted">No matching documentation topics found.</div>`;
+                return;
+            }
+
+            searchResultsList.innerHTML = filtered.map((item, idx) => `
+                <a href="${item.href}" class="search-result-item block p-2.5 rounded-lg hover:bg-db_surface_alt transition-colors group ${idx === 0 ? 'bg-db_surface_alt' : ''}">
+                    <div class="text-xs font-bold text-db_text group-hover:text-db_primary flex items-center justify-between">
+                        <span>${item.title}</span>
+                        <span class="text-[10px] text-db_muted font-mono">Jump →</span>
+                    </div>
+                    <div class="text-[11px] text-db_muted mt-0.5 line-clamp-1">${item.desc}</div>
+                </a>
+            `).join("");
+
+            // Add click listeners to close modal
+            document.querySelectorAll(".search-result-item").forEach(item => {
+                item.addEventListener("click", () => {
+                    closeSearch();
+                });
+            });
+        }
+
+        if (searchTriggerBtn) searchTriggerBtn.addEventListener("click", openSearch);
+        if (closeSearchBtn) closeSearchBtn.addEventListener("click", closeSearch);
+        
+        searchModal.addEventListener("click", (e) => {
+            if (e.target === searchModal) closeSearch();
+        });
+
+        modalSearchInput.addEventListener("input", (e) => {
+            renderSearchResults(e.target.value);
+        });
+
+        // Global Keyboard Shortcut (Cmd+K / Ctrl+K / Esc)
+        window.addEventListener("keydown", (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+                e.preventDefault();
+                if (searchModal.classList.contains("hidden")) {
+                    openSearch();
+                } else {
+                    closeSearch();
+                }
+            } else if (e.key === "Escape" && !searchModal.classList.contains("hidden")) {
+                closeSearch();
+            }
+        });
+    </script>
+</body>
+</html>
