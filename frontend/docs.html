@@ -149,12 +149,13 @@
             scroll-margin-top: 90px;
         }
 
-        /* Active Nav Link */
+        /* Active Nav Link (Bento Style) */
         .nav-tree-link.active {
             color: var(--primary-color);
-            background: var(--primary-light);
+            background: var(--surface-color-alt);
             font-weight: 600;
-            border-left: 2px solid var(--primary-color);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
         }
 
         /* TOC Active Link */
@@ -185,7 +186,7 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Theme toggle animation styles matching index.html */
+        /* Theme toggle animation styles matching auth.html */
         .st-sunMoonThemeToggleBtn {
             position: relative;
             cursor: pointer;
@@ -202,28 +203,74 @@
         .st-sunMoonThemeToggleBtn:hover {
             transform: scale(1.05);
         }
-        .themeToggleInput {
-            display: none;
-        }
-        .sunRay {
-            transform-origin: center center;
-            transition: transform 0.4s ease, opacity 0.4s ease;
-        }
-        .sunMoon {
-            transition: transform 0.4s ease;
-        }
-        [data-theme="dark"] .sunRay {
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput {
             opacity: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .st-sunMoonThemeToggleBtn svg {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            transition: transform .4s ease;
+            transform: rotate(40deg);
+        }
+
+        .st-sunMoonThemeToggleBtn svg .sunMoon {
+            transform-origin: center;
+            transition: inherit;
+            transform: scale(1);
+        }
+
+        .st-sunMoonThemeToggleBtn svg .sunRay {
+            transform-origin: center;
             transform: scale(0);
         }
-        [data-theme="dark"] .sunMoon {
-            transform: scale(0.65);
+
+        .st-sunMoonThemeToggleBtn svg mask>circle {
+            transition: transform .64s cubic-bezier(.41,.64,.32,1.575);
+            transform: translate(0,0);
+        }
+
+        .st-sunMoonThemeToggleBtn svg .sunRay2 { animation-delay: .05s !important; }
+        .st-sunMoonThemeToggleBtn svg .sunRay3 { animation-delay: .1s !important; }
+        .st-sunMoonThemeToggleBtn svg .sunRay4 { animation-delay: .17s !important; }
+        .st-sunMoonThemeToggleBtn svg .sunRay5 { animation-delay: .25s !important; }
+        .st-sunMoonThemeToggleBtn svg .sunRay6 { animation-delay: .29s !important; }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg {
+            transform: rotate(90deg);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg mask>circle {
+            transform: translate(16px,-3px);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunMoon {
+            transform: scale(.55);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunRay {
+            animation: showRay1832 .4s ease forwards;
+        }
+
+        @keyframes showRay1832 {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
         }
 
         ::view-transition-old(root),
         ::view-transition-new(root) {
             animation: none;
             mix-blend-mode: normal;
+        }
+        ::view-transition-new(root) {
+            z-index: 9999;
         }
     </style>
 </head>
@@ -290,12 +337,12 @@
                         </mask>
                         <circle class="sunMoon" cx="10" cy="10" r="8" mask="url(#moon-mask)"></circle>
                         <g>
-                            <circle class="sunRay" cx="18" cy="10" r="1.5"></circle>
-                            <circle class="sunRay" cx="14" cy="16.928" r="1.5"></circle>
-                            <circle class="sunRay" cx="6" cy="16.928" r="1.5"></circle>
-                            <circle class="sunRay" cx="2" cy="10" r="1.5"></circle>
-                            <circle class="sunRay" cx="6" cy="3.1718" r="1.5"></circle>
-                            <circle class="sunRay" cx="14" cy="3.1718" r="1.5"></circle>
+                            <circle class="sunRay sunRay1" cx="18" cy="10" r="1.5"></circle>
+                            <circle class="sunRay sunRay2" cx="14" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay sunRay3" cx="6" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay sunRay4" cx="2" cy="10" r="1.5"></circle>
+                            <circle class="sunRay sunRay5" cx="6" cy="3.1718" r="1.5"></circle>
+                            <circle class="sunRay sunRay6" cx="14" cy="3.1718" r="1.5"></circle>
                         </g>
                     </svg>
                 </label>
@@ -304,10 +351,10 @@
     </header>
 
     <!-- Main Container Layout: 3 Columns -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex">
+    <div class="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 flex">
         
         <!-- Left Sidebar: Navigation Tree -->
-        <aside id="docsSidebar" class="fixed inset-y-0 left-0 z-30 w-72 pt-16 bg-db_surface lg:bg-transparent lg:static lg:w-64 lg:pt-8 lg:block border-r border-db_border/50 lg:border-r-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto">
+        <aside id="docsSidebar" class="fixed inset-y-0 left-0 z-30 w-72 pt-16 bg-db_surface lg:bg-transparent lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:w-64 lg:pt-8 lg:block border-r border-db_border/50 lg:border-r-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto">
             <div class="px-4 py-4 lg:p-0 lg:pr-6 space-y-7">
                 
                 <!-- Quick Filter Input -->
@@ -325,7 +372,7 @@
                             <svg class="w-3.5 h-3.5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             Getting Started
                         </div>
-                        <ul class="space-y-1">
+                        <ul class="space-y-1 pl-3 border-l border-db_border/40 ml-2 mt-1.5">
                             <li><a href="#overview" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Overview & Architecture</a></li>
                             <li><a href="#quickstart" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">5-Minute Quickstart</a></li>
                             <li><a href="#auth-flow" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">OAuth & Authentication</a></li>
@@ -338,7 +385,7 @@
                             <svg class="w-3.5 h-3.5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                             Core Concepts
                         </div>
-                        <ul class="space-y-1">
+                        <ul class="space-y-1 pl-3 border-l border-db_border/40 ml-2 mt-1.5">
                             <li><a href="#framework-profiles" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Deployment Profiles</a></li>
                             <li><a href="#detection-engine" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Auto-Detection Engine</a></li>
                             <li><a href="#actions-workflows" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">GitHub Actions Generator</a></li>
@@ -351,7 +398,7 @@
                             <svg class="w-3.5 h-3.5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             Framework Guides
                         </div>
-                        <ul class="space-y-1">
+                        <ul class="space-y-1 pl-3 border-l border-db_border/40 ml-2 mt-1.5">
                             <li><a href="#profile-html" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Static HTML / CSS / JS</a></li>
                             <li><a href="#profile-node-static" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">React / Vite / Astro</a></li>
                             <li><a href="#profile-next-static" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Next.js Static Export</a></li>
@@ -365,7 +412,7 @@
                             <svg class="w-3.5 h-3.5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
                             REST API Reference
                         </div>
-                        <ul class="space-y-1">
+                        <ul class="space-y-1 pl-3 border-l border-db_border/40 ml-2 mt-1.5">
                             <li><a href="#api-overview" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">API Overview & Auth</a></li>
                             <li><a href="#api-auth" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Authentication Endpoints</a></li>
                             <li><a href="#api-github" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Repository Inspection</a></li>
@@ -380,7 +427,7 @@
                             <svg class="w-3.5 h-3.5 text-db_muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                             Security & Operations
                         </div>
-                        <ul class="space-y-1">
+                        <ul class="space-y-1 pl-3 border-l border-db_border/40 ml-2 mt-1.5">
                             <li><a href="#security" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Encryption & Scopes</a></li>
                             <li><a href="#troubleshooting" class="nav-tree-link block px-2.5 py-1.5 rounded-md text-db_muted hover:text-db_text hover:bg-db_surface_subtle transition-all">Troubleshooting & FAQ</a></li>
                         </ul>
@@ -394,7 +441,7 @@
 
         <!-- Center: Main Documentation Content -->
         <main class="flex-1 min-w-0 py-8 lg:px-10 lg:border-l lg:border-r border-db_border/40">
-            <div class="max-w-3xl mx-auto space-y-16">
+            <div class="max-w-5xl mx-auto space-y-16">
 
                 <!-- Page Intro Banner -->
                 <div class="border-b border-db_border/60 pb-8">
