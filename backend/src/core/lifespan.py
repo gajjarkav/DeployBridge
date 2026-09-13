@@ -74,7 +74,10 @@ async def lifespan(app):
         "crypto.token_encryption_migration encrypted_rows=%d", encrypted_count
     )
 
+    from ..services.scheduler import start_scheduler, stop_scheduler
+    start_scheduler()
+
     yield
 
-
+    stop_scheduler()
     logger.info("Shutting down...")

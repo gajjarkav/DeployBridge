@@ -6,6 +6,9 @@ from datetime import datetime, timezone
 from ..core.logger import logger
 from ..schemas.repo_info import RepositoryInfoResponse
 from ..schemas.reports import ReportGenerateResponse
+from ..models.repo_report import RepoReport
+from ..models.user import User
+from sqlalchemy.ext.asyncio import AsyncSession
 from .github import GitHubService
 from .llm_client import GroqLLMClient, LLMClientError
 
@@ -145,6 +148,8 @@ class ReportService:
         github_token: str,
         owner: str,
         repo: str,
+        user: User,
+        db: AsyncSession,
     ) -> ReportGenerateResponse:
         """
         Generate an AI analysis report for owner/repo (v0: synchronous).
@@ -193,9 +198,27 @@ class ReportService:
                 detail="The model produced no content — retry the analysis.",
             )
 
+        # 4. Save to database
+        db_report = RepoReport(
+            user_id=user.id,
+            owner=owner,
+            repository=repo,
+            repo_full_name=f"{owner}/{repo}",
+            report_markdown=markdown,
+            model_used=result["model"],
+            prompt_tokens=result["prompt_tokens"],
+            completion_tokens=result["completion_tokens"],
+            duration_ms=duration_ms,
+            status="generated",
+        )
+        db.add(db_report)
+        await db.commit()
+        await db.refresh(db_report)
+
         return ReportGenerateResponse(
             success=True,
-            repo_full_name=f"{owner}/{repo}",
+            report_id=str(db_report.id),
+            repo_full_name=db_report.repo_full_name,
             report_markdown=markdown,
             model_used=result["model"],
             prompt_tokens=result["prompt_tokens"],

@@ -65,11 +65,24 @@ class Settings(BaseSettings):
     SESSION_COOKIE_PATH: str = Field(default="/")
 
 
-    # Groq / LLM Configuration
+    # Gemini / LLM Configuration
     GROQ_API_KEY: Optional[str] = Field(default=None)
-    GROQ_BASE_URL: str = Field(default="https://api.groq.com/openai/v1")
-    GROQ_MODEL: str = Field(default="llama-3.3-70b-versatile")
+    GROQ_BASE_URL: str = Field(default="https://generativelanguage.googleapis.com/v1beta/openai/")
+    GROQ_MODEL: str = Field(default="gemini-1.5-flash")
     GROQ_TIMEOUT_SECONDS: float = Field(default=60.0)
+
+    # Cloudinary (For PDF Uploads)
+    CLOUDINARY_CLOUD_NAME: Optional[str] = Field(default=None)
+    CLOUDINARY_API_KEY: Optional[str] = Field(default=None)
+    CLOUDINARY_API_SECRET: Optional[str] = Field(default=None)
+
+    # SMTP (For Email Delivery)
+    REPORT_DELIVERY_ENABLED: bool = Field(default=False)
+    SMTP_HOST: Optional[str] = Field(default=None)
+    SMTP_PORT: int = Field(default=587)
+    SMTP_USER: Optional[str] = Field(default=None)
+    SMTP_PASSWORD: Optional[str] = Field(default=None)
+    SMTP_FROM: Optional[str] = Field(default=None)
 
 
     @field_validator("DEBUG", mode="before")

@@ -708,4 +708,159 @@ class GitHubService:
             fetched_at=datetime.now(timezone.utc).isoformat(),
             api_calls_made=api_calls_made,
             errors=errors if errors else [],
-        )     
+        )
+
+    @classmethod
+    async def list_file_tree_recursive(
+        cls,
+        token: str,
+        owner: str,
+        repo: str,
+        branch: str,
+    ) -> str:
+        """
+        Agent Tool: Fetches a recursive file tree of the repository.
+        Returns a formatted string of file paths.
+        """
+        headers = cls._get_auth_headers(token)
+        url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
+        
+        async with httpx.AsyncClient() as client:
+            data, error = await cls._fetch_github_api(client, url, headers)
+            
+            if error or not data:
+                return f"Failed to list file tree: {error}"
+            
+            tree = data.get("tree", [])
+            if not tree:
+                return "Repository is empty."
+            
+            paths = []
+            for item in tree:
+                path = item.get("path", "")
+                mode = item.get("mode", "")
+                if mode == "040000": # directory
+                    path += "/"
+                paths.append(path)
+            
+            return "\\n".join(paths)
+
+    @classmethod
+    async def read_file_content(
+        cls,
+        token: str,
+        owner: str,
+        repo: str,
+        path: str,
+    ) -> str:
+        """
+        Agent Tool: Fetches the content of a specific file from the repository.
+        Decodes base64 content and returns it as a string.
+        Size capped to prevent massive files from overwhelming context.
+        """
+        headers = cls._get_auth_headers(token)
+        url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/contents/{path}"
+        
+        async with httpx.AsyncClient() as client:
+            data, error = await cls._fetch_github_api(client, url, headers)
+            
+            if error or not data:
+                return f"Failed to read file {path}: {error}"
+            
+            if isinstance(data, list):
+                return f"Error: '{path}' is a directory. Please provide a file path."
+                
+            if "content" not in data:
+                return f"Error: No content available for '{path}'."
+                
+            size = data.get("size", 0)
+            if size > 30000:
+                return f"Error: File '{path}' is too large ({size} bytes) to read fully."
+                
+            try:
+                content_base64 = data["content"]
+                decoded_content = base64.b64decode(content_base64).decode("utf-8")
+                return decoded_content
+            except Exception as e:
+                return f"Error decoding file '{path}': {str(e)}"
+
+    @classmethod
+    async def create_file_and_pull_request(
+        cls,
+        token: str,
+        owner: str,
+        repo: str,
+        file_path: str,
+        content: str,
+        commit_message: str,
+        pr_title: str,
+        pr_body: str,
+    ) -> str:
+        """
+        Agent Tool: Creates a new file (or updates an existing one) in a new branch,
+        then opens a Pull Request back to the default branch.
+        Returns the PR URL on success.
+        """
+        headers = cls._get_auth_headers(token)
+        
+        async with httpx.AsyncClient() as client:
+            # 1. Get default branch name and its latest commit SHA
+            repo_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}"
+            repo_data, err = await cls._fetch_github_api(client, repo_url, headers)
+            if err or not repo_data:
+                return f"Error fetching repo info: {err}"
+            
+            default_branch = repo_data.get("default_branch", "main")
+            
+            ref_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/git/refs/heads/{default_branch}"
+            ref_data, err = await cls._fetch_github_api(client, ref_url, headers)
+            if err or not ref_data:
+                return f"Error fetching default branch ref: {err}"
+                
+            base_sha = ref_data.get("object", {}).get("sha")
+            
+            # 2. Create new branch
+            import uuid
+            new_branch_name = f"deploybridge-auto-{str(uuid.uuid4())[:8]}"
+            create_ref_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/git/refs"
+            
+            res = await client.post(
+                create_ref_url, 
+                headers=headers, 
+                json={"ref": f"refs/heads/{new_branch_name}", "sha": base_sha}
+            )
+            if res.status_code != 201:
+                return f"Error creating new branch: {res.text}"
+                
+            # 3. Create or update file
+            # Check if file exists to get its SHA (required for update)
+            file_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/contents/{file_path}?ref={new_branch_name}"
+            file_data, _ = await cls._fetch_github_api(client, file_url, headers)
+            
+            file_payload = {
+                "message": commit_message,
+                "content": base64.b64encode(content.encode("utf-8")).decode("utf-8"),
+                "branch": new_branch_name
+            }
+            if file_data and not isinstance(file_data, list) and "sha" in file_data:
+                file_payload["sha"] = file_data["sha"]
+                
+            res = await client.put(file_url, headers=headers, json=file_payload)
+            if res.status_code not in (200, 201):
+                return f"Error creating/updating file: {res.text}"
+                
+            # 4. Create Pull Request
+            pr_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/pulls"
+            pr_payload = {
+                "title": pr_title,
+                "body": pr_body,
+                "head": new_branch_name,
+                "base": default_branch
+            }
+            
+            res = await client.post(pr_url, headers=headers, json=pr_payload)
+            if res.status_code == 201:
+                pr_data = res.json()
+                return f"Successfully created Pull Request: {pr_data.get('html_url')}"
+            else:
+                return f"Error creating Pull Request: {res.text}"

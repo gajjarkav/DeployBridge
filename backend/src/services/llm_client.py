@@ -54,9 +54,10 @@ class GroqLLMClient:
 
     async def chat_completion(
         self,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         temperature: float = 0.2,
         max_tokens: int = 4000,
+        tools: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """
         Perform one chat-completion call and return content + token usage.
@@ -65,19 +66,24 @@ class GroqLLMClient:
             messages: OpenAI-style message list (system / user / assistant).
             temperature: low default (0.2) — analysis reports want determinism.
             max_tokens: output cap — guardrail on cost and runaway generations.
+            tools: Optional list of tool schemas for function calling.
 
         Returns:
-            dict with keys: content, model, prompt_tokens, completion_tokens.
+            dict with keys: content, model, prompt_tokens, completion_tokens, tool_calls.
         """
         logger.info(f"LLM call starting | model={self._model} | messages={len(messages)}")
 
         try:
-            response = await self._client.chat.completions.create(
-                model=self._model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+            kwargs = {
+                "model": self._model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            if tools:
+                kwargs["tools"] = tools
+                
+            response = await self._client.chat.completions.create(**kwargs)
         except Exception as exc:  # SDK raises many exception subclasses; unify them
             logger.error(f"LLM call failed: {exc}")
             raise LLMClientError(
@@ -87,8 +93,10 @@ class GroqLLMClient:
 
         choice = response.choices[0] if response.choices else None
         content = ""
+        tool_calls = None
         if choice is not None and choice.message is not None:
             content = choice.message.content or ""
+            tool_calls = getattr(choice.message, "tool_calls", None)
 
         usage = response.usage
         prompt_tokens = getattr(usage, "prompt_tokens", 0) or 0
@@ -101,8 +109,10 @@ class GroqLLMClient:
         )
 
         return {
-            "content": content.strip(),
+            "content": content.strip() if content else "",
             "model": used_model,
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
+            "tool_calls": tool_calls,
+            "raw_message": choice.message if choice else None,
         }

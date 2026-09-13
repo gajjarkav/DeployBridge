@@ -1071,11 +1071,14 @@ async function generateAIReport(owner, repository) {
 
     // Show loading state
     if (generateBtn) generateBtn.style.display = 'none';
-    if (statusEl) statusEl.textContent = 'AI is analyzing code & generating report...';
+    if (statusEl) statusEl.textContent = 'AI generation triggered in background...';
     
     container.innerHTML = `
         <div style="display: flex; justify-content: center; padding: 40px 0;">
             <div class="spinner" style="border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;"></div>
+        </div>
+        <div style="text-align: center; color: var(--text-muted); font-size: 13px;" id="poll-status">
+            Starting job...
         </div>
         <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
     `;
@@ -1097,11 +1100,44 @@ async function generateAIReport(owner, repository) {
 
         const data = await response.json();
 
-        if (response.ok && data.success) {
-            populateAIReportSection(data);
-        } else {
+        if (!response.ok || !data.success) {
             throw new Error(data.detail || data.message || "Failed to generate report");
         }
+        
+        const reportId = data.report_id;
+        
+        // Start polling
+        const pollInterval = setInterval(async () => {
+            try {
+                const pollRes = await fetch(`${BACKEND_API_URL}/reports/${reportId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (pollRes.ok) {
+                    const reportData = await pollRes.json();
+                    
+                    const pollStatusEl = document.getElementById('poll-status');
+                    if (pollStatusEl) {
+                        pollStatusEl.textContent = `Status: ${reportData.status}...`;
+                    }
+                    
+                    if (reportData.status === 'delivered' || reportData.status === 'failed') {
+                        clearInterval(pollInterval);
+                        
+                        if (reportData.status === 'delivered') {
+                            populateAIReportSection(reportData);
+                        } else {
+                            throw new Error(reportData.error_message || 'Background generation failed.');
+                        }
+                    }
+                }
+            } catch (pollErr) {
+                console.error("Polling error:", pollErr);
+                clearInterval(pollInterval);
+                throw pollErr;
+            }
+        }, 3000); // poll every 3 seconds
+
     } catch (error) {
         console.error("AI Report error:", error);
         if (statusEl) statusEl.textContent = 'Generation failed';
