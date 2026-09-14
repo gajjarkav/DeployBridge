@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends, status, Query, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, status, Query, BackgroundTasks, Response
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 import uuid
@@ -18,6 +19,8 @@ from ...schemas.reports import (
 from ...services.llm_client import LLMClientError
 from ...services.report_service import ReportService
 from ...services.report_job import run_report_job
+from ...services.pdf_service import PDFService
+from ...services.email_service import EmailService
 from ..dependencies import get_current_user
 from ...db.session import get_db
 
@@ -239,4 +242,82 @@ async def delete_report(
         success=True,
         id=str(report.id),
         message="Report deleted successfully"
+    )
+
+class EmailResponse(BaseModel):
+    success: bool
+    message: str
+
+@router.post(
+    "/{report_id}/send-email",
+    response_model=EmailResponse,
+    summary="Resend report email"
+)
+async def resend_report_email(
+    report_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = select(RepoReport).where(
+        RepoReport.id == report_id,
+        RepoReport.user_id == current_user.id
+    )
+    result = await db.execute(stmt)
+    report = result.scalars().first()
+    
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+        
+    if not report.report_markdown:
+        raise HTTPException(status_code=400, detail="Report has no content yet")
+
+    def send_email_task():
+        try:
+            pdf_bytes = PDFService.generate_pdf_from_markdown(report.report_markdown, report.repo_full_name)
+            EmailService.send_report_email(
+                to_email=current_user.email,
+                repo_name=report.repo_full_name,
+                pdf_bytes=pdf_bytes,
+                report_url=report.cloudinary_url,
+                model_used=report.model_used,
+                duration_ms=report.duration_ms
+            )
+        except Exception as e:
+            from ...core.logger import logger
+            logger.error(f"Failed to resend email: {e}")
+
+    background_tasks.add_task(send_email_task)
+    return EmailResponse(success=True, message="Email dispatch started")
+
+
+@router.get(
+    "/{report_id}/pdf",
+    summary="Download report as PDF"
+)
+async def download_report_pdf(
+    report_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = select(RepoReport).where(
+        RepoReport.id == report_id,
+        RepoReport.user_id == current_user.id
+    )
+    result = await db.execute(stmt)
+    report = result.scalars().first()
+    
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+        
+    if not report.report_markdown:
+        raise HTTPException(status_code=400, detail="Report has no content yet")
+        
+    pdf_bytes = PDFService.generate_pdf_from_markdown(report.report_markdown, report.repo_full_name)
+    filename = f"{report.repo_full_name.replace('/', '_')}_analysis.pdf"
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'}
     )

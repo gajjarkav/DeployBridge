@@ -1,3 +1,5 @@
+const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
+
 document.addEventListener("DOMContentLoaded", () => {
     const session = {
         token: localStorage.getItem("gh_access_token"),
@@ -31,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
         statusText.style.color = "var(--text-muted)";
         
         try {
-            const res = await fetch(`/api/v1/reports/history?page=${page}&page_size=${pageSize}`, {
+            const res = await fetch(`${BACKEND_API_URL}/reports/history?page=${page}&page_size=${pageSize}`, {
                 headers: { "Authorization": `Bearer ${session.dbSessionToken}` }
             });
             
@@ -83,6 +85,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (report.status === "failed") statusColor = "#ef4444";
             if (report.status === "pending" || report.status === "generating") statusColor = "#eab308";
 
+            let extraButtons = '';
+            if (report.status === "generated" || report.status === "delivered") {
+                extraButtons = `
+                    <button class="action-btn download-btn" data-id="${report.id}" style="color:#3b82f6;"><span class="btn-label">PDF</span><span class="btn-icon">📥</span></button>
+                    <button class="action-btn email-btn" data-id="${report.id}" style="color:#8b5cf6;"><span class="btn-label">Email</span><span class="btn-icon">✉️</span></button>
+                `;
+            }
+
             const row = document.createElement("div");
             row.className = "card-table__row";
             row.innerHTML = `
@@ -94,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="card-table__item">
                     <div class="action-group">
                         <button class="action-btn view-btn" data-id="${report.id}"><span class="btn-label">View</span><span class="btn-icon">👁</span></button>
+                        ${extraButtons}
                         <button class="action-btn delete-btn" data-id="${report.id}" style="color:#ef4444;"><span class="btn-label">Delete</span><span class="btn-icon">🗑</span></button>
                     </div>
                 </div>
@@ -107,6 +118,12 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll(".delete-btn").forEach(btn => {
             btn.addEventListener("click", () => deleteReport(btn.dataset.id));
         });
+        document.querySelectorAll(".download-btn").forEach(btn => {
+            btn.addEventListener("click", () => downloadReport(btn.dataset.id));
+        });
+        document.querySelectorAll(".email-btn").forEach(btn => {
+            btn.addEventListener("click", () => resendEmail(btn.dataset.id));
+        });
     }
 
     async function openReport(id) {
@@ -117,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.style.display = "flex";
 
         try {
-            const res = await fetch(`/api/v1/reports/${id}`, {
+            const res = await fetch(`${BACKEND_API_URL}/reports/${id}`, {
                 headers: { "Authorization": `Bearer ${session.dbSessionToken}` }
             });
             if (!res.ok) throw new Error("Failed to load report details");
@@ -151,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!confirm("Are you sure you want to delete this report?")) return;
         
         try {
-            const res = await fetch(`/api/v1/reports/${id}`, {
+            const res = await fetch(`${BACKEND_API_URL}/reports/${id}`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${session.dbSessionToken}` }
             });
@@ -161,6 +178,37 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error(error);
             alert("Error deleting report.");
+        }
+    }
+
+    async function downloadReport(id) {
+        try {
+            const res = await fetch(`${BACKEND_API_URL}/reports/${id}/pdf`, {
+                headers: { "Authorization": `Bearer ${session.dbSessionToken}` }
+            });
+            if (!res.ok) throw new Error("Failed to download PDF");
+            
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        } catch (e) {
+            console.error(e);
+            alert("Error downloading report");
+        }
+    }
+
+    async function resendEmail(id) {
+        if (!confirm("Are you sure you want to resend this report via email?")) return;
+        try {
+            const res = await fetch(`${BACKEND_API_URL}/reports/${id}/send-email`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${session.dbSessionToken}` }
+            });
+            if (!res.ok) throw new Error("Failed to resend email");
+            alert("Email dispatch started!");
+        } catch (e) {
+            console.error(e);
+            alert("Error resending email");
         }
     }
 

@@ -367,9 +367,20 @@
 
         /* Animated pulse glow for terminal / live badges */
         @keyframes pulse-ring {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.3); opacity: 0; }
-            100% { transform: scale(0.95); opacity: 0; }
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 0;
+            }
         }
 
         .pulse-ring-effect {
@@ -432,14 +443,16 @@
     </header>
 
     <!-- Fixed Top-Right Docs Link (Appears on Scroll) -->
-    <a href="docs.html" id="corner-docs-link" class="group fixed top-8 right-8 z-[100] hidden sm:inline-flex items-center font-bold text-db_text hover:text-db_primary transition-all duration-300 opacity-0 pointer-events-none translate-y-[-10px] select-none">
+    <a href="docs.html" id="corner-docs-link"
+        class="group fixed top-8 right-8 z-[100] hidden sm:inline-flex items-center font-bold text-db_text hover:text-db_primary transition-all duration-300 opacity-0 pointer-events-none translate-y-[-10px] select-none">
         <span class="relative inline-flex items-center gap-1.5 pb-1">
             <span>Docs</span>
             <svg class="docs-arrow w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H9M17 7V15"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H9M17 7V15" />
             </svg>
             <!-- Underline extends under the arrow on hover -->
-            <span class="absolute bottom-0 left-0 h-[2px] bg-current transition-all duration-300 ease-out w-[calc(100%-22px)] group-hover:w-full"></span>
+            <span
+                class="absolute bottom-0 left-0 h-[2px] bg-current transition-all duration-300 ease-out w-[calc(100%-22px)] group-hover:w-full"></span>
         </span>
     </a>
 
@@ -533,21 +546,18 @@
     </main>
 
     <!-- 2nd Screen: Interactive GSAP ScrollTrigger Workflow -->
-    <section id="how-it-works" class="relative z-10 py-10 md:py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="how-it-works"
+        class="relative z-10 min-h-screen flex flex-col justify-center pt-24 pb-12 md:pt-28 md:pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-auto">
 
-            <!-- Section Kicker & Header -->
+            <!-- Section Header -->
             <div class="text-center max-w-3xl mx-auto mb-6 md:mb-10">
-                <div
-                    class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-db_primary/5 border border-db_border text-db_muted mb-4 shadow-db-sm">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="font-mono tracking-wider uppercase">Interactive Architecture</span>
-                </div>
-                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-db_text mb-4">
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-db_text mb-3">
                     How DeployBridge Works
                 </h2>
                 <p class="text-base sm:text-lg text-db_muted max-w-2xl mx-auto leading-relaxed">
-                    Scroll through our 4-step autonomous pipeline. From raw repository to global cloud deployment with zero configuration.
+                    Scroll through our 4-step autonomous pipeline. From raw repository to global cloud deployment with
+                    zero configuration.
                 </p>
             </div>
 
@@ -558,20 +568,25 @@
                 <div class="lg:col-span-4 flex flex-col justify-center relative">
                     <!-- Outer timeline container with vertical line -->
                     <div class="relative pl-8 sm:pl-10 space-y-6 sm:space-y-8">
-                        
+
                         <!-- Base track line -->
-                        <div class="absolute left-3.5 sm:left-4 top-4 bottom-4 w-1 bg-db_border/40 rounded-full overflow-hidden">
+                        <div
+                            class="absolute left-3.5 sm:left-4 top-4 bottom-4 w-1 bg-db_border/40 rounded-full overflow-hidden">
                             <!-- Dynamic Glowing Fill Bar -->
                             <div id="hiw-progress-line" class="hiw-progress-line-fill w-full h-0 rounded-full"></div>
                         </div>
 
                         <!-- Step 1 Button -->
-                        <button type="button" class="hiw-step-btn is-active w-full text-left flex items-start gap-4 p-3 rounded-2xl hover:bg-db_primary/[0.03] transition-all cursor-pointer group" data-step="0">
-                            <div class="hiw-step-badge w-8 h-8 rounded-full border border-db_border bg-db_surface flex items-center justify-center text-xs font-bold font-mono text-db_text shrink-0 relative z-10 transition-all shadow-db-sm">
+                        <button type="button"
+                            class="hiw-step-btn is-active w-full text-left flex items-start gap-4 p-3 rounded-2xl hover:bg-db_primary/[0.03] transition-all cursor-pointer group"
+                            data-step="0">
+                            <div
+                                class="hiw-step-badge w-8 h-8 rounded-full border border-db_border bg-db_surface flex items-center justify-center text-xs font-bold font-mono text-db_text shrink-0 relative z-10 transition-all shadow-db-sm">
                                 01
                             </div>
                             <div class="flex-1">
-                                <div class="hiw-step-title text-sm sm:text-base font-bold text-db_text group-hover:text-db_primary transition-colors flex items-center gap-2">
+                                <div
+                                    class="hiw-step-title text-sm sm:text-base font-bold text-db_text group-hover:text-db_primary transition-colors flex items-center gap-2">
                                     <span>Repo Sync & Ingest</span>
                                 </div>
                                 <p class="hiw-step-desc text-xs text-db_muted leading-relaxed">
@@ -581,46 +596,61 @@
                         </button>
 
                         <!-- Step 2 Button -->
-                        <button type="button" class="hiw-step-btn opacity-60 w-full text-left flex items-start gap-4 p-3 rounded-2xl hover:bg-db_primary/[0.03] transition-all cursor-pointer group" data-step="1">
-                            <div class="hiw-step-badge w-8 h-8 rounded-full border border-db_border bg-db_surface flex items-center justify-center text-xs font-bold font-mono text-db_text shrink-0 relative z-10 transition-all shadow-db-sm">
+                        <button type="button"
+                            class="hiw-step-btn opacity-60 w-full text-left flex items-start gap-4 p-3 rounded-2xl hover:bg-db_primary/[0.03] transition-all cursor-pointer group"
+                            data-step="1">
+                            <div
+                                class="hiw-step-badge w-8 h-8 rounded-full border border-db_border bg-db_surface flex items-center justify-center text-xs font-bold font-mono text-db_text shrink-0 relative z-10 transition-all shadow-db-sm">
                                 02
                             </div>
                             <div class="flex-1">
-                                <div class="hiw-step-title text-sm sm:text-base font-bold text-db_text group-hover:text-db_primary transition-colors flex items-center gap-2">
+                                <div
+                                    class="hiw-step-title text-sm sm:text-base font-bold text-db_text group-hover:text-db_primary transition-colors flex items-center gap-2">
                                     <span>AI Stack Inspection</span>
                                 </div>
                                 <p class="hiw-step-desc text-xs text-db_muted leading-relaxed">
-                                    Deep AST analysis detects frameworks, dependencies, ports, and generates readiness score.
+                                    Deep AST analysis detects frameworks, dependencies, ports, and generates readiness
+                                    score.
                                 </p>
                             </div>
                         </button>
 
                         <!-- Step 3 Button -->
-                        <button type="button" class="hiw-step-btn opacity-60 w-full text-left flex items-start gap-4 p-3 rounded-2xl hover:bg-db_primary/[0.03] transition-all cursor-pointer group" data-step="2">
-                            <div class="hiw-step-badge w-8 h-8 rounded-full border border-db_border bg-db_surface flex items-center justify-center text-xs font-bold font-mono text-db_text shrink-0 relative z-10 transition-all shadow-db-sm">
+                        <button type="button"
+                            class="hiw-step-btn opacity-60 w-full text-left flex items-start gap-4 p-3 rounded-2xl hover:bg-db_primary/[0.03] transition-all cursor-pointer group"
+                            data-step="2">
+                            <div
+                                class="hiw-step-badge w-8 h-8 rounded-full border border-db_border bg-db_surface flex items-center justify-center text-xs font-bold font-mono text-db_text shrink-0 relative z-10 transition-all shadow-db-sm">
                                 03
                             </div>
                             <div class="flex-1">
-                                <div class="hiw-step-title text-sm sm:text-base font-bold text-db_text group-hover:text-db_primary transition-colors flex items-center gap-2">
+                                <div
+                                    class="hiw-step-title text-sm sm:text-base font-bold text-db_text group-hover:text-db_primary transition-colors flex items-center gap-2">
                                     <span>Container Automation</span>
                                 </div>
                                 <p class="hiw-step-desc text-xs text-db_muted leading-relaxed">
-                                    Auto Dockerfile generation, isolated multi-stage caching, and automated health checks.
+                                    Auto Dockerfile generation, isolated multi-stage caching, and automated health
+                                    checks.
                                 </p>
                             </div>
                         </button>
 
                         <!-- Step 4 Button -->
-                        <button type="button" class="hiw-step-btn opacity-60 w-full text-left flex items-start gap-4 p-3 rounded-2xl hover:bg-db_primary/[0.03] transition-all cursor-pointer group" data-step="3">
-                            <div class="hiw-step-badge w-8 h-8 rounded-full border border-db_border bg-db_surface flex items-center justify-center text-xs font-bold font-mono text-db_text shrink-0 relative z-10 transition-all shadow-db-sm">
+                        <button type="button"
+                            class="hiw-step-btn opacity-60 w-full text-left flex items-start gap-4 p-3 rounded-2xl hover:bg-db_primary/[0.03] transition-all cursor-pointer group"
+                            data-step="3">
+                            <div
+                                class="hiw-step-badge w-8 h-8 rounded-full border border-db_border bg-db_surface flex items-center justify-center text-xs font-bold font-mono text-db_text shrink-0 relative z-10 transition-all shadow-db-sm">
                                 04
                             </div>
                             <div class="flex-1">
-                                <div class="hiw-step-title text-sm sm:text-base font-bold text-db_text group-hover:text-db_primary transition-colors flex items-center gap-2">
+                                <div
+                                    class="hiw-step-title text-sm sm:text-base font-bold text-db_text group-hover:text-db_primary transition-colors flex items-center gap-2">
                                     <span>Live Multi-Cloud Shipping</span>
                                 </div>
                                 <p class="hiw-step-desc text-xs text-db_muted leading-relaxed">
-                                    1-Click deploy with SSL certificates, edge CDN, telemetry metrics, and auto-rollback.
+                                    1-Click deploy with SSL certificates, edge CDN, telemetry metrics, and
+                                    auto-rollback.
                                 </p>
                             </div>
                         </button>
@@ -629,7 +659,8 @@
                     <!-- Scroll Hint -->
                     <div class="mt-6 pl-8 sm:pl-10 flex items-center gap-2 text-xs font-medium text-db_muted/80">
                         <svg class="w-3.5 h-3.5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                         </svg>
                         <span>Scroll or click steps to navigate</span>
                     </div>
@@ -641,8 +672,9 @@
 
                         <!-- Card 1: Repo Ingestion & Sync -->
                         <div class="hiw-card-layer active-card" data-card="0">
-                            <div class="w-full h-full glass-panel rounded-2xl sm:rounded-3xl shadow-db-lg border border-db_border p-5 sm:p-7 flex flex-col justify-between overflow-hidden bg-db_surface/80 backdrop-blur-xl">
-                                
+                            <div
+                                class="w-full h-full glass-panel rounded-2xl sm:rounded-3xl shadow-db-lg border border-db_border p-5 sm:p-7 flex flex-col justify-between overflow-hidden bg-db_surface/80 backdrop-blur-xl">
+
                                 <!-- Card Header -->
                                 <div class="flex items-center justify-between border-b border-db_border/70 pb-4">
                                     <div class="flex items-center gap-3">
@@ -651,14 +683,18 @@
                                             <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
                                             <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
                                         </div>
-                                        <span class="text-xs font-mono font-bold text-db_text px-2.5 py-1 rounded-md bg-db_primary/5 border border-db_border flex items-center gap-1.5">
-                                            <svg class="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                                                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                                        <span
+                                            class="text-xs font-mono font-bold text-db_text px-2.5 py-1 rounded-md bg-db_primary/5 border border-db_border flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5 text-blue-500" fill="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
                                             </svg>
                                             github.com/acme/saas-backend
                                         </span>
                                     </div>
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                         Synced
                                     </span>
@@ -668,47 +704,64 @@
                                 <div class="my-auto py-4 space-y-4">
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <!-- Branch card -->
-                                        <div class="p-3.5 rounded-xl border border-db_border bg-db_surface_alt/50 space-y-1.5">
-                                            <div class="text-[11px] font-mono text-db_muted uppercase tracking-wider">Active Branch</div>
-                                            <div class="flex items-center gap-2 text-sm font-bold text-db_text font-mono">
-                                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                                        <div
+                                            class="p-3.5 rounded-xl border border-db_border bg-db_surface_alt/50 space-y-1.5">
+                                            <div class="text-[11px] font-mono text-db_muted uppercase tracking-wider">
+                                                Active Branch</div>
+                                            <div
+                                                class="flex items-center gap-2 text-sm font-bold text-db_text font-mono">
+                                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                                                 </svg>
                                                 <span>refs/heads/main</span>
                                             </div>
-                                            <div class="text-xs text-db_muted font-mono truncate">commit #8f4b2e: "Update API routes"</div>
+                                            <div class="text-xs text-db_muted font-mono truncate">commit #8f4b2e:
+                                                "Update API routes"</div>
                                         </div>
 
                                         <!-- Webhook status -->
-                                        <div class="p-3.5 rounded-xl border border-db_border bg-db_surface_alt/50 space-y-1.5">
-                                            <div class="text-[11px] font-mono text-db_muted uppercase tracking-wider">Webhook Listener</div>
-                                            <div class="flex items-center gap-2 text-sm font-bold text-emerald-500 font-mono">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        <div
+                                            class="p-3.5 rounded-xl border border-db_border bg-db_surface_alt/50 space-y-1.5">
+                                            <div class="text-[11px] font-mono text-db_muted uppercase tracking-wider">
+                                                Webhook Listener</div>
+                                            <div
+                                                class="flex items-center gap-2 text-sm font-bold text-emerald-500 font-mono">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                                 </svg>
                                                 <span>Auto-Trigger Active</span>
                                             </div>
-                                            <div class="text-xs text-db_muted font-mono">Listens to push & PR events</div>
+                                            <div class="text-xs text-db_muted font-mono">Listens to push & PR events
+                                            </div>
                                         </div>
                                     </div>
 
                                     <!-- Parsed Structure Preview -->
-                                    <div class="p-3.5 rounded-xl border border-db_border bg-db_primary/[0.02] font-mono text-xs space-y-2">
+                                    <div
+                                        class="p-3.5 rounded-xl border border-db_border bg-db_primary/[0.02] font-mono text-xs space-y-2">
                                         <div class="flex items-center justify-between text-db_muted">
                                             <span>Repository Tree Parsed</span>
                                             <span class="text-blue-500 font-bold">100% Ingested</span>
                                         </div>
                                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px]">
-                                            <div class="px-2.5 py-1.5 rounded-lg bg-db_surface border border-db_border text-db_text flex items-center gap-1.5">
+                                            <div
+                                                class="px-2.5 py-1.5 rounded-lg bg-db_surface border border-db_border text-db_text flex items-center gap-1.5">
                                                 <span class="text-amber-500">📄</span> main.py
                                             </div>
-                                            <div class="px-2.5 py-1.5 rounded-lg bg-db_surface border border-db_border text-db_text flex items-center gap-1.5">
+                                            <div
+                                                class="px-2.5 py-1.5 rounded-lg bg-db_surface border border-db_border text-db_text flex items-center gap-1.5">
                                                 <span class="text-blue-500">📄</span> requirements.txt
                                             </div>
-                                            <div class="px-2.5 py-1.5 rounded-lg bg-db_surface border border-db_border text-db_text flex items-center gap-1.5">
+                                            <div
+                                                class="px-2.5 py-1.5 rounded-lg bg-db_surface border border-db_border text-db_text flex items-center gap-1.5">
                                                 <span class="text-purple-500">📄</span> Dockerfile
                                             </div>
-                                            <div class="px-2.5 py-1.5 rounded-lg bg-db_surface border border-db_border text-db_text flex items-center gap-1.5">
+                                            <div
+                                                class="px-2.5 py-1.5 rounded-lg bg-db_surface border border-db_border text-db_text flex items-center gap-1.5">
                                                 <span class="text-emerald-500">📄</span> .env.example
                                             </div>
                                         </div>
@@ -716,10 +769,13 @@
                                 </div>
 
                                 <!-- Card Footer -->
-                                <div class="pt-3 border-t border-db_border/70 flex items-center justify-between text-xs font-mono text-db_muted">
+                                <div
+                                    class="pt-3 border-t border-db_border/70 flex items-center justify-between text-xs font-mono text-db_muted">
                                     <span class="flex items-center gap-1.5">
-                                        <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7" />
                                         </svg>
                                         Zero repo modification required
                                     </span>
@@ -730,19 +786,23 @@
 
                         <!-- Card 2: AI Code Inspection & Stack Detection -->
                         <div class="hiw-card-layer" data-card="1">
-                            <div class="w-full h-full glass-panel rounded-2xl sm:rounded-3xl shadow-db-lg border border-db_border p-5 sm:p-7 flex flex-col justify-between overflow-hidden bg-db_surface/80 backdrop-blur-xl">
-                                
+                            <div
+                                class="w-full h-full glass-panel rounded-2xl sm:rounded-3xl shadow-db-lg border border-db_border p-5 sm:p-7 flex flex-col justify-between overflow-hidden bg-db_surface/80 backdrop-blur-xl">
+
                                 <!-- Card Header -->
                                 <div class="flex items-center justify-between border-b border-db_border/70 pb-4">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
+                                        <div
+                                            class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                                             </svg>
                                         </div>
                                         <span class="text-sm font-bold text-db_text">Agentic AI Reasoning Engine</span>
                                     </div>
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
                                         AST Analysis Done
                                     </span>
                                 </div>
@@ -750,26 +810,39 @@
                                 <!-- Card Body: AI Report View -->
                                 <div class="my-auto py-4 space-y-3.5">
                                     <!-- Detected Stack Pills -->
-                                    <div class="p-3.5 rounded-xl border border-db_border bg-db_surface_alt/50 space-y-2">
-                                        <div class="text-[11px] font-mono text-db_muted uppercase tracking-wider">Detected Technologies</div>
+                                    <div
+                                        class="p-3.5 rounded-xl border border-db_border bg-db_surface_alt/50 space-y-2">
+                                        <div class="text-[11px] font-mono text-db_muted uppercase tracking-wider">
+                                            Detected Technologies</div>
                                         <div class="flex flex-wrap gap-2 text-xs font-mono">
-                                            <span class="px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/20">FastAPI (Python 3.11)</span>
-                                            <span class="px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold border border-cyan-500/20">React 18</span>
-                                            <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">PostgreSQL 16</span>
-                                            <span class="px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/20">Uvicorn Runner</span>
+                                            <span
+                                                class="px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/20">FastAPI
+                                                (Python 3.11)</span>
+                                            <span
+                                                class="px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold border border-cyan-500/20">React
+                                                18</span>
+                                            <span
+                                                class="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">PostgreSQL
+                                                16</span>
+                                            <span
+                                                class="px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/20">Uvicorn
+                                                Runner</span>
                                         </div>
                                     </div>
 
                                     <!-- Feasibility Meter -->
-                                    <div class="p-3.5 rounded-xl border border-db_border bg-db_surface_alt/50 space-y-2">
+                                    <div
+                                        class="p-3.5 rounded-xl border border-db_border bg-db_surface_alt/50 space-y-2">
                                         <div class="flex items-center justify-between text-xs font-mono">
                                             <span class="text-db_text font-bold">Deployment Readiness Feasibility</span>
                                             <span class="text-emerald-500 font-bold">98.5% (High)</span>
                                         </div>
                                         <div class="w-full h-2 rounded-full bg-db_primary/10 overflow-hidden">
-                                            <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full" style="width: 98.5%"></div>
+                                            <div class="h-full bg-gradient-to-r from-purple-500 to-emerald-500 rounded-full"
+                                                style="width: 98.5%"></div>
                                         </div>
-                                        <div class="flex items-center justify-between text-[11px] text-db_muted font-mono pt-1">
+                                        <div
+                                            class="flex items-center justify-between text-[11px] text-db_muted font-mono pt-1">
                                             <span>✓ Port 8000 mapped</span>
                                             <span>✓ Env keys verified</span>
                                             <span>✓ Zero security vulnerabilities</span>
@@ -778,8 +851,10 @@
                                 </div>
 
                                 <!-- Card Footer -->
-                                <div class="pt-3 border-t border-db_border/70 flex items-center justify-between text-xs font-mono text-db_muted">
-                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">AI Configuration Generated</span>
+                                <div
+                                    class="pt-3 border-t border-db_border/70 flex items-center justify-between text-xs font-mono text-db_muted">
+                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">AI Configuration
+                                        Generated</span>
                                     <span class="text-db_primary font-bold">Step 2 Complete</span>
                                 </div>
                             </div>
@@ -787,19 +862,24 @@
 
                         <!-- Card 3: Isolated Build Engine & Containerization -->
                         <div class="hiw-card-layer" data-card="2">
-                            <div class="w-full h-full glass-panel rounded-2xl sm:rounded-3xl shadow-db-lg border border-db_border p-5 sm:p-7 flex flex-col justify-between overflow-hidden bg-db_surface/80 backdrop-blur-xl">
-                                
+                            <div
+                                class="w-full h-full glass-panel rounded-2xl sm:rounded-3xl shadow-db-lg border border-db_border p-5 sm:p-7 flex flex-col justify-between overflow-hidden bg-db_surface/80 backdrop-blur-xl">
+
                                 <!-- Card Header -->
                                 <div class="flex items-center justify-between border-b border-db_border/70 pb-4">
                                     <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                        <div
+                                            class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                             </svg>
                                         </div>
-                                        <span class="text-sm font-bold text-db_text">Automated Build & Container Runner</span>
+                                        <span class="text-sm font-bold text-db_text">Automated Build & Container
+                                            Runner</span>
                                     </div>
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                                         Build Succeeded (2.3s)
                                     </span>
@@ -807,8 +887,10 @@
 
                                 <!-- Card Body: Live Build Console Simulation -->
                                 <div class="my-auto py-3 space-y-3">
-                                    <div class="p-3.5 rounded-xl border border-db_border bg-black/80 text-emerald-400 font-mono text-xs space-y-1.5 overflow-hidden shadow-inner">
-                                        <div class="text-gray-400 text-[11px] pb-1 border-b border-gray-800 flex justify-between">
+                                    <div
+                                        class="p-3.5 rounded-xl border border-db_border bg-black/80 text-emerald-400 font-mono text-xs space-y-1.5 overflow-hidden shadow-inner">
+                                        <div
+                                            class="text-gray-400 text-[11px] pb-1 border-b border-gray-800 flex justify-between">
                                             <span>build-runner-01 / amd64</span>
                                             <span>Layer Cache: HIT</span>
                                         </div>
@@ -818,7 +900,8 @@
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span class="text-blue-400">0.9s</span>
-                                            <span class="text-gray-300">[2/4] RUN pip install --no-cache -r requirements.txt</span>
+                                            <span class="text-gray-300">[2/4] RUN pip install --no-cache -r
+                                                requirements.txt</span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span class="text-blue-400">1.6s</span>
@@ -848,10 +931,12 @@
                                 </div>
 
                                 <!-- Card Footer -->
-                                <div class="pt-3 border-t border-db_border/70 flex items-center justify-between text-xs font-mono text-db_muted">
+                                <div
+                                    class="pt-3 border-t border-db_border/70 flex items-center justify-between text-xs font-mono text-db_muted">
                                     <span class="text-emerald-500 font-semibold flex items-center gap-1">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7" />
                                         </svg>
                                         Container Image Tagged & Ready
                                     </span>
@@ -862,15 +947,18 @@
 
                         <!-- Card 4: 1-Click Multi-Cloud Live Shipping -->
                         <div class="hiw-card-layer" data-card="3">
-                            <div class="w-full h-full glass-panel rounded-2xl sm:rounded-3xl shadow-db-lg border-2 border-emerald-500/30 p-5 sm:p-7 flex flex-col justify-between overflow-hidden bg-db_surface/85 backdrop-blur-xl">
-                                
+                            <div
+                                class="w-full h-full glass-panel rounded-2xl sm:rounded-3xl shadow-db-lg border-2 border-emerald-500/30 p-5 sm:p-7 flex flex-col justify-between overflow-hidden bg-db_surface/85 backdrop-blur-xl">
+
                                 <!-- Card Header -->
                                 <div class="flex items-center justify-between border-b border-db_border/70 pb-4">
                                     <div class="flex items-center gap-2.5">
-                                        <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse"></span>
+                                        <span
+                                            class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse"></span>
                                         <span class="text-sm font-bold text-db_text">Production Deployment Active</span>
                                     </div>
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500 text-white shadow-sm">
+                                    <span
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500 text-white shadow-sm">
                                         200 OK • Live
                                     </span>
                                 </div>
@@ -878,21 +966,30 @@
                                 <!-- Card Body: Live Deployment URL & Metrics -->
                                 <div class="my-auto py-3 space-y-3.5">
                                     <!-- Live URL Capsule -->
-                                    <div class="p-4 rounded-xl border border-db_border bg-db_surface_alt/70 flex items-center justify-between gap-3 shadow-sm">
+                                    <div
+                                        class="p-4 rounded-xl border border-db_border bg-db_surface_alt/70 flex items-center justify-between gap-3 shadow-sm">
                                         <div class="flex items-center gap-3 overflow-hidden">
-                                            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                            <div
+                                                class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                                 </svg>
                                             </div>
                                             <div class="overflow-hidden">
-                                                <div class="text-[10px] font-mono text-db_muted uppercase tracking-wider">Public Cloud Endpoint</div>
-                                                <a href="https://app.deploybridge.dev" target="_blank" class="text-sm sm:text-base font-bold text-blue-500 hover:underline font-mono truncate block">
+                                                <div
+                                                    class="text-[10px] font-mono text-db_muted uppercase tracking-wider">
+                                                    Public Cloud Endpoint</div>
+                                                <a href="https://app.deploybridge.dev" target="_blank"
+                                                    class="text-sm sm:text-base font-bold text-blue-500 hover:underline font-mono truncate block">
                                                     https://app.deploybridge.dev
                                                 </a>
                                             </div>
                                         </div>
-                                        <span class="px-2.5 py-1 rounded bg-db_primary/5 border border-db_border text-xs font-mono text-db_text shrink-0">
+                                        <span
+                                            class="px-2.5 py-1 rounded bg-db_primary/5 border border-db_border text-xs font-mono text-db_text shrink-0">
                                             TLS 1.3
                                         </span>
                                     </div>
@@ -917,10 +1014,12 @@
                                 <!-- Card Footer: Quick Action -->
                                 <div class="pt-3 border-t border-db_border/70 flex items-center justify-between">
                                     <span class="text-xs font-mono text-db_muted">One-click pipeline accomplished</span>
-                                    <a href="templates/auth.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-db_primary text-db_bg text-xs font-bold shadow-db-sm hover:opacity-90 transition-opacity">
+                                    <a href="templates/auth.html"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-db_primary text-db_bg text-xs font-bold shadow-db-sm hover:opacity-90 transition-opacity">
                                         <span>Deploy Yours</span>
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                         </svg>
                                     </a>
                                 </div>
@@ -934,7 +1033,7 @@
         </div>
     </section>
 
-    <section id="features" class="relative z-10 bg-db_surface overflow-hidden">
+    <section id="features" class="relative z-10 bg-db_surface" style="height: 180vh;">
         <!-- Hero -> Features Transition Blend Edge -->
         <div class="relative w-full h-28 md:h-40 overflow-hidden pointer-events-none select-none">
             <!-- Background Color Gradient Blend -->
@@ -944,73 +1043,121 @@
             <div class="grid-blend-down"></div>
         </div>
 
-        <div id="features-container" class="max-w-7xl mx-auto px-6 pb-20 md:pb-28">
-            <div id="features-card" class="glass-panel rounded-3xl overflow-hidden shadow-none border-[1px] border-black/20 dark:border-white/20 flex flex-col justify-center">
+        <!-- Sticky Wrapper replaces GSAP pinning -->
+        <div class="sticky top-20 md:top-32 w-full z-20">
+            <div id="features-container" class="max-w-7xl mx-auto px-6 pb-16 md:pb-24">
+                <div id="features-card"
+                    class="glass-panel rounded-3xl shadow-none border border-black/20 dark:border-white/20 flex flex-col mx-auto w-full"
+                    style="max-width: 44rem;">
 
-                <!-- Unified Header Area -->
-                <div class="text-center px-8 py-16 border-b border-db_border relative overflow-hidden">
-                    <!-- Subtle glow effect inside the header -->
-                    <div class="absolute inset-0 bg-gradient-to-b from-db_primary/5 to-transparent pointer-events-none">
-                    </div>
-                    <h2 class="text-3xl md:text-5xl font-bold mb-6 relative z-10">Everything you need to ship.</h2>
-                    <p class="text-lg text-db_muted max-w-2xl mx-auto relative z-10 leading-relaxed">Stop worrying about
-                        infrastructure. Focus on writing great code and let our pipelines handle the rest.</p>
-                </div>
-
-                <!-- Three-Column Partition Area -->
-                <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-db_border">
-
-                    <!-- Feature 1 -->
-                    <div class="p-10 lg:p-12 transition-colors duration-200 hover:bg-db_primary/5">
+                    <!-- Header -->
+                    <div class="text-center px-6 py-10 md:py-12 relative overflow-hidden">
                         <div
-                            class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-8 shadow-inner">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                </path>
-                            </svg>
+                            class="absolute inset-0 bg-gradient-to-b from-db_primary/5 to-transparent pointer-events-none">
                         </div>
-                        <h3 class="text-xl font-bold mb-4 text-db_text tracking-tight">Smart Analysis</h3>
-                        <p class="text-db_muted leading-relaxed font-medium">Automatically detect your framework,
-                            dependencies, and build scripts. Zero configuration required for most modern stacks.</p>
+                        <h2 class="text-3xl md:text-5xl font-bold mb-4 relative z-10">Everything you need to ship.</h2>
+                        <p class="text-base md:text-lg text-db_muted max-w-2xl mx-auto relative z-10 leading-relaxed">
+                            Stop worrying about infrastructure. Focus on writing great code and let our pipelines handle
+                            the rest.</p>
                     </div>
 
-                    <!-- Feature 2 -->
-                    <div class="p-10 lg:p-12 transition-colors duration-200 hover:bg-db_primary/5">
-                        <div
-                            class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-8 shadow-inner">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                                </path>
-                            </svg>
-                        </div>
-                        <h3 class="text-xl font-bold mb-4 text-db_text tracking-tight">One-Click Deploy</h3>
-                        <p class="text-db_muted leading-relaxed font-medium">Push to GitHub and watch it go live.
-                            DeployBridge hooks into your Git workflow to trigger deployments automatically.</p>
-                    </div>
+                    <!-- 6 Feature Cards Grid (expands while pinned) -->
+                    <div id="features-grid" class="border-t border-black/20 dark:border-white/20"
+                        style="max-height: 0; overflow: hidden; opacity: 0;">
 
-                    <!-- Feature 3 -->
-                    <div class="p-10 lg:p-12 transition-colors duration-200 hover:bg-db_primary/5">
-                        <div
-                            class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 mb-8 shadow-inner">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                                </path>
-                            </svg>
+                        <!-- Row 1 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3">
+                            <div class="feat-card p-6 lg:p-8 hover:bg-db_primary/5 transition-colors border-b md:border-b-0 border-r-0 md:border-r border-black/10 dark:border-white/10"
+                                style="opacity:0;">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-4 shadow-inner">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-bold mb-1.5 text-db_text">Smart Stack Analysis</h3>
+                                <p class="text-db_muted text-xs leading-relaxed">Auto-detect framework, dependencies and
+                                    build scripts. Zero config for most modern stacks.</p>
+                            </div>
+                            <div class="feat-card p-6 lg:p-8 hover:bg-db_primary/5 transition-colors border-b md:border-b-0 border-r-0 md:border-r border-black/10 dark:border-white/10"
+                                style="opacity:0;">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-4 shadow-inner">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-bold mb-1.5 text-db_text">One-Click Deploy</h3>
+                                <p class="text-db_muted text-xs leading-relaxed">Push to GitHub and go live instantly on
+                                    Render or GitHub Pages — zero manual steps.</p>
+                            </div>
+                            <div class="feat-card p-6 lg:p-8 hover:bg-db_primary/5 transition-colors border-b md:border-b-0 border-black/10 dark:border-white/10"
+                                style="opacity:0;">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 mb-4 shadow-inner">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-bold mb-1.5 text-db_text">AI Report Generator</h3>
+                                <p class="text-db_muted text-xs leading-relaxed">Agentic AI generates feasibility,
+                                    security and performance reports before every release.</p>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-bold mb-4 text-db_text tracking-tight">Secure Environments</h3>
-                        <p class="text-db_muted leading-relaxed font-medium">Manage secrets, configure custom domains,
-                            and enforce branch protections from a single, unified control room.</p>
-                    </div>
 
-                </div>
-            </div>
-        </div>
+                        <!-- Row 2 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 border-t border-black/10 dark:border-white/10">
+                            <div class="feat-card p-6 lg:p-8 hover:bg-db_primary/5 transition-colors border-b md:border-b-0 border-r-0 md:border-r border-black/10 dark:border-white/10"
+                                style="opacity:0;">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500 mb-4 shadow-inner">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-bold mb-1.5 text-db_text">Autonomous Routing</h3>
+                                <p class="text-db_muted text-xs leading-relaxed">AI agent auto-separates frontend and
+                                    backend, routing APIs and static assets correctly.</p>
+                            </div>
+                            <div class="feat-card p-6 lg:p-8 hover:bg-db_primary/5 transition-colors border-b md:border-b-0 border-r-0 md:border-r border-black/10 dark:border-white/10"
+                                style="opacity:0;">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 mb-4 shadow-inner">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-bold mb-1.5 text-db_text">Secure Environments</h3>
+                                <p class="text-db_muted text-xs leading-relaxed">Manage secrets, env vars, domains and
+                                    branch protections from one unified control room.</p>
+                            </div>
+                            <div class="feat-card p-6 lg:p-8 hover:bg-db_primary/5 transition-colors"
+                                style="opacity:0;">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 mb-4 shadow-inner">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-bold mb-1.5 text-db_text">Live Telemetry</h3>
+                                <p class="text-db_muted text-xs leading-relaxed">Monitor app health, resource usage and
+                                    build logs in real-time from the dashboard.</p>
+                            </div>
+                        </div>
+
+                    </div><!-- /grid -->
+                </div><!-- /features-card -->
+            </div><!-- /features-container -->
+        </div><!-- /sticky wrapper -->
     </section>
-
     <!-- Ready to cross the bridge section -->
+
     <section class="relative z-10 overflow-hidden">
         <!-- Features -> CTA Transition Blend Edge (Top Blend) -->
         <div class="relative w-full h-28 md:h-40 overflow-hidden pointer-events-none select-none">
@@ -1154,14 +1301,14 @@
             const hiwTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: "#how-it-works",
-                    start: "top top+=50",
+                    start: "top top",
                     end: `+=${scrollDistance}`,
                     pin: true,
                     scrub: 0.8,
                     anticipatePin: 1,
                     onUpdate: (self) => {
                         const progress = self.progress;
-                        
+
                         // Update glowing progress line
                         if (progressBar) {
                             progressBar.style.height = `${Math.min(100, Math.max(8, progress * 100))}%`;
@@ -1205,7 +1352,7 @@
                     const st = hiwTimeline.scrollTrigger;
                     const stepFraction = (idx + 0.15) / totalSteps;
                     const targetScroll = st.start + stepFraction * (st.end - st.start);
-                    
+
                     window.scrollTo({
                         top: targetScroll,
                         behavior: "smooth"
@@ -1227,15 +1374,58 @@
             const fCard = document.getElementById("features-card");
 
             if (fContainer && fCard) {
-                featuresTimeline.to(fContainer, {
-                    maxWidth: "95%",
-                    paddingBottom: "16px", // slight bottom gap
-                    ease: "power2.inOut"
-                }, 0).to(fCard, {
-                    borderRadius: "24px", // Keep it rounded like a floating card
-                    minHeight: "90vh", // almost full height but leaves a gap
-                    ease: "power2.inOut"
-                }, 0);
+                // Step 1: Scrub — expand card width as section scrolls into view
+                gsap.fromTo(fCard,
+                    { maxWidth: "44rem" },
+                    {
+                        maxWidth: "100%",
+                        ease: "none",
+                        scrollTrigger: {
+                            trigger: "#features",
+                            start: "top 70%",
+                            end: "top 20%",
+                            scrub: 1
+                        }
+                    }
+                );
+
+                // Step 2: Expand height and stagger cards natively while sticky
+                const featGrid = document.getElementById("features-grid");
+                const featCards = document.querySelectorAll(".feat-card");
+
+                if (featGrid && featCards.length > 0) {
+                    const scrubTl = gsap.timeline({
+                        scrollTrigger: {
+                            trigger: "#features",
+                            start: "top top",     // start when sticky
+                            end: "bottom bottom", // end when section finishes scrolling
+                            scrub: 1
+                        }
+                    });
+
+                    // Expand grid height smoothly
+                    scrubTl.to(featGrid, {
+                        maxHeight: "1000px", // Large enough for the 2 rows
+                        opacity: 1,
+                        duration: 0.3,
+                        ease: "power2.inOut"
+                    })
+                        // Stagger reveal the 6 partitions from the bottom edge
+                        .fromTo(featCards,
+                            {
+                                opacity: 0,
+                                y: () => window.innerHeight // Start them far down at the bottom of the screen
+                            },
+                            {
+                                opacity: 1,
+                                y: 0,
+                                stagger: 0.12, // slightly longer stagger for that one-by-one feel
+                                duration: 0.7,
+                                ease: "power3.out"
+                            },
+                            "-=0.1" // overlap slightly with the container expansion
+                        );
+                }
             }
 
             // Refresh ScrollTrigger on resize or theme toggle
