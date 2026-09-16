@@ -119,17 +119,26 @@ function highlightActiveNav(activePage) {
 }
 
 function rememberDeployment(entry) {
-    const existing = JSON.parse(localStorage.getItem(APP_DEPLOYMENTS_KEY) || "[]");
-    const next = [
-        {
-            ...entry,
-            recordedAt: new Date().toISOString(),
-        },
-        ...existing,
-    ].slice(0, 8);
-    localStorage.setItem(APP_DEPLOYMENTS_KEY, JSON.stringify(next));
+    try {
+        const existing = JSON.parse(localStorage.getItem(APP_DEPLOYMENTS_KEY) || "[]");
+        const next = [
+            {
+                ...entry,
+                recordedAt: entry.recordedAt || new Date().toISOString(),
+            },
+            ...existing.filter(item => item.repository !== entry.repository || (new Date() - new Date(item.recordedAt) > 60000)),
+        ].slice(0, 50);
+        localStorage.setItem(APP_DEPLOYMENTS_KEY, JSON.stringify(next));
+    } catch (e) {
+        console.error("Failed to remember deployment:", e);
+    }
 }
 
 function readRecentDeployments() {
-    return JSON.parse(localStorage.getItem(APP_DEPLOYMENTS_KEY) || "[]");
+    try {
+        return JSON.parse(localStorage.getItem(APP_DEPLOYMENTS_KEY) || "[]");
+    } catch (e) {
+        console.error("Failed to read deployments:", e);
+        return [];
+    }
 }

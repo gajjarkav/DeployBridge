@@ -87,7 +87,7 @@
             padding: 0;
             height: 100vh;
             overflow: hidden;
-            transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s ease;
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
 
             background-image:
                 linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
@@ -113,7 +113,7 @@
             display: flex;
             flex-direction: column;
             padding: 24px 16px;
-            transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), padding 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease;
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
             z-index: 30;
             flex-shrink: 0;
             position: relative;
@@ -129,7 +129,7 @@
             border: 1px solid var(--group-border);
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
         }
 
@@ -145,7 +145,7 @@
             width: 12px;
             height: 12px;
             fill: var(--text-color);
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), fill 0.25s ease;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), fill 0.25s ease;
             flex-shrink: 0;
             transform: rotate(180deg);
             /* Points left when open */
@@ -216,7 +216,7 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .nav-link {
@@ -414,7 +414,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             transform: rotate(40deg);
         }
 
@@ -1312,6 +1312,29 @@
                     deployment_profile: selectedProfile,
                 });
 
+                // Persist deployment to DeployBridge local deployment history
+                try {
+                    const existing = JSON.parse(localStorage.getItem("deploybridge_recent_deployments") || "[]");
+                    const newDeployment = {
+                        owner: owner,
+                        repository: `${owner}/${repository}`,
+                        repoName: repository,
+                        message: deployData.message,
+                        profile: deployData.resolved_profile,
+                        workflowTemplate: deployData.workflow_template,
+                        branch: deployData.branch,
+                        status: deployData.success ? "success" : "failed",
+                        pagesUrl: `https://${owner.toLowerCase()}.github.io/${repository}`,
+                        actionsUrl: `https://github.com/${owner}/${repository}/actions`,
+                        repoUrl: `https://github.com/${owner}/${repository}`,
+                        recordedAt: new Date().toISOString()
+                    };
+                    const updated = [newDeployment, ...existing.filter(d => d.repository !== `${owner}/${repository}` || (new Date() - new Date(d.recordedAt) > 60000))].slice(0, 50);
+                    localStorage.setItem("deploybridge_recent_deployments", JSON.stringify(updated));
+                } catch (e) {
+                    console.warn("Failed to store deployment record", e);
+                }
+
                 alert(
                     [
                         deployData.message,
@@ -1686,7 +1709,7 @@
             flex-direction: column;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
             border: 1px solid var(--border-color);
-            animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
 

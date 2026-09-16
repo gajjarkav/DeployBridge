@@ -59,7 +59,7 @@
             color: var(--text-color);
             height: 100vh;
             overflow: hidden;
-            transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s ease;
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
             background-image:
                 linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
                 linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
@@ -86,7 +86,7 @@
             display: flex;
             flex-direction: column;
             padding: 24px 16px;
-            transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), padding 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease;
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
             z-index: 30;
             flex-shrink: 0;
             position: relative;
@@ -102,7 +102,7 @@
             border: 1px solid var(--group-border);
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
         }
 
@@ -113,7 +113,7 @@
             width: 12px;
             height: 12px;
             fill: var(--text-color);
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), fill 0.25s ease;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), fill 0.25s ease;
             flex-shrink: 0;
             transform: rotate(180deg);
         }
@@ -159,7 +159,7 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .nav-link {
@@ -270,7 +270,7 @@
         }
 
         .st-sunMoonThemeToggleBtn .themeToggleInput { opacity: 0; width: 100%; aspect-ratio: 1; position: absolute; cursor: pointer; z-index: 10; }
-        .st-sunMoonThemeToggleBtn svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: rotate(40deg); }
+        .st-sunMoonThemeToggleBtn svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: rotate(40deg); }
         .st-sunMoonThemeToggleBtn svg .sunMoon { transform-origin: center; transition: inherit; transform: scale(1); }
         .st-sunMoonThemeToggleBtn svg .sunRay { transform-origin: center; transform: scale(0); }
         .st-sunMoonThemeToggleBtn svg mask>circle { transition: transform 0.64s cubic-bezier(.41,.64,.32,1.575); transform: translate(0,0); }
