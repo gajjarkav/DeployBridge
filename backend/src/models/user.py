@@ -1,3 +1,4 @@
+from pydantic_core.core_schema import nullable_schema
 import uuid
 from datetime import datetime, timezone
 
@@ -81,5 +82,27 @@ class User(Base):
         nullable=True,
     )
 
+    render_api_key: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+    )
+
+    render_owner_id: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+    )
+
     def  __repr__(self) -> str:
         return f"<User {self.username} (github_id: {self.github_id})>"
+
+    @property
+    def render_connected(self) -> bool:
+        """
+        UI hint exposed via UserProfileResponse.render_connected.
+
+        True iff the user has a stored Render API key. We never expose
+        the key itself; this is just so the frontend can render a
+        "Render: Connected" badge without a separate /v1/render/status
+        round-trip on every page load.
+        """
+        return bool(self.render_api_key)

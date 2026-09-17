@@ -887,7 +887,14 @@
                         <span>Deployments</span>
                     </a>
                     <a class="nav-link" href="./reports.html" data-tooltip="My Reports">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
                         <span>My Reports</span>
                     </a>
                 </div>
@@ -1246,6 +1253,114 @@
             return data;
         }
 
+        // Generic backend POST/GET helper (NEW) — used by the Render flow.
+        // Kept separate from postGitHubPagesRequest so we don't tangle
+        // concerns: GitHub Pages requests never carry secrets, while
+        // Render requests may (env-var values) — better to keep the
+        // helpers distinct and easy to audit.
+        async function apiRequest(method, path, token, body) {
+            const opts = {
+                method,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+            };
+            if (body !== undefined) opts.body = JSON.stringify(body);
+            const response = await fetch(`${BACKEND_API_URL}${path}`, opts);
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.detail || `Request failed with status ${response.status}`);
+            }
+            return data;
+        }
+
+        // Render deploy flow (NEW) — mirrors the Pages prompt-style flow
+        // for phase 1. The modal can be upgraded to a richer multi-step
+        // form later; this gets the core integration shipped.
+        window.deployToRender = async (owner, repository) => {
+            const token = localStorage.getItem("db_session_token");
+            if (!token) {
+                alert("Session expired. Please sign in again.");
+                return;
+            }
+
+            try {
+                // 1. Check Render is connected.
+                const status = await apiRequest("GET", "/render/status", token);
+                if (!status.connected) {
+                    const goSettings = confirm(
+                        "Render is not connected yet.\n\n" +
+                        "Open Settings → Integrations → Connect Render to paste your API key, then come back."
+                    );
+                    if (goSettings) window.location.href = "./settings.html";
+                    return;
+                }
+
+                // 2. Detect runtime/build/start from the repo.
+                const detectData = await apiRequest("POST", "/render/detect", token, { owner, repository });
+                console.log("[DeployBridge] Render detect:", detectData);
+
+                // 3. Prompt the user for service name + confirm runtime.
+                const defaultName = `${repository}-${Math.floor(Math.random() * 9000 + 1000)}`.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60);
+                const serviceName = window.prompt(
+                    [
+                        `Detected Render runtime: ${detectData.runtime}`,
+                        `Branch: ${detectData.branch}`,
+                        `Build: ${detectData.build_command || "(none — Docker)"}`,
+                        `Start: ${detectData.start_command || "(none — Docker)"}`,
+                        `Plan: ${detectData.plan}`,
+                        `Reason: ${detectData.reason}`,
+                        "",
+                        "Pick a Render service name (becomes https://<name>.onrender.com):",
+                    ].join("\n"),
+                    defaultName
+                );
+                if (!serviceName) return;
+
+                // 4. Confirm before deploy.
+                const confirmed = window.confirm(
+                    `Create Render web service "${serviceName}" from ${owner}/${repository} on branch "${detectData.branch}"?\n\n` +
+                    `Runtime: ${detectData.runtime}\nPlan: ${detectData.plan}\n` +
+                    `Build: ${detectData.build_command || "(docker)"}\nStart: ${detectData.start_command || "(docker)"}`
+                );
+                if (!confirmed) return;
+
+                // 5. Fire the deploy request.
+                const deployBody = {
+                    owner,
+                    repository,
+                    branch: detectData.branch,
+                    service_name: serviceName,
+                    runtime: detectData.runtime,
+                    build_command: detectData.build_command,
+                    start_command: detectData.start_command,
+                    dockerfile_path: detectData.dockerfile_path || "./Dockerfile",
+                    plan: detectData.plan || "free",
+                    auto_deploy: true,
+                    env_vars: Object.entries(detectData.env_var_suggestions || {}).map(
+                        ([k, v]) => ({ key: k, value: v })
+                    ),
+                };
+                const deployData = await apiRequest("POST", "/render/deploy", token, deployBody);
+
+                alert(
+                    [
+                        deployData.message,
+                        `Service ID: ${deployData.service_id}`,
+                        `Deploy ID: ${deployData.deploy_id}`,
+                        deployData.service_url ? `URL: ${deployData.service_url}` : "",
+                        deployData.dashboard_url ? `Dashboard: ${deployData.dashboard_url}` : "",
+                    ].filter(Boolean).join("\n")
+                );
+            } catch (error) {
+                console.error("[DeployBridge] Render deploy failed", error);
+                alert(error.message || "Render deployment failed.");
+            }
+        };
+
+
         // Exposing specific action handlers globally so buttons can access them
         window.analyzeRepo = async (owner, repoName) => {
             // v0: wake the AI agent — open the repo modal and auto-trigger report generation.
@@ -1275,6 +1390,26 @@
                     owner,
                     repository,
                 });
+
+                // NEW: backend can recommend Render when the repo is a server
+                // app (express/fastapi/dockerfile/non-static Next.js, etc.).
+                // In that case, Pages detect returns detected_profile=null and
+                // recommended_platform="render" — we route the user to the
+                // Render flow with their consent instead of failing.
+                if (detectData.recommended_platform === "render") {
+                    const goRender = window.confirm(
+                        [
+                            `This repo looks like a server app — GitHub Pages can't host it.`,
+                            `Reason: ${detectData.reason}`,
+                            ``,
+                            `Deploy "${repository}" to Render instead?`,
+                        ].join("\n")
+                    );
+                    if (goRender) {
+                        return window.deployToRender(owner, repository);
+                    }
+                    return;
+                }
 
                 const overrideInput = window.prompt(
                     [

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,38 +8,38 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    
+
     <!-- ADDED: Read theme immediately to prevent screen flashing (FOUC) -->
     <script>
         const savedTheme = localStorage.getItem('db_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
     </script>
-    
+
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
         @import url('https://fonts.googleapis.com/css2?family=Montenegrin+Gothic+One&display=swap');
-        
+
         :root {
-            --bg-color: #f5f5dc; 
+            --bg-color: #f5f5dc;
             --surface-color: #ffffff;
             --text-color: #000000;
             --text-muted: #666666;
-            --primary-color: #000000; 
+            --primary-color: #000000;
             --primary-light: rgba(0, 0, 0, 0.05);
             --primary-hover: rgba(0, 0, 0, 0.08);
             --border-color: rgba(0, 0, 0, 0.1);
             --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
-            
+
             --table-header-bg: #e8e8d8;
             --table-header-text: #1a1a1a;
             --table-cell-bg: rgba(255, 255, 255, 0.85);
             --table-cell-alt: rgba(248, 248, 243, 0.95);
             --grid-color: rgba(0, 0, 0, 0.05);
-            
+
             --group-bg: rgba(0, 0, 0, 0.025);
             --group-border: rgba(0, 0, 0, 0.08);
-            
+
             --status-success-bg: rgba(34, 197, 94, 0.15);
             --status-success-text: #15803d;
             --status-danger-bg: rgba(239, 68, 68, 0.15);
@@ -46,11 +47,11 @@
         }
 
         [data-theme="dark"] {
-            --bg-color: #0a0a0a; 
+            --bg-color: #0a0a0a;
             --surface-color: #121212;
-            --text-color: #f5f5dc; 
+            --text-color: #f5f5dc;
             --text-muted: #a0a090;
-            --primary-color: #f5f5dc; 
+            --primary-color: #f5f5dc;
             --primary-light: rgba(245, 245, 220, 0.08);
             --primary-hover: rgba(245, 245, 220, 0.14);
             --border-color: rgba(245, 245, 220, 0.12);
@@ -62,10 +63,10 @@
             --table-cell-bg: #141414;
             --table-cell-alt: #1a1a1a;
             --grid-color: rgba(245, 245, 220, 0.05);
-            
+
             --group-bg: rgba(255, 255, 250, 0.03);
             --group-border: rgba(245, 245, 220, 0.1);
-            
+
             --status-success-bg: rgba(34, 197, 94, 0.2);
             --status-success-text: #4ade80;
             --status-danger-bg: rgba(239, 68, 68, 0.2);
@@ -87,8 +88,8 @@
             height: 100vh;
             overflow: hidden;
             transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
-            
-            background-image: 
+
+            background-image:
                 linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
                 linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
             background-size: 55px 55px;
@@ -153,7 +154,7 @@
             fill: var(--primary-color);
         }
 
-        .sidebar-header input:checked ~ .chevron-right {
+        .sidebar-header input:checked~.chevron-right {
             transform: rotate(0deg);
         }
 
@@ -259,7 +260,7 @@
         .nav-link[data-active="true"] svg {
             color: var(--bg-color);
         }
-        
+
         .logout-link {
             color: #ef4444 !important;
         }
@@ -414,17 +415,46 @@
             transform: rotate(40deg);
         }
 
-        .st-sunMoonThemeToggleBtn svg .sunMoon { transform-origin: center; transition: inherit; transform: scale(1); }
-        .st-sunMoonThemeToggleBtn svg .sunRay { transform-origin: center; transform: scale(0); }
-        .st-sunMoonThemeToggleBtn svg mask>circle { transition: transform 0.64s cubic-bezier(.41,.64,.32,1.575); transform: translate(0,0); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg { transform: rotate(90deg); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg mask>circle { transform: translate(16px,-3px); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunMoon { transform: scale(.55); }
-        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunRay { animation: showRay1832 .4s ease forwards; }
+        .st-sunMoonThemeToggleBtn svg .sunMoon {
+            transform-origin: center;
+            transition: inherit;
+            transform: scale(1);
+        }
+
+        .st-sunMoonThemeToggleBtn svg .sunRay {
+            transform-origin: center;
+            transform: scale(0);
+        }
+
+        .st-sunMoonThemeToggleBtn svg mask>circle {
+            transition: transform 0.64s cubic-bezier(.41, .64, .32, 1.575);
+            transform: translate(0, 0);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg {
+            transform: rotate(90deg);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg mask>circle {
+            transform: translate(16px, -3px);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunMoon {
+            transform: scale(.55);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked+svg .sunRay {
+            animation: showRay1832 .4s ease forwards;
+        }
 
         @keyframes showRay1832 {
-            from { transform: scale(0); }
-            to { transform: scale(1); }
+            from {
+                transform: scale(0);
+            }
+
+            to {
+                transform: scale(1);
+            }
         }
 
         .page-heading {
@@ -540,9 +570,20 @@
         }
 
         @keyframes pulse-ring {
-            0% { transform: scale(0.95); opacity: 1; }
-            50% { transform: scale(1.25); opacity: 0.5; }
-            100% { transform: scale(0.95); opacity: 1; }
+            0% {
+                transform: scale(0.95);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.25);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 1;
+            }
         }
 
         .session-time-text {
@@ -619,10 +660,12 @@
             visibility: hidden;
             transition: all 0.3s ease;
         }
+
         .glass-modal.active {
             opacity: 1;
             visibility: visible;
         }
+
         .glass-modal-content {
             background: rgba(255, 255, 255, 0.65);
             backdrop-filter: blur(24px);
@@ -640,31 +683,38 @@
             gap: 0;
             overflow: hidden;
         }
+
         [data-theme="dark"] .glass-modal-content {
             background: rgba(18, 18, 18, 0.75);
             border-color: rgba(245, 245, 220, 0.15);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
+
         .glass-modal.active .glass-modal-content {
             transform: translateY(0) scale(1);
         }
+
         .glass-modal-header {
             padding: 24px 24px 16px 24px;
         }
+
         .glass-modal-header h3 {
             font-family: "Ubuntu", sans-serif;
             font-size: 20px;
             margin-bottom: 8px;
             color: var(--text-color);
         }
+
         .glass-modal-header p {
             font-size: 13px;
             color: var(--text-muted);
             line-height: 1.5;
         }
+
         .glass-modal-body {
             padding: 0 24px 24px 24px;
         }
+
         .glass-modal-body input {
             width: 100%;
             padding: 12px 14px;
@@ -676,23 +726,27 @@
             font-size: 14px;
             transition: all 0.2s ease;
         }
+
         .glass-modal-body input:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px var(--primary-light);
         }
+
         .glass-modal-body small {
             display: block;
             margin-top: 8px;
             font-size: 11.5px;
             color: var(--text-muted);
         }
+
         .modal-actions {
             display: flex;
             width: 100%;
             margin-top: 0;
             gap: 0;
         }
+
         .modal-btn {
             flex: 1;
             padding: 16px 18px;
@@ -704,17 +758,25 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
+
         .modal-btn.danger {
             background: #ef4444;
             color: #ffffff;
         }
-        .modal-btn.danger:hover { background: #dc2626; }
+
+        .modal-btn.danger:hover {
+            background: #dc2626;
+        }
+
         .modal-btn.success {
             background: #22c55e;
             color: #ffffff;
         }
-        .modal-btn.success:hover { background: #16a34a; }
-        
+
+        .modal-btn.success:hover {
+            background: #16a34a;
+        }
+
         .icon-btn {
             background: transparent;
             border: none;
@@ -727,20 +789,26 @@
             border-radius: 6px;
             transition: all 0.2s ease;
         }
+
         .icon-btn:hover {
             background: var(--primary-light);
             color: var(--primary-color);
         }
+
         .icon-btn svg {
             width: 14px;
             height: 14px;
             fill: currentColor;
         }
+
         .modal-status {
             font-size: 12px;
             margin-top: 8px;
         }
-        .modal-status.is-error { color: var(--status-danger-text); }
+
+        .modal-status.is-error {
+            color: var(--status-danger-text);
+        }
 
         .sub-partition-row {
             display: flex;
@@ -816,11 +884,24 @@
             background: #dc2626;
         }
 
+        .framework-section-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-top: 14px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .framework-chip-group {
             display: flex;
             flex-wrap: wrap;
-            margin-top: 12px;
-            margin-bottom: 4px;
+            margin-top: 6px;
+            margin-bottom: 12px;
             background: var(--group-bg);
             border: 1px solid var(--group-border);
             border-radius: 12px;
@@ -839,6 +920,12 @@
             border-bottom: 1px solid var(--group-border);
             margin-right: -1px;
             margin-bottom: -1px;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .framework-chip:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--primary-color);
         }
 
         /* Responsive Breakpoints */
@@ -846,24 +933,29 @@
             .master-grid-partition {
                 grid-template-columns: 1fr;
             }
+
             .settings-cell {
                 border-right: none !important;
                 border-bottom: 1px solid var(--border-color) !important;
             }
+
             .settings-cell.cell-wide {
                 border-bottom: none !important;
             }
+
             .master-session-partition {
                 height: auto;
                 flex-direction: column;
                 align-items: flex-start;
             }
+
             .user-square-pfp {
                 width: 100%;
                 height: 120px;
                 border-right: none;
                 border-bottom: 1px solid var(--border-color);
             }
+
             .user-session-meta {
                 padding: 24px;
             }
@@ -873,15 +965,19 @@
             .main-shell {
                 padding: 24px 20px 80px 20px;
             }
+
             .sub-partition-row {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 8px;
             }
-            .row-col-70, .row-col-30 {
+
+            .row-col-70,
+            .row-col-30 {
                 width: 100%;
                 justify-content: flex-start;
             }
+
             .settings-action-btn {
                 max-width: 100%;
             }
@@ -892,11 +988,13 @@
             animation: none;
             mix-blend-mode: normal;
         }
+
         ::view-transition-new(root) {
             z-index: 9999;
         }
     </style>
 </head>
+
 <body>
 
     <div class="app-shell" id="appShell">
@@ -911,26 +1009,53 @@
                     </div>
                 </div>
                 <svg viewBox="0 0 320 512" class="chevron-right">
-                    <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"></path>
+                    <path
+                        d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z">
+                    </path>
                 </svg>
             </label>
 
             <nav class="sidebar-nav">
                 <div class="nav-group">
                     <a class="nav-link" href="./dashboard.html" data-tooltip="Overview">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
                         <span>Overview</span>
                     </a>
                     <a class="nav-link" href="./repositories.html" data-tooltip="Repositories">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
                         <span>Repositories</span>
                     </a>
                     <a class="nav-link" href="./deployments.html" data-tooltip="Deployments">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z">
+                            </path>
+                            <path
+                                d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z">
+                            </path>
+                        </svg>
                         <span>Deployments</span>
                     </a>
                     <a class="nav-link" href="./reports.html" data-tooltip="My Reports">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
                         <span>My Reports</span>
                     </a>
                 </div>
@@ -939,15 +1064,30 @@
             <div class="sidebar-bottom">
                 <div class="nav-group">
                     <a class="nav-link" data-active="true" href="./settings.html" data-tooltip="Settings">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
                         <span>Settings</span>
                     </a>
                     <a class="nav-link" href="./profile.html" data-tooltip="Profile">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
                         <span>Profile</span>
                     </a>
                     <button class="nav-link logout-link" type="button" data-tooltip="Logout" data-logout>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
                         <span>Logout</span>
                     </button>
                 </div>
@@ -986,7 +1126,8 @@
             <div class="settings-master-container">
                 <!-- Partition 1: User Session Profile Banner -->
                 <div class="master-session-partition">
-                    <img id="settings-pfp" src="https://placehold.co/150x150/e0e0e0/000000?text=U" alt="User Avatar" class="user-square-pfp">
+                    <img id="settings-pfp" src="https://placehold.co/150x150/e0e0e0/000000?text=U" alt="User Avatar"
+                        class="user-square-pfp">
                     <div class="user-session-meta">
                         <div class="user-header-row">
                             <h2 id="settings-username">GitHub User</h2>
@@ -1012,13 +1153,15 @@
                             </div>
                             <div class="sub-partition-row">
                                 <div class="row-col-70">Session Status</div>
-                                <div class="row-col-30" style="color: var(--status-success-text);">Active (OAuth/PAT)</div>
+                                <div class="row-col-30" style="color: var(--status-success-text);">Active (OAuth/PAT)
+                                </div>
                             </div>
                             <div class="sub-partition-row">
                                 <div class="row-col-70">Current Theme</div>
                                 <div class="row-col-30" id="card-theme-mode">Light Mode</div>
                             </div>
-                            <button class="settings-action-btn danger-action" type="button" data-logout style="width: 100%; min-height: 46px; font-size: 13.5px; border-top: 1px solid var(--group-border);">
+                            <button class="settings-action-btn danger-action" type="button" data-logout
+                                style="width: 100%; min-height: 46px; font-size: 13.5px; border-top: 1px solid var(--group-border);">
                                 End Session / Sign Out Operator
                             </button>
                         </div>
@@ -1039,10 +1182,15 @@
                             <div class="sub-partition-row">
                                 <div class="row-col-70">Default Deploy Branch</div>
                                 <div class="row-col-30" style="gap: 8px; justify-content: flex-end;">
-                                    <span id="default-branch-summary" style="font-family: monospace; font-size: 12.5px; color: var(--text-muted);">Repository Default</span>
-                                    <button class="icon-btn" id="open-branch-modal" type="button" title="Edit Default Branch">
+                                    <span id="default-branch-summary"
+                                        style="font-family: monospace; font-size: 12.5px; color: var(--text-muted);">Repository
+                                        Default</span>
+                                    <button class="icon-btn" id="open-branch-modal" type="button"
+                                        title="Edit Default Branch">
                                         <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"></path>
+                                            <path
+                                                d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z">
+                                            </path>
                                         </svg>
                                     </button>
                                 </div>
@@ -1053,44 +1201,114 @@
                             </div>
                         </div>
                     </article>
+                    <!-- Partition 3b: Render Integration (NEW) -->
+                    <article class="settings-cell">
+                        <h3>Render Integration</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                            Connect your Render account to deploy server-side apps (Node/Python/Docker) with one click.
+                            Create a key at
+                            <a href="https://dashboard.render.com/u/settings" target="_blank"
+                                rel="noopener noreferrer">Render → Account Settings → API Keys</a>, then paste it below.
+                        </p>
+
+                        <div class="sub-partition-group">
+                            <div class="sub-partition-row">
+                                <div class="row-col-70">Connection Status</div>
+                                <div class="row-col-30" id="render-connection-status"
+                                    style="color: var(--text-muted); font-size: 12.5px;">Checking…</div>
+                            </div>
+                            <div class="sub-partition-row" id="render-owner-row" style="display: none;">
+                                <div class="row-col-70">Workspace</div>
+                                <div class="row-col-30" id="render-owner-summary"
+                                    style="font-family: monospace; font-size: 12.5px; color: var(--text-muted);"></div>
+                            </div>
+                            <div class="sub-partition-row">
+                                <div class="row-col-70">Render API Key</div>
+                                <div class="row-col-30" style="gap: 8px; justify-content: flex-end;">
+                                    <button class="settings-action-btn" id="open-render-modal" type="button">Connect /
+                                        Replace</button>
+                                    <button class="icon-btn" id="render-disconnect-btn" type="button"
+                                        title="Disconnect Render" disabled style="opacity:0.4; cursor: not-allowed;">
+                                        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                                            <path
+                                                d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 64c13.3 0 24 10.7 24 24v112c0 13.3-10.7 24-24 24s-24-10.7-24-24V136c0-13.3 10.7-24 24-24zm0 272c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
 
                     <!-- Partition 4: Wide Supported Build Engines & Target Platforms -->
                     <article class="settings-cell cell-wide">
                         <h3>Supported Build Engines & Target Platforms</h3>
                         <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
-                            DeployBridge inspects repository structures and auto-generates CI/CD GitHub Actions workflows. GitHub Pages is currently supported, with additional hosting platform integrations coming soon:
+                            DeployBridge inspects repository structures and auto-generates CI/CD deployment pipelines
+                            across GitHub Pages (Static Sites & SSGs) and Render (Web Services & Server Backends):
                         </p>
-                        
-                        <!-- Engine Chips -->
+
+                        <!-- GitHub Pages Section -->
+                        <div class="framework-section-label">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="opacity: 0.85;">
+                                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+                            </svg>
+                            GitHub Pages — Static Build Engines
+                        </div>
                         <div class="framework-chip-group">
                             <div class="framework-chip">HTML / Pure JS</div>
                             <div class="framework-chip">Jekyll SSG</div>
                             <div class="framework-chip">Node Static Build</div>
-                            <div class="framework-chip">Next.js (Export)</div>
+                            <div class="framework-chip">Next.js (Static Export)</div>
                             <div class="framework-chip">Vite / React</div>
                             <div class="framework-chip">Astro</div>
+                        </div>
+
+                        <!-- Render Backends & Web Services Section -->
+                        <div class="framework-section-label">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="opacity: 0.85;">
+                                <path d="M18.263.007c-3.121-.147-5.744 2.109-6.192 5.082-.018.138-.045.272-.067.405-.696 3.703-3.936 6.507-7.827 6.507-1.388 0-2.691-.356-3.825-.979a.2024.2024 0 0 0-.302.178V24H12v-8.999c0-1.656 1.338-3 2.987-3h2.988c3.382 0 6.103-2.817 5.97-6.244-.12-3.084-2.61-5.603-5.682-5.75"/>
+                            </svg>
+                            Render — Server Runtimes & Web Services
+                        </div>
+                        <div class="framework-chip-group">
+                            <div class="framework-chip">Python Backend (FastAPI / Flask / Django)</div>
+                            <div class="framework-chip">Node.js Backend (Express / Nest / Fastify)</div>
+                            <div class="framework-chip">Next.js (SSR / Full-Stack)</div>
+                            <div class="framework-chip">Docker Web Service (Dockerfile)</div>
+                            <div class="framework-chip">ASGI / WSGI (Uvicorn / Gunicorn)</div>
+                            <div class="framework-chip">Background Workers & Web Services</div>
                         </div>
 
                         <!-- Target Platforms & Health Status -->
                         <div class="sub-partition-group" style="margin-top: 8px;">
                             <div class="sub-partition-row">
                                 <div class="row-col-70">Supported Hosting Platforms</div>
-                                <div class="row-col-30" style="color: var(--text-color);">GitHub Pages (Active)</div>
+                                <div class="row-col-30" style="color: var(--text-color);">GitHub Pages + Render</div>
                             </div>
                             <div class="sub-partition-row">
-                                <div class="row-col-70">Future Platform Support</div>
-                                <div class="row-col-30" style="color: var(--text-muted);">Expanding Soon</div>
+                                <div class="row-col-70">Render Web Service Runtimes</div>
+                                <div class="row-col-30" style="color: var(--text-color);">Python · Node.js · Docker</div>
+                            </div>
+                            <div class="sub-partition-row">
+                                <div class="row-col-70">Supported Python Backend Frameworks</div>
+                                <div class="row-col-30" style="color: var(--text-color);">FastAPI · Flask · Django · Starlette · Uvicorn</div>
+                            </div>
+                            <div class="sub-partition-row">
+                                <div class="row-col-70">Supported Node.js Backend Frameworks</div>
+                                <div class="row-col-30" style="color: var(--text-color);">Express · Fastify · NestJS · Koa · Hono · Socket.io</div>
                             </div>
                             <div class="sub-partition-row">
                                 <div class="row-col-70">Platform Health Status</div>
-                                <div class="row-col-30" style="color: var(--status-success-text);">Operational (100% Uptime)</div>
+                                <div class="row-col-30" style="color: var(--status-success-text);">Operational (100%
+                                    Uptime)</div>
                             </div>
                             <div class="sub-partition-row">
                                 <div class="row-col-70">DeployBridge Pipeline Engine</div>
                                 <div class="row-col-30">v2.4.0-stable</div>
                             </div>
                             <div class="sub-partition-row">
-                                <div class="row-col-70">GitHub Actions Workflow Engine</div>
+                                <div class="row-col-70">GitHub Actions & Render Webhooks</div>
                                 <div class="row-col-30">v4 (Automated)</div>
                             </div>
                         </div>
@@ -1117,6 +1335,30 @@
                 </div>
             </div>
         </div>
+
+        <div id="render-modal" class="glass-modal">
+            <div class="glass-modal-content">
+                <div class="glass-modal-header">
+                    <h3>Connect Render</h3>
+                    <p>Paste your Render API key. We'll validate it once, encrypt it, and store it.</p>
+                </div>
+                <div class="glass-modal-body">
+                    <input type="password" id="modal-render-input" placeholder="rnd_..." autocomplete="off" />
+                    <small>
+                        Get one at <a href="https://dashboard.render.com/u/settings" target="_blank"
+                            rel="noopener noreferrer">Render → Account Settings → API Keys</a>.
+                        We use your key only to call Render on your behalf; the plaintext is never logged or returned by
+                        any endpoint.
+                    </small>
+                    <div id="modal-render-status" class="modal-status"></div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="modal-btn danger" id="close-render-modal">Close</button>
+                    <button type="button" class="modal-btn success" id="submit-render-modal">Connect</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -1126,7 +1368,7 @@
         const quickThemeToggle = document.getElementById("quick-theme-toggle");
         const logoutButtons = document.querySelectorAll("[data-logout]");
         const defaultBranchSummary = document.getElementById("default-branch-summary");
-        
+
         // Modal Elements
         const branchModal = document.getElementById("branch-modal");
         const openBranchModalBtn = document.getElementById("open-branch-modal");
@@ -1134,7 +1376,7 @@
         const submitBranchModalBtn = document.getElementById("submit-branch-modal");
         const modalBranchInput = document.getElementById("modal-branch-input");
         const modalBranchStatus = document.getElementById("modal-branch-status");
-        
+
         const backendApiUrl = "http://127.0.0.1:8000/v1";
 
         // ADDED: Initialize the Theme Toggle switch to match the saved theme on load
@@ -1307,7 +1549,7 @@
 
         if (submitBranchModalBtn) {
             submitBranchModalBtn.addEventListener("click", async () => {
-                const token = localStorage.getItem("gh_access_token");
+                const token = localStorage.getItem("db_session_token");
                 if (!token) {
                     if (modalBranchStatus) {
                         modalBranchStatus.textContent = "Session expired. Please sign in again.";
@@ -1317,7 +1559,7 @@
                 }
 
                 const branchValue = modalBranchInput ? modalBranchInput.value.trim() : "";
-                
+
                 if (modalBranchStatus) {
                     modalBranchStatus.textContent = "Saving...";
                     modalBranchStatus.className = "modal-status";
@@ -1344,7 +1586,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-            const token = localStorage.getItem("gh_access_token");
+            const token = localStorage.getItem("db_session_token");
             const settingsPfp = document.getElementById("settings-pfp");
             const settingsUsername = document.getElementById("settings-username");
             const cardUsername = document.getElementById("card-username");
@@ -1371,7 +1613,7 @@
                 if (userRes.ok) {
                     const userData = await userRes.json();
                     const displayName = userData.name || userData.login || "GitHub User";
-                    
+
                     if (settingsPfp && userData.avatar_url) settingsPfp.src = userData.avatar_url;
                     if (settingsUsername) settingsUsername.textContent = displayName;
                     if (cardUsername) cardUsername.textContent = `@${userData.login}`;
@@ -1379,7 +1621,7 @@
                     const now = new Date();
                     const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     const formattedDate = now.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
-                    
+
                     if (settingsAuthTime) {
                         settingsAuthTime.textContent = `Last authenticated: ${formattedDate} at ${formattedTime}`;
                     }
@@ -1393,7 +1635,167 @@
                 console.error("Settings fetch error:", error);
                 if (settingsAuthTime) settingsAuthTime.textContent = "Session error - Check connection";
             }
+
+            // --- Render integration (NEW) ----------------------------------
+            const renderModal = document.getElementById("render-modal");
+            const openRenderModalBtn = document.getElementById("open-render-modal");
+            const closeRenderModalBtn = document.getElementById("close-render-modal");
+            const submitRenderModalBtn = document.getElementById("submit-render-modal");
+            const modalRenderInput = document.getElementById("modal-render-input");
+            const modalRenderStatus = document.getElementById("modal-render-status");
+            const renderConnectionStatus = document.getElementById("render-connection-status");
+            const renderOwnerRow = document.getElementById("render-owner-row");
+            const renderOwnerSummary = document.getElementById("render-owner-summary");
+            const renderDisconnectBtn = document.getElementById("render-disconnect-btn");
+
+            async function loadRenderStatus() {
+                if (!token) {
+                    if (renderConnectionStatus) renderConnectionStatus.textContent = "Not connected";
+                    return;
+                }
+                try {
+                    const res = await fetch(`${backendApiUrl}/render/status`, {
+                        headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" },
+                    });
+                    if (!res.ok) throw new Error(`status ${res.status}`);
+                    const data = await res.json();
+                    if (data.connected) {
+                        if (renderConnectionStatus) {
+                            renderConnectionStatus.textContent = "Connected";
+                            renderConnectionStatus.style.color = "var(--status-success-text)";
+                        }
+                        if (data.owner_id && renderOwnerSummary) {
+                            renderOwnerSummary.textContent = `${data.owner_type || "user"} · ${data.owner_id.slice(0, 12)}…`;
+                        }
+                        if (renderOwnerRow) renderOwnerRow.style.display = "flex";
+                        if (renderDisconnectBtn) {
+                            renderDisconnectBtn.disabled = false;
+                            renderDisconnectBtn.style.opacity = "1";
+                            renderDisconnectBtn.style.cursor = "pointer";
+                        }
+                    } else {
+                        if (renderConnectionStatus) {
+                            renderConnectionStatus.textContent = "Not connected";
+                            renderConnectionStatus.style.color = "var(--text-muted)";
+                        }
+                        if (renderOwnerRow) renderOwnerRow.style.display = "none";
+                        if (renderDisconnectBtn) {
+                            renderDisconnectBtn.disabled = true;
+                            renderDisconnectBtn.style.opacity = "0.4";
+                            renderDisconnectBtn.style.cursor = "not-allowed";
+                        }
+                    }
+                } catch (err) {
+                    console.error("Render status fetch error:", err);
+                    if (renderConnectionStatus) {
+                        renderConnectionStatus.textContent = "Error";
+                        renderConnectionStatus.style.color = "var(--status-error-text, #b00020)";
+                    }
+                }
+            }
+
+            if (openRenderModalBtn) {
+                openRenderModalBtn.addEventListener("click", () => {
+                    if (renderModal) renderModal.classList.add("active");
+                    if (modalRenderInput) {
+                        modalRenderInput.value = "";
+                        modalRenderInput.focus();
+                    }
+                    if (modalRenderStatus) {
+                        modalRenderStatus.textContent = "";
+                        modalRenderStatus.className = "modal-status";
+                    }
+                });
+            }
+            if (closeRenderModalBtn) {
+                closeRenderModalBtn.addEventListener("click", () => renderModal && renderModal.classList.remove("active"));
+            }
+            if (renderModal) {
+                renderModal.addEventListener("click", (e) => {
+                    if (e.target === renderModal) renderModal.classList.remove("active");
+                });
+            }
+
+            if (submitRenderModalBtn) {
+                submitRenderModalBtn.addEventListener("click", async () => {
+                    const apiKey = modalRenderInput ? modalRenderInput.value.trim() : "";
+                    if (!apiKey || apiKey.length < 10) {
+                        if (modalRenderStatus) {
+                            modalRenderStatus.textContent = "Please paste a valid Render API key (rnd_...).";
+                            modalRenderStatus.className = "modal-status is-error";
+                        }
+                        return;
+                    }
+                    if (!token) {
+                        if (modalRenderStatus) {
+                            modalRenderStatus.textContent = "Session expired. Please sign in again.";
+                            modalRenderStatus.className = "modal-status is-error";
+                        }
+                        return;
+                    }
+                    if (modalRenderStatus) {
+                        modalRenderStatus.textContent = "Validating...";
+                        modalRenderStatus.className = "modal-status";
+                    }
+                    submitRenderModalBtn.disabled = true;
+                    try {
+                        const res = await fetch(`${backendApiUrl}/render/connect`, {
+                            method: "POST",
+                            headers: {
+                                "Authorization": `Bearer ${token}`,
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                            },
+                            body: JSON.stringify({ api_key: apiKey }),
+                        });
+                        const data = await res.json().catch(() => null);
+                        if (!res.ok) {
+                            const detail = data?.detail || `Render rejected the key (status ${res.status}).`;
+                            throw new Error(detail);
+                        }
+                        if (modalRenderStatus) {
+                            modalRenderStatus.textContent = `Connected to ${data.owner_type || "user"} workspace ${data.owner_name || ""}`.trim();
+                            modalRenderStatus.className = "modal-status is-success";
+                        }
+                        await loadRenderStatus();
+                        setTimeout(() => {
+                            renderModal && renderModal.classList.remove("active");
+                        }, 800);
+                    } catch (err) {
+                        console.error("Render connect error:", err);
+                        if (modalRenderStatus) {
+                            modalRenderStatus.textContent = err.message || "Could not connect Render.";
+                            modalRenderStatus.className = "modal-status is-error";
+                        }
+                    } finally {
+                        submitRenderModalBtn.disabled = false;
+                    }
+                });
+            }
+
+            if (renderDisconnectBtn) {
+                renderDisconnectBtn.addEventListener("click", async () => {
+                    if (renderDisconnectBtn.disabled) return;
+                    if (!token) return;
+                    if (!confirm("Disconnect Render integration? Your existing Render services keep running, but DeployBridge will no longer be able to manage them.")) return;
+                    try {
+                        const res = await fetch(`${backendApiUrl}/render/connect`, {
+                            method: "DELETE",
+                            headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" },
+                        });
+                        if (!res.ok) throw new Error(`status ${res.status}`);
+                        await loadRenderStatus();
+                    } catch (err) {
+                        console.error("Render disconnect error:", err);
+                        alert("Could not disconnect: " + err.message);
+                    }
+                });
+            }
+
+            await loadRenderStatus();
+
         });
     </script>
 </body>
+
 </html>

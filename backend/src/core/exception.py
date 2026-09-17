@@ -31,3 +31,16 @@ class GitHubAPIError(GitHubPagesError):
 
     def __init__(self, message: str, detail: str = "", status_code: int = 400):
         super().__init__(message=message, detail=detail, status_code=status_code)
+
+
+class RenderError(DeployBridgeError):
+    """
+    Base exception for Render integration failures.
+
+    Mirrors GitHubPagesError so the api/v1/render.py handlers can use the
+    same try/except pattern as github_pages.py: catch RenderError, surface
+    `exc.detail or exc.message` to the user, and use `exc.status_code` as
+    the HTTP status (defaults to 400, callers raise with 401/402/404/429
+    where appropriate).
+    """
+    pass

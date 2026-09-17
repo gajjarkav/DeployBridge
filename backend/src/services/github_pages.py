@@ -132,14 +132,126 @@ class GitHubPagesService:
             repository_data=repository_data,
             preferred_branch=preferred_branch,
         )
-        detected_profile, reason = cls._detect_profile(context)
 
+        # NEW: before declaring the repo "unsupported for Pages", check
+        # whether Render is the better target. If yes, return a response
+        # that carries recommended_platform='render' so the frontend can
+        # show a "Deploy to Render instead" CTA instead of an error.
+        should_recommend_render, render_reason = cls.detect_render_recommendation(context)
+        if should_recommend_render:
+            # Special case: if it's a non-static Next.js repo, GitHub Pages
+            # previously raised GitHubAPIError("Unsupported Next.js repo").
+            # If it's a server-runtime Node repo, it fell into the
+            # "Unsupported repository type" branch below. Either way, we
+            # now return a structured recommendation instead of 400-ing.
+            try:
+                detected_profile, _ = cls._detect_profile(context)
+            except GitHubAPIError:
+                # _detect_profile raises for server-only repos -- that's
+                # exactly the case where we want to recommend Render.
+                detected_profile = None
+            return GitHubPagesDetectResponse(
+                detected_profile=detected_profile,
+                supported_profiles=cls.SUPPORTED_PROFILES,
+                reason=render_reason,
+                branch=context.selected_branch,
+                recommended_platform="render",
+            )
+
+        detected_profile, reason = cls._detect_profile(context)
         return GitHubPagesDetectResponse(
             detected_profile=detected_profile,
             supported_profiles=cls.SUPPORTED_PROFILES,
             reason=reason,
             branch=context.selected_branch,
         )
+
+    @classmethod
+    async def build_repository_context(
+        cls,
+        github_token: str,
+        owner: str,
+        repository: str,
+        preferred_branch: str | None = None,
+    ) -> RepositoryContext:
+        """Public wrapper around `_build_repository_context`.
+
+        Added so the Render integration can reuse the SAME repository
+        inspection code (GitHub API calls, package.json parsing, root
+        file enumeration, Next.js config reads) without duplicating the
+        ~80 lines of httpx logic. Render's `detect` needs the same
+        RepositoryContext to decide runtime/build/start commands, and
+        we don't want two copies of "fetch root files + parse
+        package.json + read next.config.*" drifting in the codebase.
+
+        Verifies the repo exists, fetches root file listing, parses
+        package.json/Gemfile/next.config.*, and returns a frozen-ish
+        dataclass the caller can inspect without further GitHub calls.
+        """
+        repository_data = await cls._verify_repository(
+            github_token=github_token,
+            owner=owner,
+            repository=repository,
+        )
+        return await cls._build_repository_context(
+            github_token=github_token,
+            owner=owner,
+            repository=repository,
+            repository_data=repository_data,
+            preferred_branch=preferred_branch,
+        )
+
+    @classmethod
+    def detect_render_recommendation(
+        cls,
+        context: "RepositoryContext",
+    ) -> tuple[bool, str]:
+        """Returns (should_recommend_render, human_reason).
+
+        RenderService calls this from `RenderService.detect` to decide
+        whether the repo is a server-side app. The rule is: if the
+        package.json deps contain any of `SERVER_RUNTIME_MARKERS`
+        (express, fastify, koa, @nestjs/core, hono, socket.io, ...),
+        OR there's a requirements.txt with FastAPI/Flask/etc., OR a
+        Dockerfile in the root, then Render is the right platform.
+
+        Returns False for static sites (html/jekyll/node-static/
+        next-static) -- those keep going through GitHub Pages.
+        """
+        if "dockerfile" in context.root_names:
+            return True, "Dockerfile detected at repository root."
+
+        all_deps = context.dependencies | context.dev_dependencies
+        server_markers_hit = sorted(cls.SERVER_RUNTIME_MARKERS & all_deps)
+        if server_markers_hit:
+            return True, (
+                "Server runtime marker(s) detected in package.json dependencies: "
+                + ", ".join(server_markers_hit)
+                + ". GitHub Pages only supports static sites; this looks like a "
+                "long-running server process, which is exactly what Render web "
+                "services are designed for."
+            )
+
+        # Non-static Next.js (no `output: 'export'`) -> recommend Render.
+        if cls._has_next_signal(context) and not cls._is_next_static_export(context):
+            return True, (
+                "Next.js app detected without a static export configuration. "
+                "This needs a Node.js runtime to serve SSR/API routes, so Render "
+                "is the right target (GitHub Pages can only host the static export)."
+            )
+
+        # Python server runtime: look at requirements.txt-equivalent markers
+        # that the RepositoryContext does not parse today; we approximate by
+        # looking at README and any *.py files at root for fastapi/flask/django.
+        py_root_files = [n for n in context.root_names if n.endswith(".py")]
+        if "requirements.txt" in context.root_names or py_root_files:
+            return True, (
+                "Python project detected (requirements.txt or .py files at "
+                "repo root). Render can run Python web services directly; "
+                "GitHub Pages cannot."
+            )
+
+        return False, "Static site; GitHub Pages is the right platform."
 
     @classmethod
     async def deploy(

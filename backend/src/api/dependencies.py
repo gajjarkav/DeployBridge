@@ -52,9 +52,10 @@ async def _resolve_via_jwt(token: str, db: AsyncSession) -> User | None:
     try:
         payload = decode_session_jwt(token)
     except Exception as exc:
-        logger.debug(
-            "auth.jwt_verification_failed error_type=%s token_hash=%s",
+        logger.warning(
+            "auth.jwt_verification_failed error_type=%s msg=%s token_hash=%s",
             type(exc).__name__,
+            str(exc),
             _hash_token_for_logging(token),
         )
         return None

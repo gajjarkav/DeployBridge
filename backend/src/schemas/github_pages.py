@@ -20,10 +20,22 @@ class GitHubPagesDeployRequest(GitHubPagesRepositoryRequest):
 
 
 class GitHubPagesDetectResponse(BaseModel):
-    detected_profile: ResolvedDeploymentProfile
-    supported_profiles: list[DeploymentProfile]
+    """Response shape for POST /v1/github-pages/detect.
+
+    When `detected_profile` is None and `recommended_platform` is set,
+    the repo is NOT a GitHub Pages candidate -- the frontend should
+    show a "This looks like a server app → Deploy to Render" CTA and
+    route the user to the Render detect/deploy flow. When
+    `detected_profile` is set, GitHub Pages is the right target.
+    """
+    detected_profile: ResolvedDeploymentProfile | None = None
+    supported_profiles: list[DeploymentProfile] = Field(default_factory=list)
     reason: str
     branch: str
+    recommended_platform: Literal["render", None] = Field(
+        default=None,
+        description="Set to 'render' when the repo is a server app that Pages cannot host.",
+    )
 
 
 class GitHubPagesDeployResponse(BaseModel):
