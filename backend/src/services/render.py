@@ -66,6 +66,7 @@ from ..schemas.render import (
     RenderStatusResponse,
 )
 from .github_pages import GitHubPagesService
+from .llm_client import GroqLLMClient
 
 
 class RenderService:
@@ -298,7 +299,7 @@ class RenderService:
             preferred_branch=preferred_branch,
         )
 
-        runtime, build, start, dockerfile, reason = cls._detect_runtime(context)
+        runtime, build, start, dockerfile, reason = await cls._detect_runtime(context)
         env_var_suggestions = cls._suggest_env_vars(runtime, context)
 
         return RenderDetectResponse(
@@ -313,7 +314,7 @@ class RenderService:
         )
 
     @classmethod
-    def _detect_runtime(
+    async def _detect_runtime(
         cls,
         context: Any,
     ) -> tuple[RenderRuntime, str | None, str | None, str | None, str]:
@@ -366,29 +367,70 @@ class RenderService:
         # 3. Python: requirements.txt or .py files at root, OR fastapi/
         # flask/django/uvicorn/gunicorn mentioned in package.json deps
         # (some monorepos carry a Python manifest in package.json).
-        python_markers = {"fastapi", "flask", "django", "uvicorn", "gunicorn", "starlette"}
+        python_deps = {"fastapi", "flask", "django", "uvicorn", "gunicorn", "starlette"} & all_deps
         has_python_files = any(n.endswith(".py") for n in context.root_names)
         has_requirements = "requirements.txt" in context.root_names \
             or "pyproject.toml" in context.root_names \
             or "setup.py" in context.root_names
         if has_requirements or (has_python_files and not context.package_json):
             # Best-guess start command. Render requires $PORT binding.
-            # uvicorn/gunicorn are the most common WSGI/ASGI servers.
-            if "uvicorn" in python_markers or "fastapi" in python_markers:
-                start = "uvicorn app:app --host 0.0.0.0 --port $PORT"
-            elif "gunicorn" in python_markers or "django" in python_markers:
-                start = "gunicorn app:app --bind 0.0.0.0:$PORT"
+            if "manage.py" in context.root_names or "django" in python_deps:
+                # Heuristic fallback: the Django project folder is often the repo name with hyphens replaced by underscores.
+                guess = context.repository.replace("-", "_")
+                
+                # Try to use AI to find the actual project folder among root directories
+                root_dirs_str = ", ".join(getattr(context, "root_directories", []))
+                if root_dirs_str:
+                    try:
+                        llm = GroqLLMClient()
+                        messages = [
+                            {
+                                "role": "system",
+                                "content": (
+                                    "You are a Django expert. Given a list of root directories in a repository, "
+                                    "identify the directory that most likely contains the Django wsgi.py file (the main project folder). "
+                                    "It is often named the same as the repository, or 'config', 'core', 'backend', 'app'. "
+                                    "Return ONLY the exact directory name, nothing else. If you are unsure, return 'UNKNOWN'."
+                                )
+                            },
+                            {
+                                "role": "user",
+                                "content": f"Repository: {context.repository}\nRoot Directories: {root_dirs_str}"
+                            }
+                        ]
+                        response = await llm.chat_completion(messages, temperature=0.1, max_tokens=20)
+                        llm_guess = response.get("content", "").strip()
+                        if llm_guess and llm_guess != "UNKNOWN" and llm_guess in getattr(context, "root_directories", []):
+                            guess = llm_guess
+                    except Exception:
+                        pass
+                
+                start = f"gunicorn {guess}.wsgi:application --bind 0.0.0.0:$PORT"
+                reason = (
+                    "Django project detected. Render installs deps with pip and runs Gunicorn. "
+                    f"IMPORTANT: We determined '{guess}' as your Django project folder. "
+                    "If your wsgi.py is in a different folder, update the Start Command."
+                )
+            elif "main.py" in context.root_names or "uvicorn" in python_deps or "fastapi" in python_deps:
+                start = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+                reason = (
+                    "FastAPI/Uvicorn project detected. Render installs deps with pip and runs Uvicorn. "
+                    "(If your app object is not in main.py, update the Start Command)."
+                )
             else:
-                # Generic fallback: most Flask/FastAPI apps expose `app:app`.
-                start = "uvicorn app:app --host 0.0.0.0 --port $PORT"
+                # Generic fallback: gunicorn is the most common WSGI server for Flask.
+                start = "gunicorn app:app --bind 0.0.0.0:$PORT"
+                reason = (
+                    "Python project detected (likely Flask). Render installs deps with pip and runs Gunicorn. "
+                    "(If your app object is not in app.py, update the Start Command)."
+                )
             build = "pip install -r requirements.txt"
             return (
                 "python",
                 build,
                 start,
                 None,
-                "Python project detected (requirements.txt/pyproject.toml/.py files). "
-                "Render installs deps with pip and runs the ASGI/WSGI server.",
+                reason,
             )
 
         # 4. Node server runtime (express/fastify/koa/nest/hono/socket.io).
