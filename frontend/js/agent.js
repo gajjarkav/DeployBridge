@@ -36,7 +36,7 @@ const chatSend = document.getElementById("chat-send");
 const newChatBtn = document.getElementById("new-chat-btn");
 
 window.onload = async () => {
-    sessionToken = localStorage.getItem("db_session_token") || localStorage.getItem("gh_access_token");
+    sessionToken = localStorage.getItem("db_session_token");
     if (!sessionToken) {
         window.location.href = "./auth.html";
         return;

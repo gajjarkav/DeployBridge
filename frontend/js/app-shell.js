@@ -4,7 +4,7 @@ const APP_DEPLOYMENTS_KEY = "deploybridge_recent_deployments";
 
 function getAuthSession() {
     return {
-        token: localStorage.getItem("gh_access_token"),
+        token: localStorage.getItem("db_session_token"),
         dbSessionToken: localStorage.getItem("db_session_token"),
         username: localStorage.getItem("gh_username"),
         avatar: localStorage.getItem("gh_avatar"),

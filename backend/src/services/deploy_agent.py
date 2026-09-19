@@ -747,25 +747,7 @@ class DeployAgentRunner:
         if name == "detect_stack":
             owner = args.get("owner", "")
             repo = args.get("repo", "")
-            # Try Render detect first (it internally delegates to the same
-            # GitHub context builder). If the repo is serverless, the Pages
-            # detect returns recommended_platform="render" — we let the LLM
-            # read both and choose.
-            try:
-                render_det = await RenderService.detect(
-                    github_token=self._github_token(),
-                    owner=owner,
-                    repository=repo,
-                    preferred_branch=self.user.deploy_branch,
-                )
-                return (
-                    f"Render recommendation: runtime={render_det.runtime}, "
-                    f"build={render_det.build_command}, start={render_det.start_command}, "
-                    f"branch={render_det.branch}, reason={render_det.reason}. "
-                    f"Suggested env vars: {list(render_det.env_var_suggestions.keys())}."
-                )
-            except RenderError:
-                pass
+            output = []
             try:
                 pages_det = await GitHubPagesService.detect(
                     github_token=self._github_token(),
@@ -773,13 +755,31 @@ class DeployAgentRunner:
                     repository=repo,
                     preferred_branch=self.user.deploy_branch,
                 )
-                return (
+                output.append(
                     f"GitHub Pages recommendation: profile={pages_det.detected_profile}, "
-                    f"branch={pages_det.branch}, reason={pages_det.reason}. "
+                    f"branch={pages_det.branch}, reason={pages_det.reason}, "
                     f"recommended_platform={pages_det.recommended_platform}."
                 )
             except GitHubPagesError as exc:
-                return f"Stack detection failed: {exc.message}"
+                output.append(f"GitHub Pages detection failed: {exc.message}")
+
+            try:
+                render_det = await RenderService.detect(
+                    github_token=self._github_token(),
+                    owner=owner,
+                    repository=repo,
+                    preferred_branch=self.user.deploy_branch,
+                )
+                output.append(
+                    f"Render recommendation: runtime={render_det.runtime}, "
+                    f"build={render_det.build_command}, start={render_det.start_command}, "
+                    f"branch={render_det.branch}, reason={render_det.reason}. "
+                    f"Suggested env vars: {list(render_det.env_var_suggestions.keys())}."
+                )
+            except RenderError as exc:
+                output.append(f"Render detection failed: {exc.message}")
+
+            return "\n\n".join(output)
 
         if name == "read_repo_file":
             owner = args.get("owner", "")

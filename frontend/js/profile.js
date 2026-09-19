@@ -2,7 +2,7 @@ window.onload = async () => {
     const session = initializeAppShell("profile");
     if (!session) return;
 
-    const token = localStorage.getItem("gh_access_token");
+    const token = localStorage.getItem("db_session_token");
     if (!token) {
         window.location.href = "../templates/auth.html";
         return;
@@ -48,7 +48,7 @@ window.onload = async () => {
 
         const displayName = user.name || user.login || session.username || "GitHub User";
         const safeAvatar = user.avatar_url || session.avatar || "https://placehold.co/120x120/e0e0e0/000000?text=U";
-        const sessionToken = localStorage.getItem("gh_access_token") || "";
+        const sessionToken = localStorage.getItem("db_session_token") || "";
         const maskedToken = sessionToken
             ? `${sessionToken.slice(0, 6)}...${sessionToken.slice(-4)}`
             : "Not available";

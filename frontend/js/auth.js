@@ -9,8 +9,18 @@ window.onload = async () => {
 
     const urlParams = new URLSearchParams(window.location.search);
     const githubCode = urlParams.get('code');
+    const githubState = urlParams.get('state');
 
     if (githubCode) {
+        const savedState = sessionStorage.getItem("oauth_state");
+        if (!savedState || savedState !== githubState) {
+            alert("OAuth state mismatch. Security check failed. Please try logging in again.");
+            sessionStorage.removeItem("oauth_state");
+            window.location.href = window.location.pathname;
+            return;
+        }
+        sessionStorage.removeItem("oauth_state");
+
         const loginBtn = document.getElementById("login-btn");
         const loadingText = document.getElementById("loading-text");
 
@@ -37,10 +47,11 @@ document.getElementById('login-btn').addEventListener('click', async () => {
         const data = await response.json();
         console.log("Data received from backend: ", data);
 
-        if (data.login_url) {
+        if (data.login_url && data.state) {
+            sessionStorage.setItem("oauth_state", data.state);
             window.location.href = data.login_url;
         } else {
-            alert("Backend succeeded but did not return 'login_url'. check browser console log.");
+            alert("Backend succeeded but did not return 'login_url' or 'state'. check browser console log.");
         }
     }  catch (error) {
         alert(`Failed to connect to backend at ${BACKEND_API_URL}. Please ensure the backend server is running and accessible.`);
@@ -65,7 +76,6 @@ async function handleGitHubCallback(code) {
 
         const data = await response.json();
 
-        localStorage.setItem("gh_access_token", data.github_access_token);
         localStorage.setItem("db_session_token", data.session_token || "");
         localStorage.setItem("gh_username", data.user.username || "");
         localStorage.setItem("gh_avatar", data.user.avatar_url || "");

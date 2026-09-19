@@ -38,7 +38,7 @@ const AUTO_REFRESH_INTERVAL_MS = 8000;
 // ============================================================================
 
 window.onload = async () => {
-    sessionToken = localStorage.getItem("db_session_token") || localStorage.getItem("gh_access_token");
+    sessionToken = localStorage.getItem("db_session_token");
     if (!sessionToken) {
         window.location.href = "./auth.html";
         return;

@@ -1,4 +1,5 @@
 import hashlib
+import secrets
 
 from datetime import datetime, timezone
 
@@ -30,14 +31,17 @@ async def get_github_login_url():
     the frontend should then redirect the user to this URL
     """
 
+    state = secrets.token_urlsafe(16)
     url = (
         f"https://github.com/login/oauth/authorize"
         f"?client_id={settings.GITHUB_CLIENT_ID}"
         f"&scope=read:user%20user:email%20repo%20workflow"
+        f"&state={state}"
     )
 
     return {
-        "login_url": url
+        "login_url": url,
+        "state": state
     }
 
 
@@ -97,7 +101,6 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
             "token_type": db_user.github_token_type,
         },
         "session_token": session_token,
-        "github_access_token": token_data["access_token"],
         "scope": db_user.github_scope,
         "token_type": db_user.github_token_type,
         "last_login": db_user.last_login.isoformat(),

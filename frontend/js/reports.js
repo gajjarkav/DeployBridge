@@ -2,7 +2,7 @@ const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
 
 document.addEventListener("DOMContentLoaded", () => {
     const session = {
-        token: localStorage.getItem("gh_access_token"),
+        token: localStorage.getItem("db_session_token"),
         dbSessionToken: localStorage.getItem("db_session_token"),
     };
 
