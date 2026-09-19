@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends, Header, status
+from fastapi import APIRouter, HTTPException, Depends, Header, status, Request
+import httpx
 
 from ...core.exception import GitHubAPIError
 from ...models.user import User
@@ -72,3 +73,40 @@ async def get_repository_info(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch repository information: {str(exc)}",
         ) from exc
+
+
+@router.get('/user', summary="Get GitHub user data proxy")
+async def get_github_user(current_user: User = Depends(get_current_user)):
+    """Proxy to fetch GitHub user data using the stored token."""
+    if not current_user.github_token:
+        raise HTTPException(status_code=400, detail="Missing GitHub token")
+    
+    token = decrypt_secret(current_user.github_token)
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            "https://api.github.com/user", 
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github.v3+json"}
+        )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=resp.status_code, detail="Failed to fetch from GitHub API")
+        return resp.json()
+
+
+@router.get('/user/repos', summary="Get GitHub user repositories proxy")
+async def get_github_user_repos(request: Request, current_user: User = Depends(get_current_user)):
+    """Proxy to fetch GitHub user repositories using the stored token."""
+    if not current_user.github_token:
+        raise HTTPException(status_code=400, detail="Missing GitHub token")
+    
+    token = decrypt_secret(current_user.github_token)
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            "https://api.github.com/user/repos", 
+            params=request.query_params,
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github.v3+json"}
+        )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=resp.status_code, detail="Failed to fetch from GitHub API")
+        return resp.json()
