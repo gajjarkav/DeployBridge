@@ -864,3 +864,144 @@ class GitHubService:
                 return f"Successfully created Pull Request: {pr_data.get('html_url')}"
             else:
                 return f"Error creating Pull Request: {res.text}"
+
+    
+    # ------------------------------------------------------------------
+    # GitHub Actions workflow run status  (added for Feature ② refresh)
+    # ------------------------------------------------------------------
+    @classmethod
+    async def get_workflow_run_status(
+        cls,
+        token: str,
+        owner: str,
+        repo: str,
+        *,
+        branch: str | None = None,
+        workflow_filename: str | None = None,
+        run_id: int | None = None,
+    ) -> dict:
+        """Fetch the latest GitHub Actions run (or one specific run) and
+        return a normalized dict the deployments refresh logic can consume.
+
+        Hits either:
+          - GET /repos/{owner}/{repo}/actions/runs/{run_id}  (when run_id is set)
+          - GET /repos/{owner}/{repo}/actions/runs           (latest matching)
+
+        Returns:
+            {
+              "run_id":       12345678,
+              "status":       "queued" | "in_progress" | "completed",
+              "conclusion":   "success" | "failure" | "cancelled" | None,
+              "html_url":     "https://github.com/...",
+              "created_at":   "2026-09-18T10:00:00Z",
+              "updated_at":   "...",
+              "logs_url":     "https://api.github.com/repos/.../actions/runs/{id}/logs",
+            }
+            or {} if no run was found.
+
+        The caller maps:
+            queued | in_progress          → deployment status "building"
+            conclusion == "success"       → deployment status "live"
+            conclusion == "failure"       → deployment status "failed"
+                                         (+ fetch logs via get_workflow_run_logs)
+            conclusion == "cancelled"     → deployment status "failed"
+        """
+        headers = cls._get_auth_headers(token)
+        async with httpx.AsyncClient() as client:
+            if run_id is not None:
+                url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/actions/runs/{run_id}"
+            else:
+                url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/actions/runs"
+                params: dict[str, Any] = {"per_page": 5}
+                if branch:
+                    params["branch"] = branch
+                if workflow_filename:
+                    # GitHub Actions event filter — the workflow filename
+                    # shows up under "path" in the run's metadata, not as a
+                    # top-level filter; we post-filter instead.
+                    pass
+                url = f"{url}?{httpx.QueryParams(params)}"
+
+            data, error = await cls._fetch_github_api(client, url, headers)
+            if error or not data:
+                return {}
+
+            run = None
+            if run_id is not None:
+                run = data
+            else:
+                runs = data.get("workflow_runs") or []
+                if not runs:
+                    return {}
+                if workflow_filename:
+                    # Post-filter by workflow path. The actions/runs API
+                    # returns run["path"] = ".github/workflows/pages-html.yml".
+                    target = (
+                        workflow_filename
+                        if workflow_filename.startswith(".github/")
+                        else f".github/workflows/{workflow_filename}"
+                    )
+                    run = next(
+                        (r for r in runs if r.get("path") == target),
+                        runs[0],
+                    )
+                else:
+                    run = runs[0]
+
+            return {
+                "run_id":     run.get("id"),
+                "status":     run.get("status"),
+                "conclusion": run.get("conclusion"),
+                "html_url":   run.get("html_url"),
+                "created_at": run.get("created_at"),
+                "updated_at": run.get("updated_at"),
+                "logs_url":   run.get("logs_url"),
+            }
+
+    @classmethod
+    async def get_workflow_run_logs(
+        cls,
+        token: str,
+        owner: str,
+        repo: str,
+        run_id: int,
+    ) -> str:
+        """Download + unzip the logs for a GitHub Actions run, then return
+        the joined log text.
+
+        GitHub returns logs as a redirect to a temporary S3 URL hosting a
+        .zip file; we follow the redirect, download, unzip in-memory, and
+        concatenate every .txt file in the archive (sorted by name so the
+        ordering roughly matches job → step → log).
+
+        Returns:
+            Joined log text. Empty string on any failure (404, expired
+            URL, run still in progress). The caller should treat empty
+            as "logs not available yet" rather than an error.
+        """
+        import io
+        import zipfile
+
+        headers = cls._get_auth_headers(token)
+        logs_url = (
+            f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/actions/runs/{run_id}/logs"
+        )
+        try:
+            async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
+                resp = await client.get(logs_url, headers=headers)
+                if resp.status_code != 200:
+                    return ""
+                with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
+                    chunks: list[str] = []
+                    for name in sorted(zf.namelist()):
+                        if name.endswith(".txt"):
+                            try:
+                                chunks.append(
+                                    zf.read(name).decode("utf-8", errors="replace")
+                                )
+                            except Exception:
+                                continue
+                    joined = "\n".join(chunks)
+                    return joined[:30000]
+        except Exception:
+            return ""

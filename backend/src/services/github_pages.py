@@ -1051,3 +1051,292 @@ class GitHubPagesService:
                 **kwargs,
             )
         return response
+
+
+    # ------------------------------------------------------------------
+    # Custom domains  (Feature ① — file-based: CNAME file + Pages config)
+    #
+    # The two platforms are architecturally different — that's the viva gold:
+    #
+    #   RENDER = platform-managed.  Render stores the domain on its side,
+    #           verifies DNS, issues the cert.  Your UI is stateless.
+    #
+    #   PAGES  = file-based.  The "claim" is a CNAME file committed to the
+    #           deploy branch via the SAME Contents API we already use to
+    #           upload workflow YAMLs.  GitHub then verifies DNS and offers
+    #           "Enforce HTTPS" (auto-issued by Let's Encrypt).
+    #
+    # Same UX on top, two completely different mechanisms below.
+    # ------------------------------------------------------------------
+
+    # GitHub Pages' four A-records for apex domains (kumar.dev, not www.kumar.dev).
+    # Hard-coded by GitHub — they don't change often, but the README warns to
+    # check GitHub's docs page if cert issuance keeps failing.
+    PAGES_APEX_A_RECORDS = [
+        "185.199.108.153",
+        "185.199.109.153",
+        "185.199.110.153",
+        "185.199.111.153",
+    ]
+
+    @classmethod
+    def _is_apex_domain(cls, domain: str, owner: str) -> bool:
+        """Heuristic: a domain is apex if it has exactly one label before the
+        TLD, OR if it's <owner>.<tld> (the user's own Pages root). Anything with
+        more labels is a subdomain.
+
+        Examples:
+            kumar.dev           → True  (apex)
+            notes.kumar.dev     → False (subdomain → CNAME)
+            kumar.github.io     → True  (apex — <owner>.github.io)
+            notes.kumar.github.io → False (subdomain)
+
+        DNS rules say an apex can't be a CNAME, so we either use A-records
+        or a provider that flattens (Cloudflare).
+        """
+        # Strip trailing dot.
+        clean = domain.rstrip(".")
+        # <owner>.github.io is the apex from GitHub's POV.
+        if clean == f"{owner.lower()}.github.io":
+            return True
+        # Heuristic by label count: 2 labels = apex (kumar.dev), 3+ = sub.
+        labels = clean.split(".")
+        if len(labels) <= 2:
+            return True
+        # Special case: .github.io "apex" already handled above; 3 labels like
+        # notes.kumar.dev = subdomain.
+        return False
+
+    @classmethod
+    def _derive_pages_dns_records(
+        cls,
+        domain: str,
+        owner: str,
+    ) -> tuple[str, str]:
+        """Return (record_type, record_name) for the user's DNS provider.
+
+        - Subdomain (notes.kumar.dev) → CNAME, name = "notes"
+        - Apex (kumar.dev)             → A,      name = "@"
+        """
+        if cls._is_apex_domain(domain, owner):
+            return "A", "@"
+        # Take everything before the apex as the subdomain label.
+        # E.g. "notes.kumar.dev" → "notes"; "app.www.kumar.dev" → "app.www"
+        # by splitting off the last two labels.
+        labels = domain.split(".")
+        sub_label = ".".join(labels[:-2]) if len(labels) > 2 else labels[0]
+        return "CNAME", sub_label or "@"
+
+    @classmethod
+    def _derive_cname_target(cls, domain: str, owner: str) -> str:
+        """CNAME target = <owner>.github.io for subdomains. For apex, we
+        return the first A-record (the frontend shows all four)."""
+        if cls._is_apex_domain(domain, owner):
+            return cls.PAGES_APEX_A_RECORDS[0]
+        return f"{owner.lower()}.github.io"
+
+    @classmethod
+    async def add_custom_domain(
+        cls,
+        github_token: str,
+        owner: str,
+        repository: str,
+        domain: str,
+        branch: str | None = None,
+    ) -> "GitHubPagesCustomDomainResponse":
+        """Commit a CNAME file containing `domain` to the deploy branch.
+
+        The CNAME file lives at the repo ROOT (not under .github/workflows/).
+        Its content is just the bare domain, no newline. GitHub Pages reads
+        it on the next build and starts serving the custom domain.
+
+        We also touch the Pages config (PUT /repos/{owner}/{repo}/pages)
+        so GitHub knows to look for the CNAME file. The Pages config is
+        idempotent — calling it on every add-custom-domain is safe.
+        """
+        # Resolve the branch (user's saved deploy_branch or repo default).
+        if not branch:
+            repo_data = await cls._verify_repository(github_token, owner, repository)
+            branch = repo_data.get("default_branch", "main")
+        else:
+            # Validate the user-supplied branch exists.
+            exists = await cls._branch_exists(
+                github_token=github_token,
+                owner=owner,
+                repository=repository,
+                branch=branch,
+            )
+            if not exists:
+                raise GitHubAPIError(
+                    message="Branch does not exist",
+                    detail=f'Branch "{branch}" not found in {owner}/{repository}.',
+                )
+
+        # 1. Commit (or update) the CNAME file at repo root.
+        #    GET first to capture the existing file SHA (required by GitHub for
+        #    PUTs to existing files; missing SHA returns 422).
+        cname_url = (
+            f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repository}/"
+            f"contents/CNAME?ref={branch}"
+        )
+        headers = cls._build_headers(github_token)
+        existing_sha: str | None = None
+        async with httpx.AsyncClient() as client:
+            get_resp = await client.get(cname_url, headers=headers)
+            if get_resp.status_code == 200:
+                existing_sha = (get_resp.json() or {}).get("sha")
+
+            payload = {
+                "message": f"DeployBridge: set custom domain to {domain}",
+                "content": base64.b64encode(domain.encode("utf-8")).decode("utf-8"),
+                "branch": branch,
+            }
+            if existing_sha:
+                payload["sha"] = existing_sha
+
+            put_resp = await client.put(cname_url, headers=headers, json=payload)
+            if put_resp.status_code not in (200, 201):
+                raise GitHubAPIError(
+                    message="Failed to commit CNAME file",
+                    detail=f"GitHub returned {put_resp.status_code}: {put_resp.text[:500]}",
+                )
+
+        # 2. Touch the Pages config so GitHub re-reads the CNAME file.
+        await cls._configure_pages(
+            github_token=github_token,
+            owner=owner,
+            repository=repository,
+            target_branch=branch,
+        )
+
+        # 3. Build the DNS instruction card the frontend will show.
+        record_type, record_name = cls._derive_pages_dns_records(domain, owner)
+        cname_target = cls._derive_cname_target(domain, owner)
+
+        # Importing here to avoid a top-level circular import; this method
+        # is only invoked through the API layer.
+        from ...schemas.github_pages import GitHubPagesCustomDomainResponse, GitHubPagesCustomDomainStatus
+
+        status: GitHubPagesCustomDomainStatus = "waiting_for_dns"
+        message = (
+            f"CNAME file committed to {branch}. Add the following DNS record at "
+            f"your registrar — GitHub will verify DNS and issue a TLS cert "
+            f"automatically (usually 5–15 minutes)."
+        )
+        if record_type == "A":
+            message += (
+                " Use all four A-records: " + ", ".join(cls.PAGES_APEX_A_RECORDS) + "."
+            )
+
+        return GitHubPagesCustomDomainResponse(
+            domain=domain,
+            branch=branch,
+            cname_target=cname_target,
+            record_type=record_type,
+            record_name=record_name,
+            https_enabled=False,
+            status=status,
+            message=message,
+        )
+
+    @classmethod
+    async def verify_custom_domain(
+        cls,
+        github_token: str,
+        owner: str,
+        repository: str,
+        domain: str,
+        branch: str | None = None,
+    ) -> "GitHubPagesCustomDomainResponse":
+        """Check GitHub's Pages config for `cname` + `https_enforced` status.
+
+        Three possible states:
+          - cname not present or doesn't match → user's CNAME file write failed;
+            tell them to re-check.
+          - cname matches but https_enforced=False → DNS verified, cert
+            issuance in progress. Try enabling HTTPS.
+          - https_enforced=True → cert issued; status=live.
+        """
+        if not branch:
+            repo_data = await cls._verify_repository(github_token, owner, repository)
+            branch = repo_data.get("default_branch", "main")
+
+        headers = cls._build_headers(github_token)
+        pages_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repository}/pages"
+        async with httpx.AsyncClient() as client:
+            get_resp = await client.get(pages_url, headers=headers)
+            if get_resp.status_code != 200:
+                raise GitHubAPIError(
+                    message="Pages not configured",
+                    detail="GitHub Pages hasn't been enabled on this repo yet. "
+                           "Deploy the repo to Pages first, then add a custom domain.",
+                )
+            pages_data = get_resp.json() or {}
+            current_cname = pages_data.get("cname") or ""
+            https_enforced = bool(pages_data.get("https_enforced"))
+            https_possible = bool(pages_data.get("https"))
+
+        from ...schemas.github_pages import GitHubPagesCustomDomainResponse, GitHubPagesCustomDomainStatus
+
+        record_type, record_name = cls._derive_pages_dns_records(domain, owner)
+        cname_target = cls._derive_cname_target(domain, owner)
+
+        # DNS propagation can take minutes to hours. If GitHub hasn't seen
+        # the CNAME resolve yet, the `cname` field will still be set (we
+        # wrote it to the file), but `https` will be False.
+        status: GitHubPagesCustomDomainStatus
+        if current_cname.strip().lower() != domain.strip().lower():
+            # CNAME file write appears to have failed OR GitHub hasn't
+            # processed it. Tell the user to wait + re-check.
+            status = "waiting_for_dns"
+            message = (
+                f"GitHub hasn't seen the CNAME file (current cname on the Pages "
+                f"site is '{current_cname or '<none>'}'). Confirm the CNAME file "
+                f"is committed to branch '{branch}' and a Pages build has run."
+            )
+            https_enforced = False
+        elif https_enforced:
+            status = "live"
+            message = (
+                f"🔒 Verified and HTTPS enforced. The site is live at "
+                f"https://{domain}."
+            )
+        elif https_possible:
+            # Cert is available — try to enable HTTPS enforcement now.
+            enabled = await cls._enable_pages_https(github_token, owner, repository)
+            status = "live" if enabled else "verified"
+            message = (
+                "TLS cert is available. HTTPS enforcement "
+                + ("enabled — site is live." if enabled else "could not be enabled automatically; toggle it in the GitHub UI.")
+            )
+            https_enforced = enabled
+        else:
+            status = "verified"
+            message = (
+                "DNS verified. GitHub is issuing the Let's Encrypt cert — "
+                "re-check in a few minutes."
+            )
+
+        return GitHubPagesCustomDomainResponse(
+            domain=domain,
+            branch=branch,
+            cname_target=cname_target,
+            record_type=record_type,
+            record_name=record_name,
+            https_enabled=https_enforced,
+            status=status,
+            message=message,
+        )
+
+    @classmethod
+    async def _enable_pages_https(cls, github_token: str, owner: str, repository: str) -> bool:
+        """PUT /repos/{owner}/{repo}/pages with `https_enforced: true`.
+
+        Returns True on success, False otherwise. Idempotent — calling when
+        HTTPS is already enforced still returns True.
+        """
+        headers = cls._build_headers(github_token)
+        pages_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repository}/pages"
+        async with httpx.AsyncClient() as client:
+            resp = await client.put(pages_url, headers=headers, json={"https_enforced": True})
+            return resp.status_code in (200, 204)

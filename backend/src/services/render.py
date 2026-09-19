@@ -860,3 +860,67 @@ class RenderService:
                    else "DNS records not yet detected. Wait a few minutes for DNS propagation and retry.")
             ),
         )
+
+
+    # ------------------------------------------------------------------
+    # Logs  (added for Feature ② refresh + Feature ③ agent failure diagnosis)
+    # ------------------------------------------------------------------
+    @classmethod
+    async def get_deploy_logs(
+        cls,
+        api_key: str,
+        service_id: str,
+        deploy_id: str,
+        *,
+        limit: int = 200,
+    ) -> str:
+        """Fetch the build/runtime log lines for a specific Render deploy.
+
+        Render's `GET /v1/services/{sid}/deploys/{did}/logs` endpoint returns
+        a JSON list of `{ "text": "...", "timestamp": "..." }` objects — the
+        raw log lines from the build container. We concatenate the text
+        fields into a single newline-joined string, truncated to a sane cap
+        so the caller (frontend's expandable error box, or the LLM agent
+        reading logs to diagnose a failure) gets a usable payload.
+
+        Render's free tier can return 0 lines for the first few seconds
+        after deploy creation — the build container is still booting. The
+        caller should treat an empty return as "logs not yet available".
+
+        Args:
+            api_key:    Decrypted Render API key (rnd_...).
+            service_id: Render service id (srv-...).
+            deploy_id:  Render deploy id (dep-... / dpl-...).
+            limit:      Soft cap on the number of log lines returned.
+
+        Returns:
+            Joined log text. Empty string when Render returns no lines
+            (common during the first few seconds of a fresh deploy).
+        """
+        sid = quote(service_id, safe="")
+        did = quote(deploy_id, safe="")
+        response = await cls._request(
+            "GET",
+            f"/services/{sid}/deploys/{did}/logs",
+            api_key,
+            params={"limit": limit},
+        )
+        # Render returns 404 when the deploy hasn't started emitting logs yet;
+        # we translate that to an empty string so callers can show "logs pending".
+        if response.status_code == 404:
+            return ""
+        cls._raise_for(response, default_message="Render rejected logs fetch.")
+
+        body = response.json() or []
+        if not isinstance(body, list):
+            # Sometimes Render returns a single object instead of a list.
+            body = [body]
+        lines = []
+        for item in body:
+            if isinstance(item, dict):
+                lines.append(item.get("text", ""))
+            elif isinstance(item, str):
+                lines.append(item)
+        joined = "\n".join(lines)
+        # 30 KB cap to avoid overflowing LLM context or the DB row.
+        return joined[:30000]

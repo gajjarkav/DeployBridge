@@ -1,534 +1,606 @@
-/**
- * DeployBridge - Deployments Page Controller
- * Handles deployment log hydration, filtering, live status sync, modal inspector, and storage.
- */
+// File: frontend/js/deployments.js
+// ------------------------------------------------------------------------------
+// WHAT THIS IS
+//   The Deployments page logic. Used to be 100% localStorage with fake
+//   seed data ("docs-portal"). Now it's 100% API-driven, every row in
+//   PostgreSQL, with smart auto-refresh that only polls while a visible
+//   row is PENDING/BUILDING and pauses when the tab is hidden.
+//
+// API
+//   GET    /v1/deployments                paginated list, newest first
+//   GET    /v1/deployments/{id}           one detail
+//   POST   /v1/deployments/{id}/refresh   pull upstream status into the row
+//   POST   /v1/deployments/{id}/redeploy  trigger a new deploy on the platform
+//   DELETE /v1/deployments/{id}           remove from history (NOT from platform)
+//
+// STATE MACHINE the cards render
+//   pending  → building → live | failed
+//   The auto-refresh polls /refresh every 8s for any row whose status is
+//   pending/building. Pauses on `document.visibilitychange` to hidden.
+//   No polling when every visible row is terminal (live/failed).
+// ------------------------------------------------------------------------------
 
+const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
+
+// Module state
 let allDeployments = [];
 let filteredDeployments = [];
 let currentPage = 1;
 const pageSize = 10;
-let currentSession = null;
+let sessionToken = null;
+
+// Auto-refresh bookkeeping (visibility-aware polling)
+let autoRefreshTimer = null;
+const AUTO_REFRESH_INTERVAL_MS = 8000;
+
+// ============================================================================
+// INIT
+// ============================================================================
 
 window.onload = async () => {
-    // Initialize session & shell
-    currentSession = initializeAppShell("deployments");
-    if (!currentSession) {
+    sessionToken = localStorage.getItem("db_session_token") || localStorage.getItem("gh_access_token");
+    if (!sessionToken) {
+        window.location.href = "./auth.html";
         return;
     }
 
     hydrateUserInfo();
-    loadDeploymentsData();
     bindEvents();
+    await loadDeploymentsData();
+    startAutoRefresh();
+    // Pause/resume polling on tab visibility so we don't hammer the
+    // platform APIs while the user isn't looking.
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            stopAutoRefresh();
+        } else {
+            startAutoRefresh();
+        }
+    });
 };
 
 function hydrateUserInfo() {
     const username = localStorage.getItem("gh_username") || "Developer";
     const avatar = localStorage.getItem("gh_avatar") || `https://github.com/identicons/${username}.png`;
-
-    const userDisplayName = document.getElementById("user-display-name");
-    const userAvatar = document.getElementById("user-avatar");
-
-    if (userDisplayName) userDisplayName.textContent = username;
-    if (userAvatar) {
-        userAvatar.src = avatar;
-        userAvatar.alt = `${username}'s avatar`;
-    }
+    const avatarEl = document.getElementById("user-avatar");
+    const nameEl = document.getElementById("user-display-name");
+    if (avatarEl) avatarEl.src = avatar;
+    if (nameEl) nameEl.textContent = username;
 }
 
-function loadDeploymentsData() {
-    allDeployments = readRecentDeployments();
+// ============================================================================
+// DATA LOAD
+// ============================================================================
 
-    // If no deployments in local storage yet, add initial welcome sample deployment if user is logged in
-    if (!allDeployments || allDeployments.length === 0) {
-        const username = localStorage.getItem("gh_username") || "username";
-        // Check if there are any seeded sample records
-        const sampleDeployments = [
-            {
-                owner: username,
-                repository: `${username}/portfolio-site`,
-                repoName: "portfolio-site",
-                message: "Deployment workflow successfully committed to repository.",
-                profile: "html",
-                workflowTemplate: "pages-html.yml",
-                branch: "main",
-                status: "success",
-                pagesUrl: `https://${username.toLowerCase()}.github.io/portfolio-site`,
-                actionsUrl: `https://github.com/${username}/portfolio-site/actions`,
-                repoUrl: `https://github.com/${username}/portfolio-site`,
-                recordedAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
-            },
-            {
-                owner: username,
-                repository: `${username}/docs-portal`,
-                repoName: "docs-portal",
-                message: "Node static build pipeline configured and dispatched.",
-                profile: "node-static",
-                workflowTemplate: "pages-node-static.yml",
-                branch: "main",
-                status: "live",
-                pagesUrl: `https://${username.toLowerCase()}.github.io/docs-portal`,
-                actionsUrl: `https://github.com/${username}/docs-portal/actions`,
-                repoUrl: `https://github.com/${username}/docs-portal`,
-                recordedAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
-            }
-        ];
-
-        // Only pre-populate if user has never saved before
-        if (!localStorage.getItem("db_deployments_initialized")) {
-            allDeployments = sampleDeployments;
-            localStorage.setItem("deploybridge_recent_deployments", JSON.stringify(sampleDeployments));
-            localStorage.setItem("db_deployments_initialized", "true");
+async function loadDeploymentsData() {
+    try {
+        const res = await fetch(`${BACKEND_API_URL}/deployments?page=${currentPage}&page_size=${pageSize}`, {
+            headers: { "Authorization": `Bearer ${sessionToken}` },
+        });
+        if (res.status === 401) {
+            window.location.href = "./auth.html";
+            return;
         }
-    }
+        if (!res.ok) throw new Error(`Failed to load deployments: ${res.status}`);
 
-    applyFilters();
-    updateSummaryStats();
+        const data = await res.json();
+        allDeployments = data.items || [];
+        // The API already returns newest-first; keep filteredDeployments in sync
+        filteredDeployments = [...allDeployments];
+        updateSummaryStats();
+        applyFilters();
+    } catch (err) {
+        console.error("loadDeploymentsData error:", err);
+        allDeployments = [];
+        filteredDeployments = [];
+        applyFilters();
+        showToast("Could not load deployments — is the backend running?");
+    }
 }
 
 function updateSummaryStats() {
-    const totalCountNode = document.getElementById("stat-total-deploys");
-    const liveCountNode = document.getElementById("stat-live-sites");
-    const successRateNode = document.getElementById("stat-success-rate");
-    const latestProfileNode = document.getElementById("stat-latest-profile");
+    const total = allDeployments.length; // page-local count; full total comes from API
+    const live = allDeployments.filter((d) => d.status === "live").length;
+    const failed = allDeployments.filter((d) => d.status === "failed").length;
+    const building = allDeployments.filter((d) => d.status === "building" || d.status === "pending").length;
+    const successRate = total > 0 ? Math.round(((live + failed === 0) ? 100 : (live / (live + failed)) * 100)) : 100;
 
-    const total = allDeployments.length;
-    const liveCount = allDeployments.filter(d => d.status === "live" || d.status === "success" || d.status === "built").length;
-    const failedCount = allDeployments.filter(d => d.status === "failed" || d.status === "errored").length;
-    
-    const rate = total > 0 ? Math.round(((total - failedCount) / total) * 100) : 100;
-    const latestProfile = total > 0 && allDeployments[0]?.profile ? allDeployments[0].profile.toUpperCase() : "-";
-
-    if (totalCountNode) totalCountNode.textContent = String(total);
-    if (liveCountNode) liveCountNode.textContent = String(liveCount);
-    if (successRateNode) successRateNode.textContent = `${rate}%`;
-    if (latestProfileNode) latestProfileNode.textContent = latestProfile;
+    const elTotal = document.getElementById("stat-total-deploys");
+    const elLive = document.getElementById("stat-live-sites");
+    const elRate = document.getElementById("stat-success-rate");
+    const elProfile = document.getElementById("stat-latest-profile");
+    if (elTotal) elTotal.textContent = String(total);
+    if (elLive) elLive.textContent = String(live);
+    if (elRate) elRate.textContent = `${successRate}%`;
+    if (elProfile) {
+        const latest = allDeployments[0];
+        elProfile.textContent = latest ? (latest.profile || latest.platform) : "-";
+    }
 }
 
+// ============================================================================
+// FILTERS + RENDER
+// ============================================================================
+
 function bindEvents() {
-    const searchInput = document.getElementById("deployments-search");
+    const search = document.getElementById("deployments-search");
     const filterProfile = document.getElementById("filter-profile");
     const filterStatus = document.getElementById("filter-status");
-    const btnSyncStatus = document.getElementById("btn-sync-status");
-    const btnClearHistory = document.getElementById("btn-clear-history");
-    const btnCloseModal = document.getElementById("btn-close-modal");
-    const modalBtnClose = document.getElementById("modal-btn-close");
-    const deploymentModal = document.getElementById("deployment-modal");
+    const btnSync = document.getElementById("btn-sync-status");
+    const btnClear = document.getElementById("btn-clear-history");
     const btnPrev = document.getElementById("btn-prev-page");
     const btnNext = document.getElementById("btn-next-page");
+    const btnCloseModal = document.getElementById("btn-close-modal");
+    const modalBtnClose = document.getElementById("modal-btn-close");
 
-    if (searchInput) {
-        searchInput.addEventListener("input", () => {
-            currentPage = 1;
-            applyFilters();
-        });
-    }
+    if (search) search.addEventListener("input", applyFilters);
+    if (filterProfile) filterProfile.addEventListener("change", applyFilters);
+    if (filterStatus) filterStatus.addEventListener("change", applyFilters);
+    if (btnSync) btnSync.addEventListener("click", syncLiveStatuses);
+    if (btnClear) btnClear.addEventListener("click", clearHistory);
+    if (btnPrev) btnPrev.addEventListener("click", () => { if (currentPage > 1) { currentPage--; loadDeploymentsData(); } });
+    if (btnNext) btnNext.addEventListener("click", () => { currentPage++; loadDeploymentsData(); });
+    if (btnCloseModal) btnCloseModal.addEventListener("click", closeModal);
+    if (modalBtnClose) modalBtnClose.addEventListener("click", closeModal);
 
-    if (filterProfile) {
-        filterProfile.addEventListener("change", () => {
-            currentPage = 1;
-            applyFilters();
-        });
-    }
-
-    if (filterStatus) {
-        filterStatus.addEventListener("change", () => {
-            currentPage = 1;
-            applyFilters();
-        });
-    }
-
-    if (btnSyncStatus) {
-        btnSyncStatus.addEventListener("click", syncLiveStatuses);
-    }
-
-    if (btnClearHistory) {
-        btnClearHistory.addEventListener("click", () => {
-            if (confirm("Are you sure you want to clear your local deployment history?")) {
-                allDeployments = [];
-                localStorage.setItem("deploybridge_recent_deployments", JSON.stringify([]));
-                applyFilters();
-                updateSummaryStats();
-                showToast("Deployment history cleared.");
-            }
-        });
-    }
-
-    if (btnCloseModal) {
-        btnCloseModal.addEventListener("click", closeModal);
-    }
-
-    if (modalBtnClose) {
-        modalBtnClose.addEventListener("click", closeModal);
-    }
-
-    if (deploymentModal) {
-        deploymentModal.addEventListener("click", (e) => {
-            if (e.target === deploymentModal) {
-                closeModal();
-            }
-        });
-    }
-
+    // Escape closes modal
     document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-            closeModal();
-        }
+        if (e.key === "Escape") closeModal();
     });
-
-    if (btnPrev) {
-        btnPrev.addEventListener("click", () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderTable();
-            }
-        });
-    }
-
-    if (btnNext) {
-        btnNext.addEventListener("click", () => {
-            const maxPage = Math.ceil(filteredDeployments.length / pageSize) || 1;
-            if (currentPage < maxPage) {
-                currentPage++;
-                renderTable();
-            }
-        });
-    }
 }
 
 function applyFilters() {
-    const searchVal = (document.getElementById("deployments-search")?.value || "").trim().toLowerCase();
-    const profileVal = document.getElementById("filter-profile")?.value || "all";
-    const statusVal = document.getElementById("filter-status")?.value || "all";
+    const q = (document.getElementById("deployments-search")?.value || "").toLowerCase();
+    const profile = document.getElementById("filter-profile")?.value || "all";
+    const status = document.getElementById("filter-status")?.value || "all";
 
-    filteredDeployments = allDeployments.filter(entry => {
-        const repoName = (entry.repository || entry.repoName || "").toLowerCase();
-        const branch = (entry.branch || "").toLowerCase();
-        const profile = (entry.profile || "").toLowerCase();
-        const message = (entry.message || "").toLowerCase();
-        const status = (entry.status || "success").toLowerCase();
-
-        // Search match
-        const matchesSearch = !searchVal || 
-            repoName.includes(searchVal) || 
-            branch.includes(searchVal) || 
-            profile.includes(searchVal) || 
-            message.includes(searchVal);
-
-        // Profile match
-        const matchesProfile = profileVal === "all" || profile.includes(profileVal);
-
-        // Status match
-        let matchesStatus = true;
-        if (statusVal === "success") {
-            matchesStatus = status === "success" || status === "live" || status === "built";
-        } else if (statusVal === "building") {
-            matchesStatus = status === "building" || status === "queued" || status === "pending";
-        } else if (statusVal === "failed") {
-            matchesStatus = status === "failed" || status === "errored";
-        }
-
-        return matchesSearch && matchesProfile && matchesStatus;
+    filteredDeployments = allDeployments.filter((d) => {
+        const repoName = `${d.owner}/${d.repo}`.toLowerCase();
+        const matchesQuery = !q || repoName.includes(q) || (d.profile || "").toLowerCase().includes(q);
+        const matchesProfile = profile === "all" || d.profile === profile || d.platform === profile;
+        const matchesStatus = status === "all" || d.status === status;
+        return matchesQuery && matchesProfile && matchesStatus;
     });
-
     renderTable();
 }
 
 function renderTable() {
     const tableBody = document.getElementById("deployments-table-body");
-    const showingEntriesLabel = document.getElementById("showing-entries-label");
-    const btnPrev = document.getElementById("btn-prev-page");
-    const btnNext = document.getElementById("btn-next-page");
-
     if (!tableBody) return;
 
-    // Remove old rows except header
-    const rows = tableBody.querySelectorAll(".card-table__row:not(.header-row)");
-    rows.forEach(r => r.remove());
+    // Re-create header row
+    const header = `
+        <div class="card-table__row header-row">
+            <div class="card-table__item" style="justify-content:center;">#</div>
+            <div class="card-table__item">Repository & Branch</div>
+            <div class="card-table__item">Platform / Profile</div>
+            <div class="card-table__item">Status</div>
+            <div class="card-table__item">Live Endpoint</div>
+            <div class="card-table__item">Triggered</div>
+            <div class="card-table__item">Actions</div>
+        </div>
+    `;
 
-    const totalFiltered = filteredDeployments.length;
-    const totalPages = Math.ceil(totalFiltered / pageSize) || 1;
-    if (currentPage > totalPages) currentPage = totalPages;
-
-    const startIdx = (currentPage - 1) * pageSize;
-    const pageItems = filteredDeployments.slice(startIdx, startIdx + pageSize);
-
-    if (showingEntriesLabel) {
-        showingEntriesLabel.textContent = `Showing ${pageItems.length > 0 ? startIdx + 1 : 0}-${startIdx + pageItems.length} of ${totalFiltered} deployment${totalFiltered === 1 ? '' : 's'}`;
-    }
-
-    if (btnPrev) btnPrev.disabled = currentPage <= 1;
-    if (btnNext) btnNext.disabled = currentPage >= totalPages;
-
-    if (pageItems.length === 0) {
-        const emptyRow = document.createElement("div");
-        emptyRow.className = "card-table__row";
-        emptyRow.innerHTML = `
-            <div class="card-table__item empty-state-card">
-                <div class="empty-icon-wrap">
-                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted);"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></svg>
+    if (filteredDeployments.length === 0) {
+        tableBody.innerHTML = header + `
+            <div class="card-table__row placeholder-row">
+                <div class="card-table__item" style="grid-column: span 7; justify-content: center; opacity: 0.6; padding: 40px;">
+                    <div style="text-align:center;">
+                        <div style="font-size: 36px; margin-bottom: 12px; opacity: 0.5;">📦</div>
+                        <div style="margin-bottom: 16px;">No deployments yet</div>
+                        <a href="./repositories.html" class="btn-primary-action">Deploy A Repository</a>
+                    </div>
                 </div>
-                <h3>No Deployments Found</h3>
-                <p>No deployment records match your current filter query. You can deploy repositories directly with automated GitHub Pages workflows.</p>
-                <a href="./repositories.html" class="btn-primary-action" style="margin-top:8px;">
-                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
-                    <span>Deploy A Repository</span>
-                </a>
             </div>
         `;
-        tableBody.appendChild(emptyRow);
+        const showingLabel = document.getElementById("showing-entries-label");
+        if (showingLabel) showingLabel.textContent = "Showing 0 deployments";
+        const prev = document.getElementById("btn-prev-page");
+        const next = document.getElementById("btn-next-page");
+        if (prev) prev.disabled = true;
+        if (next) next.disabled = true;
         return;
     }
 
-    pageItems.forEach((entry, idx) => {
-        const indexNumber = startIdx + idx + 1;
+    tableBody.innerHTML = header;
+
+    filteredDeployments.forEach((d, index) => {
         const row = document.createElement("div");
         row.className = "card-table__row";
+        row.dataset.deploymentId = d.id;
+        row.dataset.status = d.status;
 
-        const owner = entry.owner || (entry.repository ? entry.repository.split("/")[0] : "user");
-        const repoShort = entry.repoName || (entry.repository ? entry.repository.split("/")[1] || entry.repository : "repo");
-        const fullRepo = entry.repository || `${owner}/${repoShort}`;
-        const branch = entry.branch || "main";
-        const profile = entry.profile || "html";
-        const workflowTemplate = entry.workflowTemplate || "pages.yml";
-        const status = (entry.status || "success").toLowerCase();
-        
-        let statusBadgeClass = "live";
-        let statusLabel = "Live";
-        if (status === "building" || status === "queued" || status === "pending") {
-            statusBadgeClass = "building";
-            statusLabel = "Building";
-        } else if (status === "failed" || status === "errored") {
-            statusBadgeClass = "failed";
-            statusLabel = "Failed";
-        } else if (status === "configured") {
-            statusBadgeClass = "configured";
-            statusLabel = "Ready";
-        }
+        const platformBadge = d.platform === "render"
+            ? `<span style="background:#6E49E0; color:#fff; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">RENDER</span>`
+            : `<span style="background:#24292F; color:#fff; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">PAGES</span>`;
+        const profileChip = d.profile
+            ? `<span style="background:var(--primary-light); color:var(--text-color); padding:2px 6px; border-radius:4px; font-size:10px; font-family:'JetBrains Mono', monospace;">${escapeHtml(d.profile)}</span>`
+            : "";
 
-        const pagesUrl = entry.pagesUrl || `https://${owner.toLowerCase()}.github.io/${repoShort}`;
-        const repoUrl = entry.repoUrl || `https://github.com/${fullRepo}`;
-        const actionsUrl = entry.actionsUrl || `https://github.com/${fullRepo}/actions`;
-        const timeAgo = formatTimeAgo(entry.recordedAt);
+        const statusBadge = renderStatusBadge(d.status);
+        const liveUrl = d.url
+            ? `<a href="${d.url}" target="_blank" style="color:#3b82f6; text-decoration:none; font-size:12px;">${escapeHtml(d.url.replace(/^https?:\/\//, ""))}</a>
+               <button class="action-btn" style="padding:2px 6px; margin-left:4px;" onclick="copyToClipboard('${d.url}')" title="Copy URL"><span class="btn-icon">📋</span></button>`
+            : `<span style="color: var(--text-muted); font-size:12px;">—</span>`;
+        const timeAgo = formatTimeAgo(d.created_at);
 
-        row.innerHTML = `
-            <div class="card-table__item" style="justify-content:center; color:var(--text-muted); font-weight:700;">${indexNumber}</div>
-            
-            <div class="card-table__item">
-                <div class="repo-meta-cell">
-                    <a href="${escapeHtml(repoUrl)}" target="_blank" class="repo-title-link" title="Open ${escapeHtml(fullRepo)} on GitHub">
-                        <span>${escapeHtml(fullRepo)}</span>
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    </a>
-                    <span class="branch-badge">
-                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
-                        ${escapeHtml(branch)}
-                    </span>
-                </div>
-            </div>
-
-            <div class="card-table__item">
-                <div style="display:flex; flex-direction:column; gap:4px;">
-                    <span class="profile-tag">
-                        <span style="opacity:0.6;">engine:</span>${escapeHtml(profile)}
-                    </span>
-                    <span style="font-size:10.5px; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">${escapeHtml(workflowTemplate)}</span>
-                </div>
-            </div>
-
-            <div class="card-table__item">
-                <span class="status-badge ${statusBadgeClass}">
-                    <span class="status-indicator-dot"></span>
-                    ${statusLabel}
-                </span>
-            </div>
-
-            <div class="card-table__item">
-                <div class="url-link-wrapper">
-                    <a href="${escapeHtml(pagesUrl)}" target="_blank" class="pages-link" title="${escapeHtml(pagesUrl)}">
-                        ${escapeHtml(pagesUrl.replace(/^https?:\/\//, ''))}
-                    </a>
-                    <button class="copy-url-btn" onclick="copyToClipboard('${escapeHtml(pagesUrl)}')" title="Copy URL">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="card-table__item" style="font-size:12px; color:var(--text-muted); font-family:'JetBrains Mono', monospace;" title="${new Date(entry.recordedAt || Date.now()).toLocaleString()}">
-                ${timeAgo}
-            </div>
-
-            <div class="card-table__item">
-                <div class="action-group">
-                    <a href="${escapeHtml(pagesUrl)}" target="_blank" class="action-btn" title="Open Site">
-                        <span>Visit</span>
-                    </a>
-                    <button class="action-btn" onclick="inspectDeployment(${indexNumber - 1})" title="Inspect Details">
-                        <span>Details</span>
-                    </button>
-                    <a href="${escapeHtml(actionsUrl)}" target="_blank" class="action-btn" title="GitHub Actions">
-                        <span>Actions</span>
-                    </a>
-                    <button class="action-btn delete-btn" onclick="deleteDeployment(${indexNumber - 1})" title="Remove Record">
-                        &times;
-                    </button>
-                </div>
+        const actionRow = `
+            <div class="action-group" style="gap: 4px;">
+                <button class="action-btn" data-action="refresh" data-id="${d.id}" title="Refresh status"><span class="btn-label">Refresh</span><span class="btn-icon">⟳</span></button>
+                <button class="action-btn" data-action="redeploy" data-id="${d.id}" title="Redeploy"><span class="btn-label">Redeploy</span><span class="btn-icon">🚀</span></button>
+                ${d.platform === "render" && d.service_id ? `
+                    <a class="action-btn" href="https://dashboard.render.com/web/${d.service_id}" target="_blank" title="Open in Render" style="text-decoration:none;">
+                        <span class="btn-label">Logs</span><span class="btn-icon">↗</span>
+                    </a>` : d.platform === "github_pages" ? `
+                    <a class="action-btn" href="https://github.com/${d.owner}/${d.repo}/actions" target="_blank" title="Open GitHub Actions" style="text-decoration:none;">
+                        <span class="btn-label">Actions</span><span class="btn-icon">↗</span>
+                    </a>` : ""}
+                <button class="action-btn" data-action="inspect" data-id="${d.id}" title="Inspect"><span class="btn-label">Details</span><span class="btn-icon">👁</span></button>
+                <button class="action-btn" data-action="delete" data-id="${d.id}" style="color:#ef4444;" title="Delete from history"><span class="btn-label">Delete</span><span class="btn-icon">🗑</span></button>
+                ${d.status === "failed" ? `
+                    <button class="action-btn" data-action="ask-agent" data-id="${d.id}" style="color:#8b5cf6;" title="Ask AI Agent to diagnose">
+                        <span class="btn-label">Ask Agent</span><span class="btn-icon">🤖</span>
+                    </button>` : ""}
+                ${d.platform === "render" ? `
+                    <button class="action-btn" data-action="add-domain" data-id="${d.id}" style="color:#0891b2;" title="Add custom domain">
+                        <span class="btn-label">+ Domain</span><span class="btn-icon">🌐</span>
+                    </button>` : ""}
             </div>
         `;
 
+        // Expandable error row (only when status=failed and error text present)
+        const errorBox = (d.status === "failed" && d.error)
+            ? `<details style="margin-top:6px; grid-column: span 7; padding: 6px 12px; background: var(--status-danger-bg); border-left: 3px solid var(--status-danger-text); border-radius: 4px;">
+                <summary style="cursor:pointer; font-size: 11px; color: var(--status-danger-text); font-weight: 600;">⚠ Show build error</summary>
+                <pre style="margin-top:6px; padding: 8px; background: rgba(0,0,0,0.04); border-radius: 4px; font-size: 11px; font-family: 'JetBrains Mono', monospace; white-space: pre-wrap; max-height: 280px; overflow: auto;">${escapeHtml(d.error.slice(0, 4000))}</pre>
+            </details>`
+            : "";
+
+        row.innerHTML = `
+            <div class="card-table__item" style="justify-content:center;">${index + 1}</div>
+            <div class="card-table__item">
+                <div style="font-weight: 600; font-size: 13px;">${escapeHtml(d.owner)}/${escapeHtml(d.repo)}</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                    <span style="opacity:0.7;">⌥</span> ${escapeHtml(d.branch)}
+                </div>
+            </div>
+            <div class="card-table__item" style="gap:6px;">
+                ${platformBadge}
+                ${profileChip}
+            </div>
+            <div class="card-table__item">
+                ${statusBadge}
+            </div>
+            <div class="card-table__item">${liveUrl}</div>
+            <div class="card-table__item" style="font-size: 12px; color: var(--text-muted);">${timeAgo}</div>
+            <div class="card-table__item">${actionRow}</div>
+            ${errorBox}
+        `;
         tableBody.appendChild(row);
+    });
+
+    const showingLabel = document.getElementById("showing-entries-label");
+    if (showingLabel) showingLabel.textContent = `Showing ${filteredDeployments.length} deployment(s)`;
+
+    // Wire action buttons
+    tableBody.querySelectorAll(".action-btn[data-action]").forEach((btn) => {
+        btn.addEventListener("click", () => handleAction(btn.dataset.action, btn.dataset.id));
     });
 }
 
-function inspectDeployment(filteredIndex) {
-    const entry = filteredDeployments[filteredIndex];
-    if (!entry) return;
+function renderStatusBadge(s) {
+    const map = {
+        pending: { label: "Pending", bg: "var(--status-info-bg)", text: "var(--status-info-text)" },
+        building: { label: "Building", bg: "var(--status-warning-bg)", text: "var(--status-warning-text)" },
+        live: { label: "Live", bg: "var(--status-success-bg)", text: "var(--status-success-text)" },
+        failed: { label: "Failed", bg: "var(--status-danger-bg)", text: "var(--status-danger-text)" },
+    };
+    const cfg = map[s] || map.pending;
+    return `<span style="background:${cfg.bg}; color:${cfg.text}; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${cfg.label}</span>`;
+}
 
-    const owner = entry.owner || (entry.repository ? entry.repository.split("/")[0] : "user");
-    const repoShort = entry.repoName || (entry.repository ? entry.repository.split("/")[1] || entry.repository : "repo");
-    const fullRepo = entry.repository || `${owner}/${repoShort}`;
-    const branch = entry.branch || "main";
-    const profile = entry.profile || "html";
-    const workflowTemplate = entry.workflowTemplate || "pages.yml";
-    const status = entry.status || "success";
-    const pagesUrl = entry.pagesUrl || `https://${owner.toLowerCase()}.github.io/${repoShort}`;
-    const actionsUrl = entry.actionsUrl || `https://github.com/${fullRepo}/actions`;
+// ============================================================================
+// ACTIONS (Refresh / Redeploy / Inspect / Delete / Ask Agent / Add Domain)
+// ============================================================================
 
-    document.getElementById("modal-repo-title").textContent = fullRepo;
-    document.getElementById("modal-field-repo").textContent = fullRepo;
-    document.getElementById("modal-field-branch").textContent = branch;
-    document.getElementById("modal-field-profile").textContent = profile.toUpperCase();
-    document.getElementById("modal-field-workflow").textContent = workflowTemplate;
-    document.getElementById("modal-field-url").textContent = pagesUrl;
-    document.getElementById("modal-field-message").textContent = entry.message || "Deployment initiated through DeployBridge automated engine.";
-    document.getElementById("modal-field-time").textContent = new Date(entry.recordedAt || Date.now()).toLocaleString("en-US", {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    document.getElementById("modal-field-status").textContent = status.toUpperCase();
+async function handleAction(action, deploymentId) {
+    if (action === "refresh") return refreshOne(deploymentId);
+    if (action === "redeploy") return redeployOne(deploymentId);
+    if (action === "inspect") return inspectDeployment(deploymentId);
+    if (action === "delete") return deleteDeployment(deploymentId);
+    if (action === "ask-agent") return askAgentAboutFailure(deploymentId);
+    if (action === "add-domain") return openCustomDomainModal(deploymentId);
+}
 
-    const openSiteBtn = document.getElementById("modal-btn-open-site");
-    const openActionsBtn = document.getElementById("modal-btn-open-actions");
+async function refreshOne(deploymentId) {
+    try {
+        const res = await fetch(`${BACKEND_API_URL}/deployments/${deploymentId}/refresh`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${sessionToken}` },
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: res.statusText }));
+            throw new Error(err.detail || `Refresh failed (${res.status})`);
+        }
+        const updated = await res.json();
+        // Patch the row in place
+        const idx = allDeployments.findIndex((d) => d.id === deploymentId);
+        if (idx >= 0) allDeployments[idx] = updated;
+        applyFilters();
+    } catch (err) {
+        showToast(`Refresh failed: ${err.message}`);
+    }
+}
 
-    if (openSiteBtn) openSiteBtn.href = pagesUrl;
-    if (openActionsBtn) openActionsBtn.href = actionsUrl;
+async function redeployOne(deploymentId) {
+    if (!confirm("Trigger a new deploy on the platform?")) return;
+    try {
+        const res = await fetch(`${BACKEND_API_URL}/deployments/${deploymentId}/redeploy`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${sessionToken}` },
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: res.statusText }));
+            throw new Error(err.detail || `Redeploy failed (${res.status})`);
+        }
+        showToast("Redeploy triggered. Status will refresh shortly.");
+        await refreshOne(deploymentId);
+    } catch (err) {
+        showToast(`Redeploy failed: ${err.message}`);
+    }
+}
 
+async function deleteDeployment(deploymentId) {
+    if (!confirm("Remove this deployment from history?\n(The actual Render service / Pages site keeps running — only the history entry is removed.)")) return;
+    try {
+        const res = await fetch(`${BACKEND_API_URL}/deployments/${deploymentId}`, {
+            method: "DELETE",
+            headers: { "Authorization": `Bearer ${sessionToken}` },
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: res.statusText }));
+            throw new Error(err.detail || `Delete failed (${res.status})`);
+        }
+        allDeployments = allDeployments.filter((d) => d.id !== deploymentId);
+        applyFilters();
+        updateSummaryStats();
+        showToast("Deployment removed from history.");
+    } catch (err) {
+        showToast(`Delete failed: ${err.message}`);
+    }
+}
+
+async function syncLiveStatuses() {
+    // Refresh every visible row in one pass
+    const ids = filteredDeployments.map((d) => d.id);
+    await Promise.all(ids.map(refreshOne));
+    showToast("Status synced.");
+}
+
+async function clearHistory() {
+    if (!confirm("Clear ALL failed/pending deployments from history?\n(Live ones will be kept.)")) return;
+    // Delete every non-live deployment row
+    const toDelete = allDeployments.filter((d) => d.status !== "live");
+    await Promise.all(toDelete.map((d) =>
+        fetch(`${BACKEND_API_URL}/deployments/${d.id}`, {
+            method: "DELETE",
+            headers: { "Authorization": `Bearer ${sessionToken}` },
+        }).catch(() => null)
+    ));
+    await loadDeploymentsData();
+    showToast("History cleared.");
+}
+
+function inspectDeployment(deploymentId) {
+    const d = allDeployments.find((x) => x.id === deploymentId);
+    if (!d) return;
     const modal = document.getElementById("deployment-modal");
-    if (modal) modal.classList.add("active");
+    if (!modal) return;
+
+    document.getElementById("modal-repo-title").textContent = `${d.owner}/${d.repo}`;
+    document.getElementById("modal-field-repo").textContent = `${d.owner}/${d.repo}`;
+    document.getElementById("modal-field-branch").textContent = d.branch;
+    document.getElementById("modal-field-profile").textContent = d.profile || d.platform;
+    document.getElementById("modal-field-workflow").textContent = d.service_id || d.external_deploy_id || "-";
+    document.getElementById("modal-field-url").textContent = d.url || "(not yet live)";
+    document.getElementById("modal-field-message").textContent = d.error || d.status;
+    document.getElementById("modal-field-time").textContent = formatTimeAgo(d.created_at);
+    document.getElementById("modal-field-status").textContent = d.status;
+
+    const openSite = document.getElementById("modal-btn-open-site");
+    const openActions = document.getElementById("modal-btn-open-actions");
+    if (openSite) openSite.href = d.url || "#";
+    if (openActions) {
+        openActions.href = d.platform === "render" && d.service_id
+            ? `https://dashboard.render.com/web/${d.service_id}`
+            : `https://github.com/${d.owner}/${d.repo}/actions`;
+    }
+    modal.classList.add("active");
+    modal.style.display = "flex";
 }
 
 function closeModal() {
     const modal = document.getElementById("deployment-modal");
-    if (modal) modal.classList.remove("active");
+    if (modal) {
+        modal.classList.remove("active");
+        modal.style.display = "none";
+    }
 }
 
-function deleteDeployment(filteredIndex) {
-    const entry = filteredDeployments[filteredIndex];
-    if (!entry) return;
-
-    allDeployments = allDeployments.filter(item => item !== entry);
-    localStorage.setItem("deploybridge_recent_deployments", JSON.stringify(allDeployments));
-    applyFilters();
-    updateSummaryStats();
-    showToast("Deployment record removed.");
+function askAgentAboutFailure(deploymentId) {
+    const d = allDeployments.find((x) => x.id === deploymentId);
+    if (!d) return;
+    // Persist the question the agent page should pre-fill
+    sessionStorage.setItem("agent_prefill_question",
+        `Why did my deploy of ${d.owner}/${d.repo} fail? Read the logs and tell me how to fix it.`);
+    sessionStorage.setItem("agent_prefill_deployment_id", deploymentId);
+    window.location.href = "./agent.html";
 }
 
-async function syncLiveStatuses() {
-    const pipelineStatus = document.getElementById("pipeline-status");
-    const token = localStorage.getItem("db_session_token") || localStorage.getItem("gh_access_token");
+// ============================================================================
+// AUTO-REFRESH — only polls when a visible row is pending/building
+// ============================================================================
 
-    if (pipelineStatus) pipelineStatus.textContent = "STATUS: SYNCING...";
-    showToast("Syncing live deployment statuses with GitHub...");
-
-    let updatedCount = 0;
-
-    // Check each deployment against GitHub Pages / Actions
-    for (const item of allDeployments) {
-        try {
-            const owner = item.owner || (item.repository ? item.repository.split("/")[0] : "");
-            const repo = item.repoName || (item.repository ? item.repository.split("/")[1] : "");
-
-            if (!owner || !repo) continue;
-
-            // Attempt direct fetch to GitHub Pages endpoint if token is present
-            if (token) {
-                const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/pages`, {
-                    headers: {
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.html_url) item.pagesUrl = data.html_url;
-                    if (data.status) {
-                        item.status = data.status === "built" ? "live" : data.status;
-                    }
-                    if (data.source && data.source.branch) {
-                        item.branch = data.source.branch;
-                    }
-                    updatedCount++;
-                }
-            }
-        } catch (err) {
-            console.warn("[DeployBridge] Sync error for repo:", item.repository, err);
+function startAutoRefresh() {
+    if (autoRefreshTimer) return;
+    autoRefreshTimer = setInterval(async () => {
+        const pending = allDeployments.filter(
+            (d) => d.status === "pending" || d.status === "building"
+        );
+        if (pending.length === 0) {
+            // Nothing to refresh — stop the timer; restart on next manual refresh.
+            stopAutoRefresh();
+            return;
         }
+        await Promise.all(pending.map((d) => refreshOne(d.id)));
+    }, AUTO_REFRESH_INTERVAL_MS);
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+    }
+}
+
+// ============================================================================
+// CUSTOM DOMAIN MODAL  (Feature ① — Render UI side, lives here for now)
+// ============================================================================
+
+async function openCustomDomainModal(deploymentId) {
+    const d = allDeployments.find((x) => x.id === deploymentId);
+    if (!d || d.platform !== "render") {
+        showToast("Custom domains are only supported for Render services right now.");
+        return;
+    }
+    // Reuse the deployment modal by injecting a domain block at the bottom.
+    inspectDeployment(deploymentId);
+
+    const modal = document.getElementById("deployment-modal");
+    let domainBlock = document.getElementById("custom-domain-block");
+    if (!domainBlock) {
+        domainBlock = document.createElement("div");
+        domainBlock.id = "custom-domain-block";
+        domainBlock.style.cssText = "margin-top: 16px; padding: 12px; border-top: 1px solid var(--border-color);";
+        modal.querySelector(".modal-content")?.appendChild(domainBlock);
     }
 
-    localStorage.setItem("deploybridge_recent_deployments", JSON.stringify(allDeployments));
-    applyFilters();
-    updateSummaryStats();
+    domainBlock.innerHTML = `
+        <h4 style="margin-bottom: 8px; font-size: 14px;">Add Custom Domain</h4>
+        <input id="custom-domain-input" type="text" placeholder="notes.kumar.dev"
+               style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--surface-color); color: var(--text-color); margin-bottom: 8px;" />
+        <button id="custom-domain-add-btn" class="btn-primary-action" style="font-size: 12px; padding: 6px 12px;">Claim on Render</button>
+        <div id="custom-domain-result" style="margin-top: 12px;"></div>
+    `;
 
-    if (pipelineStatus) pipelineStatus.textContent = "STATUS: SYNCD";
-    showToast(`Status sync complete (${allDeployments.length} repos scanned).`);
+    document.getElementById("custom-domain-add-btn").addEventListener("click", async () => {
+        const domain = document.getElementById("custom-domain-input").value.trim().toLowerCase();
+        if (!domain || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain)) {
+            showToast("Enter a valid domain like notes.kumar.dev (no https://, no path).");
+            return;
+        }
+        await claimRenderCustomDomain(d, domain);
+    });
 }
 
+async function claimRenderCustomDomain(deployment, domain) {
+    const resultBox = document.getElementById("custom-domain-result");
+    resultBox.innerHTML = `<div style="color: var(--text-muted); font-size: 12px;">Claiming ${domain} on Render…</div>`;
+
+    try {
+        const res = await fetch(`${BACKEND_API_URL}/render/services/${deployment.service_id}/custom-domain`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${sessionToken}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ domain }),
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: res.statusText }));
+            throw new Error(err.detail || `Failed (${res.status})`);
+        }
+        const data = await res.json();
+        const cname = data.cname_target || `${deployment.service_id}.onrender.com`;
+        resultBox.innerHTML = `
+            <div style="background: var(--status-success-bg); color: var(--status-success-text); padding: 12px; border-radius: 4px; font-size: 12px;">
+                <div style="font-weight: 600; margin-bottom: 6px;">✓ Claimed. Add this DNS record:</div>
+                <div style="background: rgba(0,0,0,0.05); padding: 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace;">
+                    Type: <strong>CNAME</strong><br>
+                    Name: <strong>${domain.split(".")[0]}</strong><br>
+                    Value: <strong>${cname}</strong>
+                    <button onclick="copyToClipboard('CNAME ${domain.split('.')[0]} ${cname}')" style="margin-left:8px; padding:2px 6px; background:transparent; border:1px solid currentColor; border-radius:3px; cursor:pointer; font-size:11px;">Copy</button>
+                </div>
+                <button id="custom-domain-verify-btn" class="btn-primary-action" style="margin-top: 8px; font-size: 12px;">I've added it → Verify</button>
+            </div>
+        `;
+        document.getElementById("custom-domain-verify-btn").addEventListener("click", async () => {
+            await verifyRenderCustomDomain(deployment, domain);
+        });
+    } catch (err) {
+        resultBox.innerHTML = `<div style="color: var(--status-danger-text); font-size: 12px;">✗ ${err.message}</div>`;
+    }
+}
+
+async function verifyRenderCustomDomain(deployment, domain) {
+    const resultBox = document.getElementById("custom-domain-result");
+    resultBox.innerHTML += `<div id="verify-msg" style="color: var(--text-muted); font-size: 12px; margin-top: 6px;">Verifying…</div>`;
+    const verifyMsg = document.getElementById("verify-msg");
+
+    try {
+        const res = await fetch(`${BACKEND_API_URL}/render/services/${deployment.service_id}/custom-domain/${domain}/verify`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${sessionToken}` },
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: res.statusText }));
+            throw new Error(err.detail || `Failed (${res.status})`);
+        }
+        const data = await res.json();
+        const status = data.verification_status || "unverified";
+        if (status === "verified") {
+            verifyMsg.innerHTML = `🔒 <strong>Verified.</strong> TLS cert will be issued shortly. Live at <a href="https://${domain}" target="_blank" style="color:#3b82f6;">https://${domain}</a>`;
+        } else {
+            verifyMsg.innerHTML = `⏳ DNS not yet detected (status: ${status}). Check back in a few minutes — DNS propagation can take 5 min – 48 h.`;
+        }
+    } catch (err) {
+        verifyMsg.innerHTML = `✗ ${err.message}`;
+    }
+}
+
+// ============================================================================
+// UTILITIES
+// ============================================================================
+
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast("Live URL copied to clipboard!");
-    }).catch(() => {
-        showToast("Copied: " + text);
-    });
+    navigator.clipboard.writeText(text).then(() => showToast("Copied to clipboard"));
 }
 
 function showToast(message) {
     const toast = document.getElementById("toast");
     const toastText = document.getElementById("toast-text");
     if (!toast || !toastText) return;
-
     toastText.textContent = message;
     toast.classList.add("show");
-
-    setTimeout(() => {
-        toast.classList.remove("show");
-    }, 3000);
+    setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
 function formatTimeAgo(isoString) {
-    if (!isoString) return "just now";
+    if (!isoString) return "—";
     const date = new Date(isoString);
-    const now = new Date();
-    const elapsedSeconds = Math.floor((now - date) / 1000);
-
-    if (isNaN(elapsedSeconds) || elapsedSeconds < 0) return "just now";
-    if (elapsedSeconds < 60) return `${elapsedSeconds}s ago`;
-    const minutes = Math.floor(elapsedSeconds / 60);
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     if (days < 30) return `${days}d ago`;
-
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return date.toLocaleDateString();
 }
 
 function escapeHtml(str) {
-    if (!str) return "";
+    if (str == null) return "";
     return String(str)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -537,7 +609,8 @@ function escapeHtml(str) {
         .replace(/'/g, "&#039;");
 }
 
-// Global helper attachments for inline handlers
+// Expose for inline onclick handlers
 window.copyToClipboard = copyToClipboard;
 window.inspectDeployment = inspectDeployment;
 window.deleteDeployment = deleteDeployment;
+window.closeModal = closeModal;

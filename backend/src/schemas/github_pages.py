@@ -44,3 +44,60 @@ class GitHubPagesDeployResponse(BaseModel):
     resolved_profile: ResolvedDeploymentProfile
     workflow_template: str
     branch: str
+
+
+# ---------------------------------------------------------------------------
+# Custom domains (Feature ① — file-based: a CNAME file in the deploy branch)
+# ---------------------------------------------------------------------------
+
+GitHubPagesCustomDomainStatus = Literal[
+    "waiting_for_dns",   # CNAME file just committed; GitHub hasn't verified yet
+    "verified",          # DNS resolves; cert is being issued
+    "live",              # HTTPS cert issued; https://<domain> serves the site
+]
+
+
+class GitHubPagesCustomDomainRequest(BaseModel):
+    """Body of POST /v1/github-pages/{owner}/{repo}/custom-domain.
+
+    Pages is FILE-BASED: the "claim" is literally a CNAME file containing
+    the domain, committed to the deploy branch via GitHub's Contents API
+    — the SAME mechanism used to upload workflow YAMLs. GitHub then
+    verifies DNS and offers an "Enforce HTTPS" toggle (auto-issued by
+    Let's Encrypt). The UX is identical to Render's; the mechanism is
+    completely different. THAT is DeployBridge's whole value prop.
+    """
+    domain: str = Field(..., description="The custom hostname to attach, e.g. notes.kumar.dev")
+    branch: str | None = Field(
+        default=None,
+        description="Branch to commit the CNAME file to. Defaults to the "
+                    "user's saved deploy_branch or the repo's default branch.",
+    )
+
+
+class GitHubPagesCustomDomainResponse(BaseModel):
+    """Returned by both add + verify Pages custom-domain endpoints."""
+    domain: str
+    branch: str
+    cname_target: str = Field(
+        ...,
+        description="What the user's DNS provider's CNAME record should point to. "
+                    "For Pages subdomains this is <user>.github.io; for apex "
+                    "domains it's the four 185.199.108-111.153 A-records.",
+    )
+    record_type: Literal["CNAME", "A"] = Field(
+        ...,
+        description="DNS record type the user must add at their registrar.",
+    )
+    record_name: str = Field(
+        ...,
+        description="DNS record name (the subdomain part, or '@' for apex).",
+    )
+    https_enabled: bool = Field(
+        default=False,
+        description="True once GitHub has issued the Let's Encrypt cert. The "
+                    "Pages config endpoint exposes `https_enforced`; we enable "
+                    "it on verify() when the cert is available.",
+    )
+    status: GitHubPagesCustomDomainStatus
+    message: str

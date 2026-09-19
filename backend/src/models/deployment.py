@@ -41,13 +41,6 @@ class Deployment(Base):
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        primary_key=True,
-        index=True,
-        nullable=False,
-    )
-
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         index=True,
         nullable=False,
@@ -64,6 +57,7 @@ class Deployment(Base):
     status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False)
 
     service_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    external_deploy_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
 
     url: Mapped[str | None] = mapped_column(String(255), nullable=True)
 

@@ -39,6 +39,7 @@ from ...schemas.render import (
     RenderServiceSummary,
     RenderStatusResponse,
 )
+from ...services.deployment_service import DeploymentService
 from ...services.render import RenderService
 from ..dependencies import get_current_user
 
@@ -206,11 +207,19 @@ async def detect_render_profile(
 async def deploy_to_render(
     request: RenderDeployRequest,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """Create the service on Render with env vars + auto-deploy on.
 
     Returns the new serviceId and deployId immediately; the frontend
     polls /v1/render/services/{serviceId} for build/live status.
+    
+    SIDE EFFECT — Deployment row:
+        A new BUILDING row is written to the `deployments` table the
+        moment Render confirms the create-service call. There is NO
+        separate POST /deployments create endpoint; one user action =
+        one atomic operation. The frontend's Deployments page reads
+        these rows instead of localStorage.
     """
     api_key = _require_render_key(current_user)
     owner_id = current_user.render_owner_id
@@ -221,7 +230,7 @@ async def deploy_to_render(
         )
 
     try:
-        return await RenderService.create_web_service(
+        deploy_response = await RenderService.create_web_service(
             api_key=api_key,
             owner_id=owner_id,
             request=request,
@@ -231,6 +240,26 @@ async def deploy_to_render(
             status_code=exc.status_code,
             detail=exc.detail or exc.message,
         ) from exc
+
+    # Write the deployment row. We do this AFTER the Render call returns
+    # so a Render-side failure doesn't leave an orphan row in our DB.
+    await DeploymentService.create_from_render_deploy(
+        db,
+        current_user.id,
+        owner=request.owner,
+        repo=request.repository,
+        branch=request.branch,
+        runtime=request.runtime,
+        service_id=deploy_response.service_id,
+        deploy_id=deploy_response.deploy_id,
+        service_url=deploy_response.service_url,
+    )
+    # db.commit() happens in get_db() on successful exit; if anything
+    # below raises, the row write rolls back too — atomic.
+
+    return deploy_response
+
+    
 
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeployBridge - AI Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Read theme immediately to prevent screen flashing (FOUC) -->
+    <script>
+        const savedTheme = localStorage.getItem('db_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-color: #f5f5dc;
+            --surface-color: #ffffff;
+            --text-color: #000000;
+            --text-muted: #666666;
+            --primary-color: #000000;
+            --primary-light: rgba(0, 0, 0, 0.05);
+            --primary-hover: rgba(0, 0, 0, 0.08);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --grid-color: rgba(0, 0, 0, 0.05);
+
+            --status-success-bg: rgba(34, 197, 94, 0.15);
+            --status-success-text: #15803d;
+            --status-danger-bg: rgba(239, 68, 68, 0.15);
+            --status-danger-text: #b91c1c;
+            --status-warning-bg: rgba(245, 158, 11, 0.15);
+            --status-warning-text: #b45309;
+            --status-info-bg: rgba(59, 130, 246, 0.15);
+            --status-info-text: #1d4ed8;
+            --agent-accent: #8b5cf6;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0a0a0a;
+            --surface-color: #121212;
+            --text-color: #f5f5dc;
+            --text-muted: #a0a090;
+            --primary-color: #f5f5dc;
+            --primary-light: rgba(245, 245, 220, 0.08);
+            --primary-hover: rgba(245, 245, 220, 0.14);
+            --border-color: rgba(245, 245, 220, 0.12);
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.6);
+            --grid-color: rgba(245, 245, 220, 0.05);
+            --status-success-bg: rgba(34, 197, 94, 0.2);
+            --status-success-text: #4ade80;
+            --status-danger-bg: rgba(239, 68, 68, 0.2);
+            --status-danger-text: #f87171;
+            --agent-accent: #a78bfa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden;
+            background-image:
+                linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
+            background-size: 55px 55px;
+        }
+
+        .app-shell {
+            display: flex;
+            flex-direction: row;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar (compact — copied from other pages) */
+        .sidebar {
+            width: 260px;
+            height: 100%;
+            background-color: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header img {
+            width: 28px;
+            height: 28px;
+            vertical-align: middle;
+        }
+
+        .sidebar-header .brand {
+            font-weight: 700;
+            font-size: 14px;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            overflow-y: auto;
+        }
+
+        .nav-group {
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            margin-bottom: 4px;
+        }
+
+        .nav-link:hover {
+            background: var(--primary-light);
+            color: var(--text-color);
+        }
+
+        .nav-link[data-active="true"] {
+            background: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .nav-link svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .nav-link span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-bottom {
+            border-top: 1px solid var(--border-color);
+            padding: 12px;
+        }
+
+        /* Main area */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top bar */
+        .topbar {
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--surface-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .topbar h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .topbar .agent-badge {
+            background: var(--agent-accent);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* Chat layout */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .chat-empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+        }
+
+        .chat-empty .icon {
+            font-size: 48px;
+            opacity: 0.3;
+            margin-bottom: 16px;
+        }
+
+        .chat-empty h2 {
+            font-size: 22px;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        .chat-empty p {
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 480px;
+            margin: 0 auto 24px;
+        }
+
+        .chat-empty .examples {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .example-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 13px;
+            color: var(--text-color);
+            transition: all 0.15s;
+        }
+
+        .example-card:hover {
+            background: var(--primary-light);
+            border-color: var(--agent-accent);
+        }
+
+        .example-card .tag {
+            color: var(--text-muted);
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Message bubble */
+        .msg {
+            max-width: 760px;
+            margin: 0 auto 16px;
+        }
+
+        .msg-bubble {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .msg.user .msg-bubble {
+            background: var(--agent-accent);
+            color: #fff;
+            margin-left: 80px;
+        }
+
+        .msg.assistant .msg-bubble {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            margin-right: 80px;
+        }
+
+        .msg.assistant .msg-bubble code {
+            background: var(--primary-light);
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        .msg-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin: 4px 8px;
+        }
+
+        .msg.user .msg-meta {
+            text-align: right;
+        }
+
+        /* Plan card (Approve/Cancel) */
+        .plan-card {
+            background: var(--status-warning-bg);
+            border: 1px solid var(--status-warning-text);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin: 8px 0;
+        }
+
+        .plan-card h4 {
+            color: var(--status-warning-text);
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .plan-card .plan-step {
+            background: rgba(0, 0, 0, 0.04);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .plan-card .plan-step .summary {
+            display: block;
+            color: var(--text-color);
+            font-family: inherit;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .plan-card .plan-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .plan-card .env-form {
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+        }
+
+        .plan-card .env-form .env-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+            align-items: center;
+        }
+
+        .plan-card .env-form .env-row label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            min-width: 140px;
+        }
+
+        .plan-card .env-form input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--surface-color);
+            color: var(--text-color);
+            font-size: 12px;
+        }
+
+        /* Trace (collapsible tool-call log under each assistant message) */
+        .trace {
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .trace summary {
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .trace ul {
+            list-style: none;
+            margin-top: 6px;
+        }
+
+        .trace li {
+            padding: 2px 0;
+        }
+
+        /* Input bar */
+        .chat-input-bar {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            background: var(--surface-color);
+        }
+
+        .chat-input-wrapper {
+            max-width: 760px;
+            margin: 0 auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--agent-accent);
+        }
+
+        .chat-send {
+            background: var(--agent-accent);
+            color: #fff;
+            border: none;
+            padding: 0 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .chat-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary-action {
+            background: var(--status-success-text);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .btn-primary-action:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary-action {
+            background: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Typing indicator */
+        .typing {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .typing .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: pulse 1.4s infinite;
+        }
+
+        .typing .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            60%,
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            30% {
+                transform: scale(1.4);
+                opacity: 1;
+            }
+        }
+
+        /* Toast */
+        .toast-notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface-color);
+            color: var(--text-color);
+            padding: 12px 18px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.3s;
+            z-index: 9999;
+        }
+
+        .toast-notification.show {
+            transform: translateX(0);
+        }
+
+        /* Theme toggle */
+        .themeToggleInput {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-shell" id="appShell">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="https://github.com/identicons/deploybridge.png" alt="">
+                <span class="brand">DeployBridge</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-group">
+                    <a class="nav-link" href="./dashboard.html" data-tooltip="Overview">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        <span>Overview</span>
+                    </a>
+                    <a class="nav-link" href="./repositories.html" data-tooltip="Repositories">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        <span>Repositories</span>
+                    </a>
+                    <a class="nav-link" href="./deployments.html" data-tooltip="Deployments">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z">
+                            </path>
+                            <path
+                                d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z">
+                            </path>
+                        </svg>
+                        <span>Deployments</span>
+                    </a>
+                    <a class="nav-link" href="./reports.html" data-tooltip="My Reports">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        <span>My Reports</span>
+                    </a>
+                    <a class="nav-link" data-active="true" href="./agent.html" data-tooltip="AI Agent">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                            <circle cx="12" cy="5" r="2"></circle>
+                            <path d="M12 7v4"></path>
+                            <line x1="8" y1="16" x2="8" y2="16"></line>
+                            <line x1="16" y1="16" x2="16" y2="16"></line>
+                        </svg>
+                        <span>AI Agent</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-bottom">
+                <a class="nav-link" href="./settings.html">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                    <span>Settings</span>
+                </a>
+                <button class="nav-link logout-link" type="button" data-logout>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <h1>Deployment Agent <span class="agent-badge">🤖 BETA</span></h1>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button id="new-chat-btn" class="btn-secondary-action">+ New chat</button>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="chat-empty" id="chat-empty">
+                        <div class="icon">🤖</div>
+                        <h2>Your Deployment Agent</h2>
+                        <p>Deploy repos, diagnose failures, manage your sites — just by talking to it.
+                            The agent can read your repos, call Render/Pages APIs, and open PRs with fixes.
+                            Every side-effect action pauses for your approval first.</p>
+                        <div class="examples">
+                            <button class="example-card" data-q="deploy kumar/notes-api">
+                                <span class="tag">DEPLOY</span>
+                                "deploy kumar/notes-api"
+                            </button>
+                            <button class="example-card" data-q="what's the status of my sites?">
+                                <span class="tag">STATUS</span>
+                                "what's the status of my sites?"
+                            </button>
+                            <button class="example-card" data-q="why did my last deploy fail?">
+                                <span class="tag">DIAGNOSE</span>
+                                "why did my last deploy fail?"
+                            </button>
+                            <button class="example-card" data-q="redeploy notes-api">
+                                <span class="tag">ACTION</span>
+                                "redeploy notes-api"
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-bar">
+                    <div class="chat-input-wrapper">
+                        <input class="chat-input" id="chat-input"
+                            placeholder="Tell the agent what to do…  (e.g. 'deploy kumar/notes-api')"
+                            autocomplete="off" />
+                        <button class="chat-send" id="chat-send">Send</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast-notification">
+        <span id="toast-text">Notification</span>
+    </div>
+
+    <script src="../js/agent.js"></script>
+    <script>
+        // Theme + sidebar state persistence (same as other pages)
+        const logoutButton = document.querySelector("[data-logout]");
+        if (logoutButton) {
+            logoutButton.addEventListener("click", () => {
+                localStorage.removeItem("gh_access_token");
+                localStorage.removeItem("db_session_token");
+                localStorage.removeItem("gh_username");
+                localStorage.removeItem("gh_avatar");
+                window.location.href = "./auth.html";
+            });
+        }
+    </script>
+</body>
+
+</html>

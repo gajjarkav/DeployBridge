@@ -6,6 +6,8 @@ from .v1.github import router as github_router
 from .v1.github_pages import router as github_pages_router
 from .v1.reports import router as reports_router
 from .v1.render import router as render_router
+from .v1.deployments import router as deployments_router
+# from .v1.agent import router as agent_router
 
 
 api_router = APIRouter(
@@ -19,3 +21,5 @@ api_router.include_router(github_router, prefix='/github', tags=["GitHub Data"])
 api_router.include_router(github_pages_router, prefix="/github-pages", tags=["GitHub Pages"])
 api_router.include_router(reports_router, prefix="/reports", tags=["Reports"])
 api_router.include_router(render_router, prefix="/render", tags=["Render"])
+api_router.include_router(deployments_router, prefix="/deployments", tags=["Deployment"])
+# api_router.include_router(agent_router, prefix="/agent", tags=["Deploy Agent"])
