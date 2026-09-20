@@ -53,7 +53,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
         } else {
             alert("Backend succeeded but did not return 'login_url' or 'state'. check browser console log.");
         }
-    }  catch (error) {
+    } catch (error) {
         alert(`Failed to connect to backend at ${BACKEND_API_URL}. Please ensure the backend server is running and accessible.`);
     }
 });

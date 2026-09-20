@@ -17,7 +17,7 @@ async function hydrateOverview(token) {
     const recentDeployments = document.getElementById("recent-deployments");
 
     try {
-        const response = await fetch("https://api.github.com/user/repos?sort=updated&per_page=50", {
+        const response = await fetch("http://127.0.0.1:8000/v1/github/user/repos?sort=updated&per_page=50", {
             headers: {
                 "Authorization": `Bearer ${token}`,
             },

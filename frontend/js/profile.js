@@ -33,7 +33,7 @@ window.onload = async () => {
     const statFollowing = document.getElementById("stat-following");
 
     try {
-        const response = await fetch("https://api.github.com/user", {
+        const response = await fetch("http://127.0.0.1:8000/v1/github/user", {
             headers: {
                 Authorization: `Bearer ${token}`,
                 Accept: "application/vnd.github+json",

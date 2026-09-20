@@ -1011,7 +1011,7 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
             const session = {
-                token: localStorage.getItem("gh_access_token"),
+                token: localStorage.getItem("db_session_token"),
                 dbSessionToken: localStorage.getItem("db_session_token"),
                 username: localStorage.getItem("gh_username"),
                 avatar: localStorage.getItem("gh_avatar"),
@@ -1034,7 +1034,7 @@
 
             try {
                 // Fetch User Profile Data
-                const userRes = await fetch("https://api.github.com/user", {
+                const userRes = await fetch("http://127.0.0.1:8000/v1/github/user", {
                     headers: { "Authorization": `Bearer ${session.token}` }
                 });
                 
@@ -1065,7 +1065,7 @@
                 }
 
                 // Fetch Top 4 Recently Updated Repos
-                const reposRes = await fetch("https://api.github.com/user/repos?sort=updated&per_page=4", {
+                const reposRes = await fetch("http://127.0.0.1:8000/v1/github/user/repos?sort=updated&per_page=4", {
                     headers: { "Authorization": `Bearer ${session.token}` }
                 });
 

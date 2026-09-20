@@ -745,8 +745,8 @@
             }
 
             try {
-                const res = await fetch("https://api.github.com/user", {
-                    headers: { "Authorization": `Bearer ${token}` }
+                const res = await fetch("http://127.0.0.1:8000/v1/github/user", {
+                    headers: { "Authorization": `Bearer ${dbToken}` }
                 });
                 
                 if (res.ok) {
@@ -782,7 +782,7 @@
                     document.getElementById("detail-type").textContent = data.type;
 
                     // Account Activity
-                    document.getElementById("detail-token").textContent = `${token.substring(0, 8)}... (Valid)`;
+                    document.getElementById("detail-token").textContent = `${dbToken.substring(0, 8)}... (Valid)`;
                     document.getElementById("detail-created-at").textContent = new Date(data.created_at).toLocaleDateString();
                     document.getElementById("detail-updated-at").textContent = new Date(data.updated_at).toLocaleDateString();
                 }

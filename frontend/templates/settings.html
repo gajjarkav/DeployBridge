@@ -1622,7 +1622,7 @@
             }
 
             try {
-                const userRes = await fetch("https://api.github.com/user", {
+                const userRes = await fetch("http://127.0.0.1:8000/v1/github/user", {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
 

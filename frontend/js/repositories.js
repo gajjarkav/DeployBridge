@@ -21,8 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
 window.openRepoModal = openRepoModal;
 window.closeRepoModal = closeRepoModal;
 window.retryFetchRepoInfo = retryFetchRepoInfo;
-window.toggleReadmeSection = toggleReadmeSection;
-window.toggleBranchesSection = toggleBranchesSection;
+// window.toggleReadmeSection = toggleReadmeSection;
+// window.toggleBranchesSection = toggleBranchesSection;
 
 function handleGlobalKeydown(event) {
     // Close modal on Escape key
@@ -42,7 +42,7 @@ async function fetchAndRenderRepos(token) {
     const tableBody = document.getElementById("repo-table-body");
 
     try {
-        const response = await fetch("https://api.github.com/user/repos?sort=updated&per_page=50", {
+        const response = await fetch("http://127.0.0.1:8000/v1/github/user/repos?sort=updated&per_page=50", {
             headers: {
                 "Authorization": `Bearer ${token}`,
             },
@@ -148,8 +148,10 @@ function closeRepoModal() {
     currentRepoName = '';
 
     // Hide readme section when closing
-    document.getElementById('readme-section').style.display = 'none';
-    document.getElementById('btn-toggle-readme').classList.remove('active');
+    const readmeSection = document.getElementById('readme-section');
+    if (readmeSection) readmeSection.style.display = 'none';
+    const btnToggleReadme = document.getElementById('btn-toggle-readme');
+    if (btnToggleReadme) btnToggleReadme.classList.remove('active');
 }
 
 /**
