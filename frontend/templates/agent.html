@@ -16,6 +16,7 @@
 
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
+        @import url('https://fonts.googleapis.com/css2?family=Montenegrin+Gothic+One&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
         :root {
@@ -30,6 +31,9 @@
             --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
             --grid-color: rgba(0, 0, 0, 0.05);
+
+            --group-bg: rgba(0, 0, 0, 0.025);
+            --group-border: rgba(0, 0, 0, 0.08);
 
             --status-success-bg: rgba(34, 197, 94, 0.15);
             --status-success-text: #15803d;
@@ -54,6 +58,10 @@
             --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
             --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.6);
             --grid-color: rgba(245, 245, 220, 0.05);
+
+            --group-bg: rgba(255, 255, 250, 0.03);
+            --group-border: rgba(245, 245, 220, 0.1);
+
             --status-success-bg: rgba(34, 197, 94, 0.2);
             --status-success-text: #4ade80;
             --status-danger-bg: rgba(239, 68, 68, 0.2);
@@ -68,26 +76,30 @@
         }
 
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: var(--bg-color);
             color: var(--text-color);
             height: 100vh;
             overflow: hidden;
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
             background-image:
                 linear-gradient(0deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent),
                 linear-gradient(90deg, transparent 24%, var(--grid-color) 25%, var(--grid-color) 26%, transparent 27%, transparent 74%, var(--grid-color) 75%, var(--grid-color) 76%, transparent 77%, transparent);
             background-size: 55px 55px;
         }
 
+        /* ─── App Shell ─── */
         .app-shell {
             display: flex;
             flex-direction: row;
             width: 100vw;
             height: 100vh;
             overflow: hidden;
+            position: relative;
+            z-index: 10;
         }
 
-        /* Sidebar (compact — copied from other pages) */
+        /* ─── Sidebar ─── */
         .sidebar {
             width: 260px;
             height: 100%;
@@ -95,112 +107,386 @@
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 24px 16px;
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
+            z-index: 30;
+            flex-shrink: 0;
+            position: relative;
         }
 
         .sidebar-header {
-            padding: 20px 16px;
-            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            padding: 12px 16px;
+            background: var(--group-bg);
+            border: 1px solid var(--group-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
         }
 
-        .sidebar-header img {
-            width: 28px;
-            height: 28px;
-            vertical-align: middle;
+        .sidebar-header:hover {
+            background: var(--primary-hover);
         }
 
-        .sidebar-header .brand {
+        .sidebar-header input {
+            display: none;
+        }
+
+        .sidebar-header .chevron-right {
+            width: 12px;
+            height: 12px;
+            fill: var(--text-color);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), fill 0.25s ease;
+            flex-shrink: 0;
+            transform: rotate(180deg);
+        }
+
+        .sidebar-header:hover .chevron-right {
+            fill: var(--primary-color);
+        }
+
+        .sidebar-header input:checked ~ .chevron-right {
+            transform: rotate(0deg);
+        }
+
+        .brand-lockup {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .brand-mark {
+            font-family: "Montenegrin Gothic One", serif;
+            font-size: 24px;
+            color: var(--primary-color);
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .brand-copy {
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.25s ease;
+            justify-content: center;
+        }
+
+        .brand-copy strong {
+            font-family: "Ubuntu", sans-serif;
+            font-size: 15px;
             font-weight: 700;
-            font-size: 14px;
-            vertical-align: middle;
-            margin-left: 8px;
+            line-height: 1.1;
         }
 
+        .brand-copy span {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 2px;
+        }
+
+        /* ─── Sidebar Nav ─── */
         .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             flex: 1;
-            padding: 16px 12px;
-            overflow-y: auto;
         }
 
         .nav-group {
-            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            background: var(--group-bg);
+            border: 1px solid var(--group-border);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .nav-link {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 12px;
-            border-radius: 6px;
+            padding: 12px 16px;
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid var(--group-border);
+            background: transparent;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
             text-decoration: none;
             color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.15s ease;
-            cursor: pointer;
-            margin-bottom: 4px;
+            font-weight: 600;
+            font-size: 13.5px;
+            transition: all 0.25s ease;
+            position: relative;
+            white-space: nowrap;
         }
 
-        .nav-link:hover {
-            background: var(--primary-light);
-            color: var(--text-color);
-        }
-
-        .nav-link[data-active="true"] {
-            background: var(--primary-light);
-            color: var(--primary-color);
+        .nav-link:last-child {
+            border-bottom: none;
         }
 
         .nav-link svg {
-            width: 16px;
-            height: 16px;
             flex-shrink: 0;
+            width: 17px;
+            height: 17px;
         }
 
-        .nav-link span {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .nav-link:hover {
+            background: var(--primary-hover);
+            color: var(--primary-color);
+        }
+
+        .nav-link[data-active="true"] {
+            background: var(--primary-color);
+            color: var(--bg-color);
+        }
+
+        .nav-link[data-active="true"] svg {
+            color: var(--bg-color);
+        }
+
+        .logout-link {
+            color: #ef4444 !important;
+        }
+
+        .logout-link svg {
+            color: #ef4444 !important;
+        }
+
+        .logout-link:hover {
+            background: rgba(239, 68, 68, 0.1) !important;
+            color: #dc2626 !important;
+        }
+
+        [data-theme="dark"] .logout-link:hover {
+            background: rgba(239, 68, 68, 0.15) !important;
+            color: #f87171 !important;
         }
 
         .sidebar-bottom {
-            border-top: 1px solid var(--border-color);
-            padding: 12px;
-        }
-
-        /* Main area */
-        .main {
-            flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            margin-top: auto;
+            padding-top: 14px;
         }
 
-        /* Top bar */
+        /* ─── Collapsed Sidebar ─── */
+        .app-shell.collapsed .sidebar {
+            width: 72px;
+            padding: 24px 10px;
+        }
+
+        .app-shell.collapsed .brand-copy,
+        .app-shell.collapsed .nav-link span {
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+            left: 50px;
+        }
+
+        .app-shell.collapsed .brand-lockup {
+            display: none;
+        }
+
+        .app-shell.collapsed .sidebar-header {
+            justify-content: center;
+            padding: 12px 0;
+            margin-bottom: 32px;
+        }
+
+        .app-shell.collapsed .nav-link {
+            justify-content: center;
+            padding: 14px 0;
+        }
+
+        .app-shell.collapsed .nav-link::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%) translateX(12px);
+            background: var(--primary-color);
+            color: var(--bg-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-md);
+            z-index: 100;
+        }
+
+        .app-shell.collapsed .nav-link:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(16px);
+        }
+
+        /* ─── Main Shell ─── */
+        .main-shell {
+            flex: 1;
+            height: 100%;
+            min-width: 0;
+            overflow: hidden;
+            position: relative;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ─── Top Nav Bar ─── */
+        .top-nav {
+            position: absolute;
+            top: 20px;
+            right: 32px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            z-index: 50;
+        }
+
+        .docs-link {
+            font-family: "Ubuntu", sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-color);
+            text-decoration: underline;
+            text-decoration-color: transparent;
+            text-underline-offset: 6px;
+            text-decoration-thickness: 2px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .docs-link:hover {
+            color: var(--primary-color);
+            text-decoration-color: var(--primary-color);
+        }
+
+        .themeToggle {
+            color: var(--primary-color);
+            width: 22px;
+            height: 22px;
+        }
+
+        .st-sunMoonThemeToggleBtn {
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput {
+            opacity: 0;
+            width: 100%;
+            aspect-ratio: 1;
+            position: absolute;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .st-sunMoonThemeToggleBtn svg {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: rotate(40deg);
+        }
+
+        .st-sunMoonThemeToggleBtn svg .sunMoon {
+            transform-origin: center;
+            transition: inherit;
+            transform: scale(1);
+        }
+
+        .st-sunMoonThemeToggleBtn svg .sunRay {
+            transform-origin: center;
+            transform: scale(0);
+        }
+
+        .st-sunMoonThemeToggleBtn svg mask > circle {
+            transition: transform 0.64s cubic-bezier(.41, .64, .32, 1.575);
+            transform: translate(0, 0);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg {
+            transform: rotate(90deg);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg mask > circle {
+            transform: translate(16px, -3px);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg .sunMoon {
+            transform: scale(.55);
+        }
+
+        .st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg .sunRay {
+            animation: showRay1832 .4s ease forwards;
+        }
+
+        @keyframes showRay1832 {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        /* ─── Top Bar (page header) ─── */
         .topbar {
-            padding: 14px 24px;
+            padding: 18px 32px;
+            padding-top: 64px;
             border-bottom: 1px solid var(--border-color);
             background: var(--surface-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .topbar h1 {
-            font-size: 18px;
-            font-weight: 600;
+            font-family: "Ubuntu", sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1;
         }
 
-        .topbar .agent-badge {
+        .agent-badge {
             background: var(--agent-accent);
             color: #fff;
-            padding: 4px 12px;
-            border-radius: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
             font-size: 11px;
             font-weight: 700;
+            letter-spacing: 0.05em;
         }
 
-        /* Chat layout */
+        /* ─── Chat Layout ─── */
         .chat-container {
             flex: 1;
             display: flex;
@@ -211,68 +497,117 @@
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 24px;
+            padding: 32px;
         }
 
         .chat-empty {
-            text-align: center;
-            padding: 80px 20px;
-            color: var(--text-muted);
+            padding: 80px 20px 40px;
+            display: flex;
+            justify-content: center;
         }
 
-        .chat-empty .icon {
-            font-size: 48px;
-            opacity: 0.3;
-            margin-bottom: 16px;
+        .chat-empty-content {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            max-width: 680px;
+            width: 100%;
+        }
+
+        .bento-hero {
+            text-align: center;
+            padding: 10px 20px;
+        }
+
+        .agent-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.15));
+            color: var(--agent-accent);
+            margin: 0 auto 20px;
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.1);
+        }
+
+        .agent-logo svg {
+            width: 32px;
+            height: 32px;
         }
 
         .chat-empty h2 {
-            font-size: 22px;
-            margin-bottom: 8px;
+            font-family: "Ubuntu", sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
             color: var(--text-color);
         }
 
         .chat-empty p {
             font-size: 14px;
-            line-height: 1.6;
-            max-width: 480px;
-            margin: 0 auto 24px;
+            line-height: 1.7;
+            margin: 0;
+            color: var(--text-muted);
         }
 
         .chat-empty .examples {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            max-width: 600px;
-            margin: 0 auto;
+            border: 1px solid var(--group-border);
+            border-radius: 20px;
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: var(--shadow-sm);
+            background: transparent;
         }
 
         .example-card {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 24px;
             cursor: pointer;
             text-align: left;
             font-size: 13px;
             color: var(--text-color);
-            transition: all 0.15s;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .example-card:nth-child(1) {
+            border-bottom: 1px solid var(--group-border);
+            border-right: 1px solid var(--group-border);
+        }
+        .example-card:nth-child(2) {
+            border-bottom: 1px solid var(--group-border);
+        }
+        .example-card:nth-child(3) {
+            border-right: 1px solid var(--group-border);
         }
 
         .example-card:hover {
             background: var(--primary-light);
-            border-color: var(--agent-accent);
         }
 
         .example-card .tag {
-            color: var(--text-muted);
+            color: var(--agent-accent);
             font-size: 11px;
             font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            letter-spacing: 0.05em;
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
-        /* Message bubble */
+        /* ─── Message Bubbles ─── */
         .msg {
             max-width: 760px;
             margin: 0 auto 16px;
@@ -317,11 +652,11 @@
             text-align: right;
         }
 
-        /* Plan card (Approve/Cancel) */
+        /* ─── Plan Card ─── */
         .plan-card {
             background: var(--status-warning-bg);
             border: 1px solid var(--status-warning-text);
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 14px 16px;
             margin: 8px 0;
         }
@@ -385,7 +720,7 @@
             font-size: 12px;
         }
 
-        /* Trace (collapsible tool-call log under each assistant message) */
+        /* ─── Trace ─── */
         .trace {
             margin-top: 8px;
             padding: 6px 10px;
@@ -411,26 +746,35 @@
             padding: 2px 0;
         }
 
-        /* Input bar */
+        /* ─── Input Bar ─── */
         .chat-input-bar {
-            padding: 16px 24px;
+            padding: 16px 32px;
             border-top: 1px solid var(--border-color);
             background: var(--surface-color);
+            flex-shrink: 0;
         }
 
         .chat-input-wrapper {
             max-width: 760px;
             margin: 0 auto;
             display: flex;
-            gap: 8px;
+            align-items: stretch;
+            border: 1px solid var(--group-border);
+            border-radius: 50px;
+            background: var(--bg-color);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .chat-input-wrapper:focus-within {
+            border-color: var(--agent-accent);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
         }
 
         .chat-input {
             flex: 1;
-            padding: 12px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-color);
+            padding: 14px 24px;
+            border: none;
+            background: transparent;
             color: var(--text-color);
             font-size: 14px;
             font-family: inherit;
@@ -438,35 +782,47 @@
 
         .chat-input:focus {
             outline: none;
-            border-color: var(--agent-accent);
         }
 
         .chat-send {
-            background: var(--agent-accent);
-            color: #fff;
+            background: transparent;
+            color: var(--agent-accent);
             border: none;
-            padding: 0 20px;
-            border-radius: 8px;
-            font-weight: 600;
+            border-left: 1px solid var(--group-border);
+            padding: 0 28px;
+            border-radius: 0 50px 50px 0;
+            font-weight: 700;
+            font-size: 14px;
             cursor: pointer;
-            transition: opacity 0.15s;
+            transition: background 0.15s, opacity 0.15s;
+            font-family: "Ubuntu", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-send:hover {
+            background: rgba(139, 92, 246, 0.1);
         }
 
         .chat-send:disabled {
-            opacity: 0.5;
+            opacity: 0.45;
             cursor: not-allowed;
+            transform: none;
         }
 
+        /* ─── Action Buttons ─── */
         .btn-primary-action {
             background: var(--status-success-text);
             color: #fff;
             border: none;
             padding: 8px 16px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: opacity 0.15s;
+            font-family: "Ubuntu", sans-serif;
         }
 
         .btn-primary-action:hover {
@@ -478,13 +834,19 @@
             color: var(--text-color);
             border: 1px solid var(--border-color);
             padding: 8px 16px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
+            transition: background 0.15s;
+            font-family: "Ubuntu", sans-serif;
         }
 
-        /* Typing indicator */
+        .btn-secondary-action:hover {
+            background: var(--primary-hover);
+        }
+
+        /* ─── Typing Indicator ─── */
         .typing {
             display: inline-flex;
             gap: 4px;
@@ -500,30 +862,15 @@
             animation: pulse 1.4s infinite;
         }
 
-        .typing .dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing .dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
+        .typing .dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing .dot:nth-child(3) { animation-delay: 0.4s; }
 
         @keyframes pulse {
-
-            0%,
-            60%,
-            100% {
-                transform: scale(1);
-                opacity: 0.5;
-            }
-
-            30% {
-                transform: scale(1.4);
-                opacity: 1;
-            }
+            0%, 60%, 100% { transform: scale(1); opacity: 0.5; }
+            30% { transform: scale(1.4); opacity: 1; }
         }
 
-        /* Toast */
+        /* ─── Toast ─── */
         .toast-notification {
             position: fixed;
             bottom: 24px;
@@ -531,34 +878,49 @@
             background: var(--surface-color);
             color: var(--text-color);
             padding: 12px 18px;
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 10px;
             transform: translateX(120%);
-            transition: transform 0.3s;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 9999;
+            font-size: 13px;
+            font-weight: 500;
         }
 
         .toast-notification.show {
             transform: translateX(0);
         }
 
-        /* Theme toggle */
+        /* Hidden input for theme */
         .themeToggleInput {
             display: none;
         }
     </style>
+    <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
     <div class="app-shell" id="appShell">
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <img src="https://github.com/identicons/deploybridge.png" alt="">
-                <span class="brand">DeployBridge</span>
-            </div>
+            <label class="sidebar-header" title="Toggle Sidebar">
+                <input type="checkbox" id="sidebarToggle" />
+                <div class="brand-lockup">
+                    <div class="brand-mark">DB</div>
+                    <div class="brand-copy">
+                        <strong>DeployBridge</strong>
+                        <span>Control Room</span>
+                    </div>
+                </div>
+                <svg viewBox="0 0 320 512" class="chevron-right">
+                    <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z">
+                    </path>
+                </svg>
+            </label>
+
             <nav class="sidebar-nav">
                 <div class="nav-group">
                     <a class="nav-link" href="./dashboard.html" data-tooltip="Overview">
@@ -582,11 +944,9 @@
                     <a class="nav-link" href="./deployments.html" data-tooltip="Deployments">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z">
+                            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z">
                             </path>
-                            <path
-                                d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z">
+                            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z">
                             </path>
                         </svg>
                         <span>Deployments</span>
@@ -596,6 +956,9 @@
                             stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
                         <span>My Reports</span>
                     </a>
@@ -612,60 +975,108 @@
                     </a>
                 </div>
             </nav>
+
             <div class="sidebar-bottom">
-                <a class="nav-link" href="./settings.html">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path
-                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                        </path>
-                    </svg>
-                    <span>Settings</span>
-                </a>
-                <button class="nav-link logout-link" type="button" data-logout>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    <span>Logout</span>
-                </button>
+                <div class="nav-group">
+                    <a class="nav-link" href="./settings.html" data-tooltip="Settings">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
+                        <span>Settings</span>
+                    </a>
+                    <a class="nav-link" href="./profile.html" data-tooltip="Profile">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Profile</span>
+                    </a>
+                    <button class="nav-link logout-link" type="button" data-tooltip="Logout" data-logout>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Logout</span>
+                    </button>
+                </div>
             </div>
         </aside>
 
-        <main class="main">
-            <div class="topbar">
-                <h1>Deployment Agent <span class="agent-badge">🤖 BETA</span></h1>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <button id="new-chat-btn" class="btn-secondary-action">+ New chat</button>
-                </div>
+        <main class="main-shell">
+            <!-- Floating top-right nav (Docs + theme toggle) -->
+            <div class="top-nav">
+                <a href="./docs.html" class="docs-link">Docs</a>
+                <label for="themeToggle" class="themeToggle st-sunMoonThemeToggleBtn">
+                    <input type="checkbox" id="themeToggle" class="themeToggleInput" aria-label="Toggle Theme" />
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" stroke="none">
+                        <mask id="moon-mask">
+                            <rect x="0" y="0" width="20" height="20" fill="white"></rect>
+                            <circle cx="11" cy="3" r="8" fill="black"></circle>
+                        </mask>
+                        <circle class="sunMoon" cx="10" cy="10" r="8" mask="url(#moon-mask)"></circle>
+                        <g>
+                            <circle class="sunRay sunRay1" cx="18" cy="10" r="1.5"></circle>
+                            <circle class="sunRay sunRay2" cx="14" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay sunRay3" cx="6" cy="16.928" r="1.5"></circle>
+                            <circle class="sunRay sunRay4" cx="2" cy="10" r="1.5"></circle>
+                            <circle class="sunRay sunRay5" cx="6" cy="3.1718" r="1.5"></circle>
+                            <circle class="sunRay sunRay6" cx="14" cy="3.1718" r="1.5"></circle>
+                        </g>
+                    </svg>
+                </label>
             </div>
 
+            <!-- Page Header -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1>Deployment Agent</h1>
+                    <span class="agent-badge">🤖 BETA</span>
+                </div>
+                <button id="new-chat-btn" class="btn-secondary-action">+ New chat</button>
+            </div>
+
+            <!-- Chat Area -->
             <div class="chat-container">
                 <div class="chat-messages" id="chat-messages">
                     <div class="chat-empty" id="chat-empty">
-                        <div class="icon">🤖</div>
-                        <h2>Your Deployment Agent</h2>
-                        <p>Deploy repos, diagnose failures, manage your sites — just by talking to it.
-                            The agent can read your repos, call Render/Pages APIs, and open PRs with fixes.
-                            Every side-effect action pauses for your approval first.</p>
-                        <div class="examples">
-                            <button class="example-card" data-q="deploy kumar/notes-api">
-                                <span class="tag">DEPLOY</span>
-                                "deploy kumar/notes-api"
-                            </button>
-                            <button class="example-card" data-q="what's the status of my sites?">
-                                <span class="tag">STATUS</span>
-                                "what's the status of my sites?"
-                            </button>
-                            <button class="example-card" data-q="why did my last deploy fail?">
-                                <span class="tag">DIAGNOSE</span>
-                                "why did my last deploy fail?"
-                            </button>
-                            <button class="example-card" data-q="redeploy notes-api">
-                                <span class="tag">ACTION</span>
-                                "redeploy notes-api"
-                            </button>
+                        <div class="chat-empty-content">
+                            <div class="bento-hero">
+                                <div class="agent-logo">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                    </svg>
+                                </div>
+                                <h2>Your Deployment Agent</h2>
+                                <p>Deploy repos, diagnose failures, manage your sites — just by talking to it.
+                                    The agent can read your repos, call Render/Pages APIs, and open PRs with fixes.
+                                    Every side-effect action pauses for your approval first.</p>
+                            </div>
+                            <div class="examples">
+                                <button class="example-card" data-q="deploy kumar/notes-api">
+                                    <span class="tag">Deploy</span>
+                                    "deploy kumar/notes-api"
+                                </button>
+                                <button class="example-card" data-q="what's the status of my sites?">
+                                    <span class="tag">Status</span>
+                                    "what's the status of my sites?"
+                                </button>
+                                <button class="example-card" data-q="why did my last deploy fail?">
+                                    <span class="tag">Diagnose</span>
+                                    "why did my last deploy fail?"
+                                </button>
+                                <button class="example-card" data-q="redeploy notes-api">
+                                    <span class="tag">Action</span>
+                                    "redeploy notes-api"
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -686,9 +1097,44 @@
         <span id="toast-text">Notification</span>
     </div>
 
+    <script src="../js/app-shell.js"></script>
     <script src="../js/agent.js"></script>
     <script>
-        // Theme + sidebar state persistence (same as other pages)
+        // Sidebar collapse toggle (same as other pages)
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const appShell = document.getElementById('appShell');
+
+        const sidebarCollapsed = localStorage.getItem('db_sidebar_collapsed') === 'true';
+        if (sidebarCollapsed) {
+            appShell.classList.add('collapsed');
+            if (sidebarToggle) sidebarToggle.checked = true;
+        }
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('change', () => {
+                const isCollapsed = sidebarToggle.checked;
+                appShell.classList.toggle('collapsed', isCollapsed);
+                localStorage.setItem('db_sidebar_collapsed', String(isCollapsed));
+            });
+        }
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const root = document.documentElement;
+
+        const currentTheme = localStorage.getItem('db_theme') || 'light';
+        root.setAttribute('data-theme', currentTheme);
+        if (themeToggle) themeToggle.checked = (currentTheme === 'light');
+
+        if (themeToggle) {
+            themeToggle.addEventListener('change', () => {
+                const next = themeToggle.checked ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                localStorage.setItem('db_theme', next);
+            });
+        }
+
+        // Logout
         const logoutButton = document.querySelector("[data-logout]");
         if (logoutButton) {
             logoutButton.addEventListener("click", () => {

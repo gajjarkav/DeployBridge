@@ -1287,13 +1287,140 @@
             return data;
         }
 
-        // Render deploy flow (NEW) — mirrors the Pages prompt-style flow
-        // for phase 1. The modal can be upgraded to a richer multi-step
-        // form later; this gets the core integration shipped.
+        // --- CUSTOM DIALOG UTILITIES ---
+        let customDialogResolve = null;
+
+        function closeCustomDialog() {
+            document.getElementById('db-custom-dialog-overlay').style.display = 'none';
+            if (customDialogResolve) {
+                customDialogResolve(null);
+                customDialogResolve = null;
+            }
+        }
+
+        function showCustomAlert(title, message) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('db-custom-dialog-overlay');
+                document.getElementById('custom-dialog-title').textContent = title;
+                document.getElementById('custom-dialog-body').innerHTML = `<p>${(message || '').toString().replace(/\\n/g, '<br>')}</p>`;
+                
+                const footer = document.getElementById('custom-dialog-footer');
+                footer.innerHTML = `<button class="cd-btn cd-btn-primary" id="cd-btn-ok">OK</button>`;
+                
+                overlay.style.display = 'flex';
+                
+                customDialogResolve = resolve;
+                
+                document.getElementById('cd-btn-ok').onclick = () => {
+                    overlay.style.display = 'none';
+                    customDialogResolve = null;
+                    resolve(true);
+                };
+            });
+        }
+
+        function showCustomConfirm(title, message) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('db-custom-dialog-overlay');
+                document.getElementById('custom-dialog-title').textContent = title;
+                document.getElementById('custom-dialog-body').innerHTML = `<p>${(message || '').toString().replace(/\\n/g, '<br>')}</p>`;
+                
+                const footer = document.getElementById('custom-dialog-footer');
+                footer.innerHTML = `
+                    <button class="cd-btn cd-btn-secondary" id="cd-btn-cancel">Cancel</button>
+                    <button class="cd-btn cd-btn-primary" id="cd-btn-confirm">Confirm</button>
+                `;
+                
+                overlay.style.display = 'flex';
+                
+                customDialogResolve = resolve;
+                
+                document.getElementById('cd-btn-cancel').onclick = () => {
+                    overlay.style.display = 'none';
+                    customDialogResolve = null;
+                    resolve(false);
+                };
+                
+                document.getElementById('cd-btn-confirm').onclick = () => {
+                    overlay.style.display = 'none';
+                    customDialogResolve = null;
+                    resolve(true);
+                };
+            });
+        }
+
+        function showRenderDeployModal(detectData, defaultName) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('db-custom-dialog-overlay');
+                document.getElementById('custom-dialog-title').textContent = "Deploy to Render";
+                
+                let bodyHtml = `
+                    <div class="cd-info-list">
+                        <div><strong>Runtime:</strong> ${detectData.runtime || 'Unknown'}</div>
+                        <div><strong>Branch:</strong> ${detectData.branch || 'main'}</div>
+                        <div><strong>Plan:</strong> ${detectData.plan || 'free'}</div>
+                        <div><strong>Reason:</strong> ${detectData.reason || 'Auto-detected'}</div>
+                    </div>
+                    
+                    <div id="cd-form-error" style="color: var(--status-danger-text); font-size: 0.85rem; margin-bottom: 12px; display: none;"></div>
+
+                    <div class="cd-input-group">
+                        <label>Service Name (becomes https://&lt;name&gt;.onrender.com)</label>
+                        <input type="text" id="cd-render-name" value="${defaultName}">
+                    </div>
+
+                    <div class="cd-input-group">
+                        <label>Build Command</label>
+                        <input type="text" id="cd-render-build" value="${detectData.build_command || ''}" placeholder="(none - Docker)">
+                    </div>
+
+                    <div class="cd-input-group">
+                        <label>Start Command</label>
+                        <input type="text" id="cd-render-start" value="${detectData.start_command || ''}" placeholder="(none - Docker)">
+                    </div>
+                `;
+                
+                document.getElementById('custom-dialog-body').innerHTML = bodyHtml;
+                
+                const footer = document.getElementById('custom-dialog-footer');
+                footer.innerHTML = `
+                    <button class="cd-btn cd-btn-secondary" id="cd-btn-cancel">Cancel</button>
+                    <button class="cd-btn cd-btn-primary" id="cd-btn-deploy">Deploy</button>
+                `;
+                
+                overlay.style.display = 'flex';
+                customDialogResolve = resolve;
+                
+                document.getElementById('cd-btn-cancel').onclick = () => {
+                    overlay.style.display = 'none';
+                    customDialogResolve = null;
+                    resolve(null);
+                };
+                
+                document.getElementById('cd-btn-deploy').onclick = () => {
+                    const svcName = document.getElementById('cd-render-name').value.trim();
+                    if (!svcName) {
+                        const err = document.getElementById('cd-form-error');
+                        err.textContent = "Service name cannot be empty.";
+                        err.style.display = 'block';
+                        return;
+                    }
+                    overlay.style.display = 'none';
+                    customDialogResolve = null;
+                    resolve({
+                        serviceName: svcName,
+                        buildCommand: document.getElementById('cd-render-build').value,
+                        startCommand: document.getElementById('cd-render-start').value
+                    });
+                };
+            });
+        }
+
+        // Render deploy flow
         window.deployToRender = async (owner, repository) => {
             const token = localStorage.getItem("db_session_token");
             if (!token) {
-                alert("Session expired. Please sign in again.");
+                await showCustomAlert("Session Expired", "Session expired. Please sign in again.");
                 return;
             }
 
@@ -1301,9 +1428,9 @@
                 // 1. Check Render is connected.
                 const status = await apiRequest("GET", "/render/status", token);
                 if (!status.connected) {
-                    const goSettings = confirm(
-                        "Render is not connected yet.\n\n" +
-                        "Open Settings → Integrations → Connect Render to paste your API key, then come back."
+                    const goSettings = await showCustomConfirm(
+                        "Render Not Connected",
+                        "Render is not connected yet.\\n\\nOpen Settings → Integrations → Connect Render to paste your API key, then come back."
                     );
                     if (goSettings) window.location.href = "./settings.html";
                     return;
@@ -1313,40 +1440,20 @@
                 const detectData = await apiRequest("POST", "/render/detect", token, { owner, repository });
                 console.log("[DeployBridge] Render detect:", detectData);
 
-                // 3. Prompt the user for service name + confirm runtime.
+                // 3. Prompt the user for service name + editable build/start via custom modal
                 const defaultName = `${repository}-${Math.floor(Math.random() * 9000 + 1000)}`.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60);
-                const serviceName = window.prompt(
-                    [
-                        `Detected Render runtime: ${detectData.runtime}`,
-                        `Branch: ${detectData.branch}`,
-                        `Build: ${detectData.build_command || "(none — Docker)"}`,
-                        `Start: ${detectData.start_command || "(none — Docker)"}`,
-                        `Plan: ${detectData.plan}`,
-                        `Reason: ${detectData.reason}`,
-                        "",
-                        "Pick a Render service name (becomes https://<name>.onrender.com):",
-                    ].join("\n"),
-                    defaultName
-                );
-                if (!serviceName) return;
-
-                // 4. Confirm before deploy.
-                const confirmed = window.confirm(
-                    `Create Render web service "${serviceName}" from ${owner}/${repository} on branch "${detectData.branch}"?\n\n` +
-                    `Runtime: ${detectData.runtime}\nPlan: ${detectData.plan}\n` +
-                    `Build: ${detectData.build_command || "(docker)"}\nStart: ${detectData.start_command || "(docker)"}`
-                );
-                if (!confirmed) return;
+                const modalResult = await showRenderDeployModal(detectData, defaultName);
+                if (!modalResult) return;
 
                 // 5. Fire the deploy request.
                 const deployBody = {
                     owner,
                     repository,
                     branch: detectData.branch,
-                    service_name: serviceName,
+                    service_name: modalResult.serviceName,
                     runtime: detectData.runtime,
-                    build_command: detectData.build_command,
-                    start_command: detectData.start_command,
+                    build_command: modalResult.buildCommand || null,
+                    start_command: modalResult.startCommand || null,
                     dockerfile_path: detectData.dockerfile_path || "./Dockerfile",
                     plan: detectData.plan || "free",
                     auto_deploy: true,
@@ -1356,18 +1463,19 @@
                 };
                 const deployData = await apiRequest("POST", "/render/deploy", token, deployBody);
 
-                alert(
+                await showCustomAlert(
+                    "Deployment Successful",
                     [
                         deployData.message,
                         `Service ID: ${deployData.service_id}`,
                         `Deploy ID: ${deployData.deploy_id}`,
                         deployData.service_url ? `URL: ${deployData.service_url}` : "",
                         deployData.dashboard_url ? `Dashboard: ${deployData.dashboard_url}` : "",
-                    ].filter(Boolean).join("\n")
+                    ].filter(Boolean).join("\\n")
                 );
             } catch (error) {
                 console.error("[DeployBridge] Render deploy failed", error);
-                alert(error.message || "Render deployment failed.");
+                await showCustomAlert("Deployment Failed", error.message || "Render deployment failed.");
             }
         };
 
@@ -1376,7 +1484,7 @@
         window.analyzeRepo = async (owner, repoName) => {
             // v0: wake the AI agent — open the repo modal and auto-trigger report generation.
             if (!owner || !repoName) {
-                alert('Repository owner or name missing — please refresh and try again.');
+                await showCustomAlert("Missing Data", "Repository owner or name missing — please refresh and try again.");
                 return;
             }
             // Open the modal with full repo info (existing flow), then trigger the AI report.
@@ -1392,7 +1500,7 @@
             const token = localStorage.getItem("db_session_token");
 
             if (!token) {
-                alert("GitHub login session is missing. Please sign in again.");
+                await showCustomAlert("Session Expired", "GitHub login session is missing. Please sign in again.");
                 return;
             }
 
@@ -1402,19 +1510,15 @@
                     repository,
                 });
 
-                // NEW: backend can recommend Render when the repo is a server
-                // app (express/fastapi/dockerfile/non-static Next.js, etc.).
-                // In that case, Pages detect returns detected_profile=null and
-                // recommended_platform="render" — we route the user to the
-                // Render flow with their consent instead of failing.
                 if (detectData.recommended_platform === "render") {
-                    const goRender = window.confirm(
+                    const goRender = await showCustomConfirm(
+                        "Deploy to Render",
                         [
                             `This repo looks like a server app — GitHub Pages can't host it.`,
                             `Reason: ${detectData.reason}`,
                             ``,
-                            `Deploy "${repository}" to Render instead?`,
-                        ].join("\n")
+                            `Would you like to deploy to <span style="color: var(--primary-color); font-weight: bold;">Render</span> instead?`,
+                        ].join("\\n")
                     );
                     if (goRender) {
                         return window.deployToRender(owner, repository);
@@ -1422,35 +1526,8 @@
                     return;
                 }
 
-                const overrideInput = window.prompt(
-                    [
-                        `Detected profile for "${repository}": ${detectData.detected_profile}`,
-                        `Reason: ${detectData.reason}`,
-                        `Branch: ${detectData.branch}`,
-                        "",
-                        `Supported options: ${detectData.supported_profiles.join(", ")}`,
-                        'Type a profile name to override, or leave blank to use "auto".',
-                    ].join("\n"),
-                    "auto"
-                );
-
-                if (overrideInput === null) {
-                    return;
-                }
-
-                const selectedProfile = (overrideInput.trim() || "auto").toLowerCase();
-                if (!detectData.supported_profiles.includes(selectedProfile)) {
-                    alert(`Unsupported deployment profile: ${selectedProfile}`);
-                    return;
-                }
-
-                const confirmed = window.confirm(
-                    `Deploy "${repository}" to GitHub Pages using "${selectedProfile === "auto" ? detectData.detected_profile : selectedProfile}" on branch "${detectData.branch}"?`
-                );
-
-                if (!confirmed) {
-                    return;
-                }
+                const selectedProfile = await showPagesDeployModal(detectData, repository);
+                if (selectedProfile === null) return; // User cancelled
 
                 const deployData = await postGitHubPagesRequest("/github-pages/deploy", token, {
                     owner,
@@ -1481,17 +1558,18 @@
                     console.warn("Failed to store deployment record", e);
                 }
 
-                alert(
+                await showCustomAlert(
+                    "Deployment Successful",
                     [
                         deployData.message,
                         `Resolved profile: ${deployData.resolved_profile}`,
                         `Workflow: ${deployData.workflow_template}`,
                         `Branch: ${deployData.branch}`,
-                    ].join("\n")
+                    ].join("\\n")
                 );
             } catch (error) {
                 console.error("[DeployBridge] Deployment failed", error);
-                alert(error.message || "Deployment failed.");
+                await showCustomAlert("Deployment Failed", error.message || "Deployment failed.");
             }
         };
     </script>
@@ -1801,7 +1879,7 @@
             </div>
 
         </div>
-    </div>
+    
 
     <!-- Modal Styles -->
     <style>
@@ -2703,6 +2781,8 @@
                 padding: 16px;
             }
         }
+
+        
     </style>
 
     <script src="../js/app-shell.js"></script>

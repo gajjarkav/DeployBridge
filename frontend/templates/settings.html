@@ -1793,7 +1793,7 @@
                 renderDisconnectBtn.addEventListener("click", async () => {
                     if (renderDisconnectBtn.disabled) return;
                     if (!token) return;
-                    if (!confirm("Disconnect Render integration? Your existing Render services keep running, but DeployBridge will no longer be able to manage them.")) return;
+                    if (!(await window.showCustomConfirm("Disconnect Render", "Disconnect Render integration? Your existing Render services keep running, but DeployBridge will no longer be able to manage them."))) return;
                     try {
                         const res = await fetch(`${backendApiUrl}/render/connect`, {
                             method: "DELETE",
@@ -1803,7 +1803,7 @@
                         await loadRenderStatus();
                     } catch (err) {
                         console.error("Render disconnect error:", err);
-                        alert("Could not disconnect: " + err.message);
+                        window.showCustomAlert("Settings", "Could not disconnect: " + err.message);
                     }
                 });
             }

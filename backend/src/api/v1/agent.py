@@ -293,7 +293,7 @@ def _session_to_response(s: AgentSession) -> AgentSessionResponse:
 
 # Forward declaration of AgentMessageResponse builder — kept inline to keep
 # the file self-contained.
-from ...schemas.agent import AgentMessageResponse as AgentMessageResponseFor  # noqa: E402
+from ...schemas.agent import AgentMessageResponse as _AgentMessageResponseSchema  # noqa: E402
 
 
 def AgentMessageResponseFor(msg: AgentMessage):
@@ -307,7 +307,7 @@ def AgentMessageResponseFor(msg: AgentMessage):
             plan = _json.loads(msg.content)
         except (ValueError, TypeError):
             plan = None
-    return AgentMessageResponseFor(
+    return _AgentMessageResponseSchema(
         id=str(msg.id),
         role=msg.role,
         content=msg.content,

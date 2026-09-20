@@ -333,7 +333,7 @@ async function refreshOne(deploymentId) {
 }
 
 async function redeployOne(deploymentId) {
-    if (!confirm("Trigger a new deploy on the platform?")) return;
+    if (!(await window.showCustomConfirm("Deploy", "Trigger a new deploy on the platform?"))) return;
     try {
         const res = await fetch(`${BACKEND_API_URL}/deployments/${deploymentId}/redeploy`, {
             method: "POST",
@@ -351,7 +351,7 @@ async function redeployOne(deploymentId) {
 }
 
 async function deleteDeployment(deploymentId) {
-    if (!confirm("Remove this deployment from history?\n(The actual Render service / Pages site keeps running — only the history entry is removed.)")) return;
+    if (!(await window.showCustomConfirm("Remove Deployment", "Remove this deployment from history?\n(The actual Render service / Pages site keeps running — only the history entry is removed.)"))) return;
     try {
         const res = await fetch(`${BACKEND_API_URL}/deployments/${deploymentId}`, {
             method: "DELETE",
@@ -378,7 +378,7 @@ async function syncLiveStatuses() {
 }
 
 async function clearHistory() {
-    if (!confirm("Clear ALL failed/pending deployments from history?\n(Live ones will be kept.)")) return;
+    if (!(await window.showCustomConfirm("Clear History", "Clear ALL failed/pending deployments from history?\n(Live ones will be kept.)"))) return;
     // Delete every non-live deployment row
     const toDelete = allDeployments.filter((d) => d.status !== "live");
     await Promise.all(toDelete.map((d) =>

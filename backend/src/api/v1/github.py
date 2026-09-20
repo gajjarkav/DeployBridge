@@ -83,7 +83,7 @@ async def get_github_user(current_user: User = Depends(get_current_user)):
     
     token = decrypt_secret(current_user.github_token)
     
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await client.get(
             "https://api.github.com/user", 
             headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github.v3+json"}
@@ -101,7 +101,7 @@ async def get_github_user_repos(request: Request, current_user: User = Depends(g
     
     token = decrypt_secret(current_user.github_token)
     
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await client.get(
             "https://api.github.com/user/repos", 
             params=request.query_params,

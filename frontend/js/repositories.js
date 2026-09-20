@@ -1156,10 +1156,11 @@ async function generateAIReport(owner, repository) {
 }
 window.generateAIReport = generateAIReport;
 
-window.generateAIReportFromModal = () => {
+window.generateAIReportFromModal = async () => {
     if (currentRepoOwner && currentRepoName) {
         generateAIReport(currentRepoOwner, currentRepoName);
     } else {
-        alert("Cannot determine which repository to analyze. Please close and re-open the modal.");
+        await showCustomAlert("Error", "Cannot determine which repository to analyze. Please close and re-open the modal.");
+        return;
     }
 };

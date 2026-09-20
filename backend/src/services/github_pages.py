@@ -218,8 +218,12 @@ class GitHubPagesService:
         Returns False for static sites (html/jekyll/node-static/
         next-static) -- those keep going through GitHub Pages.
         """
-        if "dockerfile" in context.root_names:
-            return True, "Dockerfile detected at repository root."
+        if (
+            "dockerfile" in context.root_names
+            or "docker-compose.yml" in context.root_names
+            or "docker-compose.yaml" in context.root_names
+        ):
+            return True, "Docker configuration detected at repository root."
 
         all_deps = context.dependencies | context.dev_dependencies
         server_markers_hit = sorted(cls.SERVER_RUNTIME_MARKERS & all_deps)
@@ -343,7 +347,7 @@ class GitHubPagesService:
     ) -> dict[str, Any]:
         headers = cls._build_headers(github_token)
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
                 f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repository}",
                 headers=headers,
@@ -547,12 +551,29 @@ class GitHubPagesService:
         resolved_profile = requested_profile
         reason = cls._validate_profile_override(context, resolved_profile)
         return resolved_profile, reason
+    @classmethod
+    def _is_docker_repository(cls, context: RepositoryContext) -> bool:
+        return (
+            "dockerfile" in context.root_names
+            or "docker-compose.yml" in context.root_names
+            or "docker-compose.yaml" in context.root_names
+        )
 
     @classmethod
     def _detect_profile(
         cls,
         context: RepositoryContext,
     ) -> tuple[ResolvedDeploymentProfile, str]:
+        if cls._is_docker_repository(context):
+            raise GitHubAPIError(
+                message="Docker repository detected",
+                detail=(
+                    "DeployBridge detected this is a Docker-based repository (found Dockerfile or docker-compose.yml). "
+                    "GitHub Pages only supports static sites. To deploy a Docker application, please use the Render deployment option."
+                ),
+                status_code=400,
+            )
+
         next_signal = cls._has_next_signal(context)
         if next_signal:
             if cls._is_next_static_export(context):
@@ -744,7 +765,7 @@ class GitHubPagesService:
         keep_filenames = {keep_filename} if keep_filename else set()
         stale_workflows = sorted(all_workflows - keep_filenames)
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             for workflow_filename in stale_workflows:
                 url = cls._workflow_contents_url(owner, repository, workflow_filename)
                 get_response = await client.get(
@@ -788,7 +809,7 @@ class GitHubPagesService:
         url = cls._workflow_contents_url(owner, repository, profile_definition.workflow_filename)
 
         sha = None
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             get_response = await client.get(
                 url,
                 headers=headers,
@@ -840,7 +861,7 @@ class GitHubPagesService:
             },
         }
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             pages_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repository}/pages"
             pages_response = await client.get(pages_url, headers=headers)
 
@@ -882,7 +903,7 @@ class GitHubPagesService:
         print(f'  Triggering workflow_dispatch for "{workflow_filename}" on "{target_branch}"...')
 
         response = None
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             for attempt in range(1, 4):
                 response = await client.post(url, headers=headers, json=payload)
                 if response.status_code == 204:
@@ -1043,7 +1064,7 @@ class GitHubPagesService:
         **kwargs,
     ) -> httpx.Response:
         headers = cls._build_headers(github_token)
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.request(
                 method=method,
                 url=url,
@@ -1181,7 +1202,7 @@ class GitHubPagesService:
         )
         headers = cls._build_headers(github_token)
         existing_sha: str | None = None
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             get_resp = await client.get(cname_url, headers=headers)
             if get_resp.status_code == 200:
                 existing_sha = (get_resp.json() or {}).get("sha")
@@ -1263,7 +1284,7 @@ class GitHubPagesService:
 
         headers = cls._build_headers(github_token)
         pages_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repository}/pages"
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             get_resp = await client.get(pages_url, headers=headers)
             if get_resp.status_code != 200:
                 raise GitHubAPIError(
@@ -1337,6 +1358,6 @@ class GitHubPagesService:
         """
         headers = cls._build_headers(github_token)
         pages_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repository}/pages"
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.put(pages_url, headers=headers, json={"https_enforced": True})
             return resp.status_code in (200, 204)

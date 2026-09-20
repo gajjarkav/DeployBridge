@@ -326,7 +326,7 @@ class RenderService:
         image's CMD.
 
         Order of precedence (highest first):
-          1. Dockerfile in root      -> runtime=docker
+          1. Dockerfile or docker-compose in root -> runtime=docker
           2. Next.js non-static      -> runtime=node, start=npm start
           3. Python markers          -> runtime=python, start=uvicorn ...
           4. Node server frameworks  -> runtime=node, start=npm start
@@ -334,13 +334,18 @@ class RenderService:
                                         for repos with package.json)
         """
         # 1. Dockerfile takes precedence -- it's the most explicit signal.
-        if "dockerfile" in context.root_names:
+        if (
+            "dockerfile" in context.root_names
+            or "docker-compose.yml" in context.root_names
+            or "docker-compose.yaml" in context.root_names
+        ):
+            docker_file = "./Dockerfile" if "dockerfile" in context.root_names else "./docker-compose.yml"
             return (
                 "docker",
                 None,
                 None,
-                "./Dockerfile",
-                "Dockerfile detected at repository root. Render will build the image "
+                docker_file,
+                "Docker configuration detected at repository root. Render will build the image "
                 "and run its CMD.",
             )
 
@@ -702,8 +707,11 @@ class RenderService:
         except RenderError:
             pass
 
+        summary_dict = cls._to_summary(svc).model_dump()
+        summary_dict.pop("latest_deploy_status", None)
+        
         detail = RenderServiceDetail(
-            **cls._to_summary(svc).model_dump(),
+            **summary_dict,
             latest_deploy_id=latest_deploy_id,
             latest_deploy_commit=latest_commit,
             latest_deploy_trigger=latest_trigger,

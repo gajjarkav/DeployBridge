@@ -164,8 +164,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function deleteReport(id) {
-        if (!confirm("Are you sure you want to delete this report?")) return;
+    async async function deleteReport(id) {
+        if (!(await window.showCustomConfirm("Delete Report", "Are you sure you want to delete this report?"))) return;
         
         try {
             const res = await fetch(`${BACKEND_API_URL}/reports/${id}`, {
@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fetchReports(currentPage);
         } catch (error) {
             console.error(error);
-            alert("Error deleting report.");
+            window.showCustomAlert("Report", "Error deleting report.");
         }
     }
 
@@ -193,22 +193,22 @@ document.addEventListener("DOMContentLoaded", () => {
             window.open(url, '_blank');
         } catch (e) {
             console.error(e);
-            alert("Error downloading report");
+            window.showCustomAlert("Report", "Error downloading report");
         }
     }
 
     async function resendEmail(id) {
-        if (!confirm("Are you sure you want to resend this report via email?")) return;
+        if (!(await window.showCustomConfirm("Resend Report", "Are you sure you want to resend this report via email?"))) return;
         try {
             const res = await fetch(`${BACKEND_API_URL}/reports/${id}/send-email`, {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${session.dbSessionToken}` }
             });
             if (!res.ok) throw new Error("Failed to resend email");
-            alert("Email dispatch started!");
+            window.showCustomAlert("Report", "Email dispatch started!");
         } catch (e) {
             console.error(e);
-            alert("Error resending email");
+            window.showCustomAlert("Report", "Error resending email");
         }
     }
 

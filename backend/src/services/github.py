@@ -62,7 +62,7 @@ class GitHubService:
             "code": code,
         }
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await  client.post(cls.TOKEN_URL, data=data, headers=headers)
             response_data = response.json()
 
@@ -89,7 +89,7 @@ class GitHubService:
             "Accept": "application/vnd.github.v3+json",
         }
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             profile_response = await client.get(cls.USER_API_URL, headers=headers)
             if profile_response.status_code != 200:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Failed to fetch Github profile!🔴")
@@ -139,7 +139,7 @@ class GitHubService:
             - On failure: (None, error_description)
         """
         try:
-            response = await client.get(url, headers=headers, timeout=10.0)
+            response = await client.get(url, headers=headers, timeout=30.0)
 
             if response.status_code == 200:
                 return response.json(), None
@@ -649,7 +649,7 @@ class GitHubService:
         
         headers = cls._get_auth_headers(token)
         
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             basic_info = await cls._fetch_basic_info(client, headers, owner, repo)
             api_calls_made += 1
             
@@ -725,7 +725,7 @@ class GitHubService:
         headers = cls._get_auth_headers(token)
         url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
         
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             data, error = await cls._fetch_github_api(client, url, headers)
             
             if error or not data:
@@ -761,7 +761,7 @@ class GitHubService:
         headers = cls._get_auth_headers(token)
         url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/contents/{path}"
         
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             data, error = await cls._fetch_github_api(client, url, headers)
             
             if error or not data:
@@ -803,7 +803,7 @@ class GitHubService:
         """
         headers = cls._get_auth_headers(token)
         
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             # 1. Get default branch name and its latest commit SHA
             repo_url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}"
             repo_data, err = await cls._fetch_github_api(client, repo_url, headers)
@@ -907,7 +907,7 @@ class GitHubService:
             conclusion == "cancelled"     → deployment status "failed"
         """
         headers = cls._get_auth_headers(token)
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             if run_id is not None:
                 url = f"{cls.GITHUB_API_BASE_URL}/repos/{owner}/{repo}/actions/runs/{run_id}"
             else:

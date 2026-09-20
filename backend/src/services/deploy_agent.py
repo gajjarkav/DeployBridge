@@ -48,6 +48,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+import httpx
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -114,7 +115,7 @@ and answer questions about the user's deployment history.
 ## Tool taxonomy
 
 READ-ONLY (auto-approved): detect_stack, read_repo_file, get_render_status,
-get_render_logs, list_deployments.
+get_render_logs, list_deployments, list_repositories, analyze_repository.
 
 SIDE-EFFECT (need user approval): deploy_github_pages, deploy_render,
 create_pull_request, add_render_custom_domain.
@@ -236,6 +237,34 @@ READONLY_TOOLS = [
                 "properties": {
                     "limit": {"type": "integer", "description": "Max rows (default 10)", "default": 10},
                 },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_repositories",
+            "description": "List the authenticated user's GitHub repositories.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "limit": {"type": "integer", "description": "Max number of repos to return (default 50)", "default": 50},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "analyze_repository",
+            "description": "Fetch comprehensive information about a specific GitHub repository, including tech stack, branches, and commits.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "owner": {"type": "string"},
+                    "repo": {"type": "string"},
+                },
+                "required": ["owner", "repo"],
             },
         },
     },
@@ -826,6 +855,51 @@ class DeployAgentRunner:
                     f"profile={d.profile} url={d.url or 'n/a'}"
                 )
             return "\n".join(lines) if lines else "No deployments in history."
+
+        if name == "list_repositories":
+            limit = int(args.get("limit", 50))
+            token = self._github_token()
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github.v3+json"}
+                resp = await client.get(
+                    "https://api.github.com/user/repos", 
+                    params={"sort": "updated", "per_page": limit},
+                    headers=headers
+                )
+                if resp.status_code == 200:
+                    repos = resp.json()
+                    summary = []
+                    for r in repos:
+                        summary.append(f"- {r.get('full_name')} (stars: {r.get('stargazers_count')}, language: {r.get('language')})")
+                    if not summary:
+                        return "No repositories found."
+                    return "\n".join(summary)
+                else:
+                    return f"Failed to fetch repositories: {resp.status_code} {resp.text}"
+
+        if name == "analyze_repository":
+            owner = args.get("owner", "")
+            repo = args.get("repo", "")
+            token = self._github_token()
+            try:
+                info = await GitHubService.get_repository_info(token=token, owner=owner, repo=repo)
+                if not info.success:
+                    return f"Analysis failed: {info.message}"
+                
+                output = [f"Analysis for {owner}/{repo}:"]
+                b = info.basic_info
+                if b:
+                    output.append(f"Basic: {b.description} | Default branch: {b.default_branch} | Stars: {b.stars_count}")
+                if info.tech_stack:
+                    output.append(f"Tech Stack: Runtime={info.tech_stack.runtime}, Framework={info.tech_stack.framework}, BuildTool={info.tech_stack.build_tool}")
+                if info.languages and info.languages.languages:
+                    langs = [f"{l.name} ({l.percentage}%)" for l in info.languages.languages]
+                    output.append(f"Languages: {', '.join(langs)}")
+                if info.deployment_status:
+                    output.append(f"Deploy Status (Pages): enabled={info.deployment_status.enabled}, url={info.deployment_status.url}")
+                return "\n".join(output)
+            except Exception as exc:
+                return f"Analysis error: {str(exc)}"
 
         return f"Unknown readonly tool: {name}"
 
