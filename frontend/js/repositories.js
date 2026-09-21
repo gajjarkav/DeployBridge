@@ -13,6 +13,9 @@ let currentRepoName = "";
 // ============================================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+    const session = initializeAppShell("repositories");
+    if (!session) return;
+
     // Setup keyboard listener for modal close (Escape key)
     document.addEventListener('keydown', handleGlobalKeydown);
 });

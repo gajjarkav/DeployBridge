@@ -36,11 +36,9 @@ const chatSend = document.getElementById("chat-send");
 const newChatBtn = document.getElementById("new-chat-btn");
 
 window.onload = async () => {
-    sessionToken = localStorage.getItem("db_session_token");
-    if (!sessionToken) {
-        window.location.href = "./auth.html";
-        return;
-    }
+    const session = initializeAppShell("agent");
+    if (!session) return;
+    sessionToken = session.dbSessionToken;
 
     // If the user came from [🤖 Ask Agent] on a failed deployment card,
     // there's a pre-fill question in sessionStorage.

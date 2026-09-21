@@ -1,15 +1,8 @@
 const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
 
 document.addEventListener("DOMContentLoaded", () => {
-    const session = {
-        token: localStorage.getItem("db_session_token"),
-        dbSessionToken: localStorage.getItem("db_session_token"),
-    };
-
-    if (!session.dbSessionToken) {
-        window.location.href = "./auth.html";
-        return;
-    }
+    const session = initializeAppShell("reports");
+    if (!session) return;
 
     let currentPage = 1;
     const pageSize = 10;

@@ -9,8 +9,12 @@
 
     
     <!-- ADDED: Read theme immediately to prevent screen flashing (FOUC) -->
+    <script>
+        const savedTheme = localStorage.getItem('db_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="../js/reports.js"></script>
+    <script src="../js/reports.js"></script>
     
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
@@ -773,6 +777,7 @@
             z-index: 9999;
         }
     </style>
+    <script src="../js/app-shell.js"></script>
 </head>
 <body>
 
@@ -926,83 +931,7 @@
     </div>
 
     <script>
-        const appShell = document.getElementById("appShell");
-        const sidebarToggle = document.getElementById("sidebarToggle");
-        const themeToggle = document.getElementById("themeToggle");
-        const logoutButton = document.querySelector("[data-logout]");
-
-        // ADDED: Initialize the Theme Toggle switch to match the saved theme on load
-        if (themeToggle) {
-            themeToggle.checked = document.documentElement.getAttribute('data-theme') === 'dark';
-        }
-
-        // ADDED: Sidebar persistence logic
-        const savedSidebar = localStorage.getItem('db_sidebar_collapsed');
-        if (savedSidebar === 'true' && sidebarToggle && appShell) {
-            appShell.classList.add("collapsed");
-            sidebarToggle.checked = true;
-        }
-
-        sidebarToggle.addEventListener("change", (e) => {
-            if (e.target.checked) {
-                appShell.classList.add("collapsed");
-                localStorage.setItem('db_sidebar_collapsed', 'true');
-            } else {
-                appShell.classList.remove("collapsed");
-                localStorage.setItem('db_sidebar_collapsed', 'false');
-            }
-        });
-
-        themeToggle.addEventListener("change", () => {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const nextTheme = isDark ? 'light' : 'dark';
-            themeToggle.checked = nextTheme === "dark";
-
-            // ADDED: Save the new theme choice to LocalStorage
-            localStorage.setItem('db_theme', nextTheme);
-
-            if (!document.startViewTransition) {
-                document.documentElement.setAttribute('data-theme', nextTheme);
-                return;
-            }
-
-            const rect = themeToggle.getBoundingClientRect();
-            const x = rect.left + rect.width / 2;
-            const y = rect.top + rect.height / 2;
-            const endRadius = Math.hypot(
-                Math.max(x, window.innerWidth - x),
-                Math.max(y, window.innerHeight - y)
-            );
-
-            const transition = document.startViewTransition(() => {
-                document.documentElement.setAttribute('data-theme', nextTheme);
-            });
-
-            transition.ready.then(() => {
-                document.documentElement.animate(
-                    {
-                        clipPath: [
-                            `circle(0px at ${x}px ${y}px)`,
-                            `circle(${endRadius}px at ${x}px ${y}px)`
-                        ]
-                    },
-                    {
-                        duration: 550,
-                        easing: "ease-in-out",
-                        pseudoElement: "::view-transition-new(root)",
-                    }
-                );
-            });
-        });
-
-        if (logoutButton) {
-            logoutButton.addEventListener("click", () => {
-                localStorage.removeItem("gh_access_token");
-                localStorage.removeItem("db_session_token");
-                localStorage.removeItem("gh_username");
-                localStorage.removeItem("gh_avatar");
-                window.location.href = "./auth.html";
-            });
+        );
         }
 
     </script>

@@ -1,7 +1,8 @@
 const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
 
 window.onload = async () => {
-
+    applySavedTheme();
+    bindThemeButton();
     if (localStorage.getItem("db_session_token")) {
         window.location.href = "../templates/dashboard.html";
         return;

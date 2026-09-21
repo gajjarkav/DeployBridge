@@ -1,5 +1,5 @@
-const APP_THEME_KEY = "deploybridge_theme";
-const APP_SIDEBAR_KEY = "deploybridge_sidebar_collapsed";
+const APP_THEME_KEY = "db_theme";
+const APP_SIDEBAR_KEY = "db_sidebar_collapsed";
 const APP_DEPLOYMENTS_KEY = "deploybridge_recent_deployments";
 
 function getAuthSession() {
@@ -46,17 +46,81 @@ function applySavedTheme() {
     const storedTheme = localStorage.getItem(APP_THEME_KEY) || "light";
     document.documentElement.setAttribute("data-theme", storedTheme);
     updateThemeButtonLabel(storedTheme);
+    
+    // Sync any theme toggle checkboxes
+    document.querySelectorAll("[data-theme-toggle], #themeToggle").forEach(btn => {
+        if (btn.tagName === 'INPUT' && btn.type === 'checkbox') {
+            btn.checked = storedTheme === "dark";
+        }
+    });
 }
 
 function bindThemeButton() {
-    const buttons = document.querySelectorAll("[data-theme-toggle]");
+    const buttons = document.querySelectorAll("[data-theme-toggle], #themeToggle");
     buttons.forEach((button) => {
-        button.addEventListener("click", () => {
+        // Also handle change event if it's a checkbox
+        const toggleTheme = (e) => {
             const currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
             const nextTheme = currentTheme === "dark" ? "light" : "dark";
-            document.documentElement.setAttribute("data-theme", nextTheme);
+            
+            // If it's a checkbox/switch, keep it in sync
+            if (button.tagName === 'INPUT' && button.type === 'checkbox') {
+                button.checked = nextTheme === "dark";
+            }
+
             localStorage.setItem(APP_THEME_KEY, nextTheme);
             updateThemeButtonLabel(nextTheme);
+
+            if (!document.startViewTransition) {
+                document.documentElement.setAttribute("data-theme", nextTheme);
+                return;
+            }
+
+            // Get click coordinates or button center
+            let x = window.innerWidth / 2;
+            let y = window.innerHeight / 2;
+            if (e && e.clientX && e.clientY) {
+                x = e.clientX;
+                y = e.clientY;
+            } else if (button) {
+                const rect = button.getBoundingClientRect();
+                x = rect.left + rect.width / 2;
+                y = rect.top + rect.height / 2;
+            }
+
+            const endRadius = Math.hypot(
+                Math.max(x, window.innerWidth - x),
+                Math.max(y, window.innerHeight - y)
+            );
+
+            const transition = document.startViewTransition(() => {
+                document.documentElement.setAttribute("data-theme", nextTheme);
+            });
+
+            transition.ready.then(() => {
+                document.documentElement.animate(
+                    {
+                        clipPath: [
+                            `circle(0px at ${x}px ${y}px)`,
+                            `circle(${endRadius}px at ${x}px ${y}px)`
+                        ]
+                    },
+                    {
+                        duration: 550,
+                        easing: "ease-in-out",
+                        pseudoElement: "::view-transition-new(root)",
+                    }
+                );
+            });
+        };
+
+        button.addEventListener("click", (e) => {
+            // Prevent default if it's a checkbox to let our custom logic handle it,
+            // or just let it fire and update. For checkbox, 'change' is better but click is fine.
+            if (button.tagName !== 'INPUT') toggleTheme(e);
+        });
+        button.addEventListener("change", (e) => {
+            if (button.tagName === 'INPUT') toggleTheme(e);
         });
     });
 }
@@ -70,16 +134,42 @@ function updateThemeButtonLabel(theme) {
 
 function applySavedSidebarState() {
     const collapsed = localStorage.getItem(APP_SIDEBAR_KEY) === "true";
-    document.body.classList.toggle("sidebar-collapsed", collapsed);
+    const appShell = document.getElementById("appShell");
+    if (appShell) {
+        appShell.classList.toggle("collapsed", collapsed);
+    }
+    
+    // Sync any sidebar toggle checkboxes
+    document.querySelectorAll("[data-sidebar-toggle], #sidebarToggle").forEach(btn => {
+        if (btn.tagName === 'INPUT' && btn.type === 'checkbox') {
+            btn.checked = collapsed;
+        }
+    });
 }
 
 function bindSidebarButtons() {
-    const buttons = document.querySelectorAll("[data-sidebar-toggle]");
+    const buttons = document.querySelectorAll("[data-sidebar-toggle], #sidebarToggle");
     buttons.forEach((button) => {
-        button.addEventListener("click", () => {
-            const nextCollapsed = !document.body.classList.contains("sidebar-collapsed");
-            document.body.classList.toggle("sidebar-collapsed", nextCollapsed);
+        const toggleSidebar = (e) => {
+            let nextCollapsed;
+            const appShell = document.getElementById("appShell");
+            if (!appShell) return;
+
+            if (button.tagName === 'INPUT' && button.type === 'checkbox') {
+                nextCollapsed = button.checked;
+            } else {
+                nextCollapsed = !appShell.classList.contains("collapsed");
+            }
+            
+            appShell.classList.toggle("collapsed", nextCollapsed);
             localStorage.setItem(APP_SIDEBAR_KEY, String(nextCollapsed));
+        };
+
+        button.addEventListener("click", (e) => {
+            if (button.tagName !== 'INPUT') toggleSidebar(e);
+        });
+        button.addEventListener("change", (e) => {
+            if (button.tagName === 'INPUT') toggleSidebar(e);
         });
     });
 }

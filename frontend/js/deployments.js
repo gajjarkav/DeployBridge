@@ -38,11 +38,9 @@ const AUTO_REFRESH_INTERVAL_MS = 8000;
 // ============================================================================
 
 window.onload = async () => {
-    sessionToken = localStorage.getItem("db_session_token");
-    if (!sessionToken) {
-        window.location.href = "./auth.html";
-        return;
-    }
+    const session = initializeAppShell("deployments");
+    if (!session) return;
+    sessionToken = session.dbSessionToken;
 
     hydrateUserInfo();
     bindEvents();

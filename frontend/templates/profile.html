@@ -481,6 +481,7 @@
             .stat-cell:nth-child(5) { border-top: none; }
         }
     </style>
+    <script src="../js/app-shell.js"></script>
 </head>
 <body>
     <div class="app-shell" id="appShell">
@@ -662,80 +663,17 @@
     </div>
 
     <script>
-        const appShell = document.getElementById("appShell");
-        const sidebarToggle = document.getElementById("sidebarToggle");
-        const themeToggle = document.getElementById("themeToggle");
-        const logoutButtons = document.querySelectorAll("[data-logout]");
-
-        // Sidebar logic
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener("change", (e) => {
-                if (e.target.checked) {
-                    appShell.classList.add("collapsed");
-                } else {
-                    appShell.classList.remove("collapsed");
-                }
-            });
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof initializeAppShell === 'function') {
+                initializeAppShell("profile");
+            }
+        });
 
         // Accordion logic
         document.querySelectorAll('.accordion-header').forEach(header => {
             header.addEventListener('click', () => {
                 const section = header.parentElement;
                 section.classList.toggle('open');
-            });
-        });
-
-        // Logout logic
-        if (logoutButtons) {
-            logoutButtons.forEach(btn => {
-                btn.addEventListener("click", () => {
-                    localStorage.removeItem("gh_access_token");
-                    localStorage.removeItem("db_session_token");
-                    localStorage.removeItem("gh_username");
-                    localStorage.removeItem("gh_avatar");
-                    window.location.href = "./auth.html";
-                });
-            });
-        }
-
-        // Theme logic exactly matching Dashboard
-        themeToggle.addEventListener("change", () => {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const nextTheme = isDark ? 'light' : 'dark';
-            themeToggle.checked = nextTheme === "dark";
-
-            if (!document.startViewTransition) {
-                document.documentElement.setAttribute('data-theme', nextTheme);
-                return;
-            }
-
-            const rect = themeToggle.getBoundingClientRect();
-            const x = rect.left + rect.width / 2;
-            const y = rect.top + rect.height / 2;
-            const endRadius = Math.hypot(
-                Math.max(x, window.innerWidth - x),
-                Math.max(y, window.innerHeight - y)
-            );
-
-            const transition = document.startViewTransition(() => {
-                document.documentElement.setAttribute('data-theme', nextTheme);
-            });
-
-            transition.ready.then(() => {
-                document.documentElement.animate(
-                    {
-                        clipPath: [
-                            `circle(0px at ${x}px ${y}px)`,
-                            `circle(${endRadius}px at ${x}px ${y}px)`
-                        ]
-                    },
-                    {
-                        duration: 550,
-                        easing: "ease-in-out",
-                        pseudoElement: "::view-transition-new(root)",
-                    }
-                );
             });
         });
 
