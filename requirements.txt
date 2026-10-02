@@ -62,10 +62,7 @@ click==8.4.1
 cloudinary==1.46.2
 cryptography==49.0.0
 cssselect2==0.10.1
-# Editable install with no version control (deploybridge_tree==0.1.0)
--e /home/gajjarkav/Desktop/Hell/DeployBridgeClgPr7thSem/DeployBridge/deploybridge_tree
-# Editable install with no version control (deploybridgetree==0.1.0)
--e /home/gajjarkav/Desktop/Hell/DeployBridgeClgPr7thSem/DeployBridge/deploybridgetree
+
 ecdsa==0.19.2
 fastapi==0.137.2
 frozenlist==1.8.0
@@ -149,10 +146,7 @@ cloudinary==1.46.2
 coverage==7.16.1
 cryptography==49.0.0
 cssselect2==0.10.1
-# Editable install with no version control (deploybridge_tree==0.1.0)
--e /home/gajjarkav/Desktop/Hell/DeployBridgeClgPr7thSem/DeployBridge/deploybridge_tree
-# Editable install with no version control (deploybridgetree==0.1.0)
--e /home/gajjarkav/Desktop/Hell/DeployBridgeClgPr7thSem/DeployBridge/deploybridgetree
+
 ecdsa==0.19.2
 fastapi==0.137.2
 frozenlist==1.8.0
@@ -251,7 +245,7 @@ pyxdg==0.28
 Reflector==2023.6.28.0.36.1
 shtab==1.12.0
 smbus==1.1
-TBB @ file:///startdir/src/build/python/python_build
+
 typing-inspection==0.4.4
 typing_extensions==4.16.0
 ufw==0.36.2
