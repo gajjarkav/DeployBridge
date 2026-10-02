@@ -1030,9 +1030,6 @@
     </div>
 
     <script>
-        );
-        }
-
         // Fetch Logic Based on Provided Context
         document.addEventListener("DOMContentLoaded", async () => {
             const token = localStorage.getItem("db_session_token");
@@ -1074,64 +1071,7 @@
                     if (privateReposEl) privateReposEl.textContent = userData.total_private_repos !== undefined ? privateCount : "N/A";
                 }
 
-                // Fetch up to 50 Repositories
-                const response = await fetch("http://127.0.0.1:8000/v1/github/user/repos?sort=updated&per_page=50", {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
 
-                if (!response.ok) throw new Error("Failed to fetch repositories.");
-                const repos = await response.json();
-
-                repoCountEl.textContent = String(repos.length);
-
-                // Setup header template
-                const headerHtml = `
-                    <div class="card-table__row header-row">
-                        <div class="card-table__item hide-on-mobile">#</div>
-                        <div class="card-table__item">Repository</div>
-                        <div class="card-table__item hide-on-mobile">Language</div>
-                        <div class="card-table__item hide-on-mobile">Visibility</div>
-                        <div class="card-table__item">Status</div>
-                        <div class="card-table__item hide-on-tablet">Updated</div>
-                        <div class="card-table__item">Actions</div>
-                    </div>
-                `;
-                tableBody.innerHTML = headerHtml;
-
-                // Render Repos
-                repos.forEach((repo, index) => {
-                    const updatedAt = new Date(repo.updated_at).toLocaleDateString("en-US", {
-                        year: "numeric", month: "short", day: "numeric",
-                    });
-
-                    const isArchived = repo.archived;
-                    const isDisabled = repo.disabled;
-                    const statusText = isArchived ? "Archived" : (isDisabled ? "Disabled" : "Active");
-                    const statusClass = (isArchived || isDisabled) ? "status-danger" : "status-success";
-
-                    const visibilityColor = repo.private ? 'var(--status-danger-text)' : 'var(--status-success-text)';
-                    const visibilityText = repo.private ? 'Private' : 'Public';
-                    const indexStr = (index + 1).toString().padStart(2, '0');
-
-                    const rowHtml = `
-                        <div class="card-table__row">
-                            <div class="card-table__item hide-on-mobile">${indexStr}</div>
-                            <div class="card-table__item" style="font-weight:bold;">${repo.name}</div>
-                            <div class="card-table__item hide-on-mobile">${repo.language || "Unknown"}</div>
-                            <div class="card-table__item hide-on-mobile"><span style="color:${visibilityColor};">${visibilityText}</span></div>
-                            <div class="card-table__item"><span class="status-chip ${statusClass}">${statusText}</span></div>
-                            <div class="card-table__item hide-on-tablet">${updatedAt}</div>
-                            <div class="card-table__item">
-                                <div class="action-group">
-                                    <button class="action-btn" onclick="openRepoModal('${repo.owner?.login || ""}','${repo.name}', '${repo.html_url}')"><span class="btn-label">View</span><span class="btn-icon">&emsp;👁&emsp;</span></button>
-                                    <button class="action-btn" onclick="window.analyzeRepo('${repo.owner?.login || ""}','${repo.name}')"><span class="btn-label">Analyze</span><span class="btn-icon">&emsp;⚡&emsp;</span></button>
-                                    <button class="action-btn" onclick="window.deployGitHubPages('${repo.owner?.login || ""}','${repo.name}')"><span class="btn-label">Deploy</span><span class="btn-icon">&emsp;🚀&emsp;</span></button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    tableBody.insertAdjacentHTML('beforeend', rowHtml);
-                });
 
                 syncStatus.textContent = "STATUS: ONLINE";
                 syncStatus.style.color = "var(--status-success-text)";
@@ -1164,7 +1104,7 @@
             `;
         }
 
-        const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
+
 
         async function postGitHubPagesRequest(path, token, body) {
             console.log(`[DeployBridge] POST ${BACKEND_API_URL}${path}`, body);
@@ -2705,12 +2645,39 @@
                 padding: 16px;
             }
         }
+        .toast-notification {
+            position: fixed;
+            bottom: -100px;
+            right: 24px;
+            background: var(--surface-card);
+            color: var(--text-color);
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 9999;
+            max-width: 400px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
 
+        .toast-notification.show {
+            bottom: 24px;
+        }
         
     </style>
 
+    <div id="toast" class="toast-notification">
+        <span style="font-size: 18px; margin-top: 2px;">⚡</span>
+        <span id="toast-text">Notification</span>
+    </div>
+
     <script src="../js/app-shell.js"></script>
-    <script src="../js/repositories.js"></script>
+    <script src="../js/repositories.js?v=2"></script>
 </body>
 
 </html>

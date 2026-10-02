@@ -13,8 +13,6 @@
         const savedTheme = localStorage.getItem('db_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="../js/reports.js"></script>
     
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap");
@@ -777,7 +775,6 @@
             z-index: 9999;
         }
     </style>
-    <script src="../js/app-shell.js"></script>
 </head>
 <body>
 
@@ -930,10 +927,8 @@
 </main>
     </div>
 
-    <script>
-        );
-        }
-
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="../js/app-shell.js?v=4"></script>
+    <script src="../js/reports.js?v=4"></script>
 </body>
 </html>

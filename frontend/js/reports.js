@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async async function deleteReport(id) {
+    async function deleteReport(id) {
         if (!(await window.showCustomConfirm("Delete Report", "Are you sure you want to delete this report?"))) return;
         
         try {

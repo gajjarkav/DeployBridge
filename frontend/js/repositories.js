@@ -1,4 +1,4 @@
-// BACKEND_API_URL is defined in repositories.html inline script
+const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
 
 // ============================================================================
 // REPOSITORY INFO MODAL STATE
@@ -15,6 +15,8 @@ let currentRepoName = "";
 document.addEventListener("DOMContentLoaded", () => {
     const session = initializeAppShell("repositories");
     if (!session) return;
+
+    fetchAndRenderRepos(session.token);
 
     // Setup keyboard listener for modal close (Escape key)
     document.addEventListener('keydown', handleGlobalKeydown);
@@ -57,40 +59,56 @@ async function fetchAndRenderRepos(token) {
 
         const repos = await response.json();
         document.getElementById("repo-count").textContent = String(repos.length);
-        tableBody.innerHTML = "";
+        
+        // Clear previous rows except header
+        const existingRows = tableBody.querySelectorAll('.card-table__row:not(.header-row)');
+        existingRows.forEach(row => row.remove());
 
         repos.forEach((repo, index) => {
-            const tr = document.createElement("tr");
+            const row = document.createElement("div");
+            row.className = "card-table__row";
+            
             const updatedAt = new Date(repo.updated_at).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
             });
-            const status = repo.archived ? "Archived" : (repo.disabled ? "Disabled" : "Active");
-            const statusClass = repo.archived ? "status-danger" : "status-success";
+            const isArchived = repo.archived;
+            const isDisabled = repo.disabled;
+            const statusText = isArchived ? "Archived" : (isDisabled ? "Disabled" : "Active");
+            const statusClass = (isArchived || isDisabled) ? "status-danger" : "status-success";
 
-            tr.innerHTML = `
-                <td>${index + 1}</td>
-                <td>
-                    <a class="repo-link" href="${repo.html_url}" target="_blank">${repo.name}</a>
-                </td>
-                <td>${repo.language || "Unknown"}</td>
-                <td>${repo.visibility}</td>
-                <td><span class="info-chip ${statusClass}">${status}</span></td>
-                <td>${updatedAt}</td>
-                <td>
-                    <div class="row-actions">
-                        <button class="table-button view" onclick="openRepoModal('${repo.owner.login}','${repo.name}', '${repo.html_url}')">View</button>
-                        <button class="table-button scan" onclick="analyzeRepo('${repo.owner?.login || ""}','${repo.name}')">Analyze</button>
-                        <button class="table-button deploy" onclick="deployGitHubPages('${repo.owner.login}','${repo.name}')">Deploy</button>
+            const visibilityColor = repo.private ? 'var(--status-danger-text)' : 'var(--status-success-text)';
+            const visibilityText = repo.private ? 'Private' : 'Public';
+            const indexStr = (index + 1).toString().padStart(2, '0');
+
+            row.innerHTML = `
+                <div class="card-table__item hide-on-mobile">${indexStr}</div>
+                <div class="card-table__item" style="font-weight:bold;">
+                    <a class="repo-link" href="${repo.html_url}" target="_blank" style="color: inherit; text-decoration: none;">${repo.name}</a>
+                </div>
+                <div class="card-table__item hide-on-mobile">${repo.language || "Unknown"}</div>
+                <div class="card-table__item hide-on-mobile"><span style="color:${visibilityColor};">${visibilityText}</span></div>
+                <div class="card-table__item"><span class="status-chip ${statusClass}">${statusText}</span></div>
+                <div class="card-table__item hide-on-tablet">${updatedAt}</div>
+                <div class="card-table__item">
+                    <div class="action-group">
+                        <button class="action-btn" onclick="openRepoModal('${repo.owner?.login || ""}','${repo.name}', '${repo.html_url}')"><span class="btn-label">View</span><span class="btn-icon">&emsp;👁&emsp;</span></button>
+                        <button class="action-btn" onclick="window.analyzeRepo('${repo.owner?.login || ""}','${repo.name}')"><span class="btn-label">Analyze</span><span class="btn-icon">&emsp;⚡&emsp;</span></button>
+                        <button class="action-btn" onclick="window.deployGitHubPages('${repo.owner?.login || ""}','${repo.name}')"><span class="btn-label">Deploy</span><span class="btn-icon">&emsp;🚀&emsp;</span></button>
                     </div>
-                </td>
+                </div>
             `;
-            tableBody.appendChild(tr);
+            tableBody.appendChild(row);
         });
     } catch (error) {
         console.error("Error:", error);
-        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#b54a3a;">Error loading repositories.</td></tr>';
+        const existingRows = tableBody.querySelectorAll('.card-table__row:not(.header-row)');
+        existingRows.forEach(row => row.remove());
+        const errorRow = document.createElement("div");
+        errorRow.className = "card-table__row";
+        errorRow.innerHTML = '<div class="card-table__item" style="grid-column: 1 / -1; justify-content: center; color: var(--status-danger-text);">Error loading repositories.</div>';
+        tableBody.appendChild(errorRow);
     }
 }
 
@@ -1078,12 +1096,19 @@ async function generateAIReport(owner, repository) {
     if (generateBtn) generateBtn.style.display = 'none';
     if (statusEl) statusEl.textContent = 'AI generation triggered in background...';
     
+    if (typeof showToast === 'function') {
+        showToast("<strong>Report is generating!</strong><br><br>Typically this takes a minute. We will email you when it's ready, or you can check the <b>My Reports</b> page.", 8000);
+    }
+    
     container.innerHTML = `
-        <div style="display: flex; justify-content: center; padding: 40px 0;">
-            <div class="spinner" style="border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;"></div>
-        </div>
-        <div style="text-align: center; color: var(--text-muted); font-size: 13px;" id="poll-status">
-            Starting job...
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 40px 0;">
+            <div class="spinner" style="border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+            <div style="width: 250px; height: 8px; background: rgba(0,0,0,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.1);">
+                <div id="ai-progress-bar" style="width: 0%; height: 100%; background: var(--primary-color); transition: width 3s cubic-bezier(0.1, 0.7, 0.1, 1);"></div>
+            </div>
+            <div style="text-align: center; color: var(--text-muted); font-size: 13px;">
+                Status: <span id="poll-status">Starting job</span> (<span id="ai-progress-text">0</span>%)
+            </div>
         </div>
         <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
     `;
@@ -1111,6 +1136,8 @@ async function generateAIReport(owner, repository) {
         
         const reportId = data.report_id;
         
+        let progress = 0;
+        
         // Start polling
         const pollInterval = setInterval(async () => {
             try {
@@ -1121,16 +1148,31 @@ async function generateAIReport(owner, repository) {
                 if (pollRes.ok) {
                     const reportData = await pollRes.json();
                     
+                    // Increment fake progress (asymptotically approaches 96%)
+                    progress += (96 - progress) * 0.15;
+                    const progBar = document.getElementById('ai-progress-bar');
+                    const progText = document.getElementById('ai-progress-text');
+                    
                     const pollStatusEl = document.getElementById('poll-status');
                     if (pollStatusEl) {
-                        pollStatusEl.textContent = `Status: ${reportData.status}...`;
+                        pollStatusEl.textContent = `${reportData.status}...`;
+                    }
+                    if (progBar && progText) {
+                        progBar.style.width = `${progress}%`;
+                        progText.textContent = Math.round(progress);
                     }
                     
                     if (reportData.status === 'delivered' || reportData.status === 'failed') {
                         clearInterval(pollInterval);
                         
                         if (reportData.status === 'delivered') {
-                            populateAIReportSection(reportData);
+                            // Snap to 100% right before rendering
+                            if (progBar) progBar.style.width = '100%';
+                            if (progText) progText.textContent = '100';
+                            
+                            setTimeout(() => {
+                                populateAIReportSection(reportData);
+                            }, 500); // give the user 500ms to see 100%
                         } else {
                             throw new Error(reportData.error_message || 'Background generation failed.');
                         }
@@ -1167,3 +1209,25 @@ window.generateAIReportFromModal = async () => {
         return;
     }
 };
+
+// ============================================================================
+// TOAST NOTIFICATIONS
+// ============================================================================
+
+function showToast(message, duration = 3000) {
+    const toast = document.getElementById("toast");
+    const toastText = document.getElementById("toast-text");
+    if (!toast || !toastText) return;
+    toastText.innerHTML = message;
+    toast.classList.add("show");
+    
+    // Clear any existing timeout
+    if (toast.dataset.timeoutId) {
+        clearTimeout(toast.dataset.timeoutId);
+    }
+    
+    const timeoutId = setTimeout(() => toast.classList.remove("show"), duration);
+    toast.dataset.timeoutId = timeoutId;
+}
+
+window.showToast = showToast;

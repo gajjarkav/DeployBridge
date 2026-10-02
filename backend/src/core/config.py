@@ -65,10 +65,17 @@ class Settings(BaseSettings):
     SESSION_COOKIE_PATH: str = Field(default="/")
 
 
-    # Gemini / LLM Configuration
+    # Azure AI Foundry (Primary LLM)
+    AZURE_AI_ENDPOINT: Optional[str] = Field(default=None)
+    AZURE_AI_DEPLOYMENT: str = Field(default="gpt-5-mini")
+    AZURE_AI_API_KEY: Optional[str] = Field(default=None)
+    AZURE_AI_API_VERSION: str = Field(default="2025-01-01-preview")
+    AZURE_AI_TIMEOUT_SECONDS: float = Field(default=60.0)
+
+    # Gemini / LLM Configuration (Fallback - key is optional)
     GROQ_API_KEY: Optional[str] = Field(default=None)
     GROQ_BASE_URL: str = Field(default="https://generativelanguage.googleapis.com/v1beta/openai/")
-    GROQ_MODEL: str = Field(default="gemini-1.5-flash")
+    GROQ_MODEL: str = Field(default="gemini-2.5-flash-lite")
     GROQ_TIMEOUT_SECONDS: float = Field(default=60.0)
 
     # Cloudinary (For PDF Uploads)
@@ -96,7 +103,7 @@ class Settings(BaseSettings):
                 return True
         return value
 
-    @field_validator("DOCS_URL", "REDOC_URL", "HOST", "LOG_LEVEL", "GROQ_API_KEY", mode="before")
+    @field_validator("DOCS_URL", "REDOC_URL", "HOST", "LOG_LEVEL", "GROQ_API_KEY", "AZURE_AI_API_KEY", mode="before")
     @classmethod
     def parse_blank_optional_strings(cls, value):
         if isinstance(value, str) and not value.strip():

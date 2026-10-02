@@ -51,7 +51,7 @@ async def generate_report(
     try:
         github_token = decrypt_secret(current_user.github_token)
 
-        # 0. Check Quota (max 10 per day)
+        # 0. Check Quota (max 30 per day)
         from datetime import datetime, timedelta, timezone
         from sqlalchemy import func
         
@@ -63,7 +63,7 @@ async def generate_report(
         quota_result = await db.execute(quota_stmt)
         reports_count = quota_result.scalar() or 0
         
-        DAILY_LIMIT = 10
+        DAILY_LIMIT = 30
         if reports_count >= DAILY_LIMIT:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,

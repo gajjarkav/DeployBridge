@@ -3,6 +3,9 @@ import logging
 from .config import get_settings
 
 
+# Clear cached settings on every startup so uvicorn --reload always
+# picks up the latest .env values (lru_cache would otherwise keep stale data).
+get_settings.cache_clear()
 settings = get_settings()
 
 logger = logging.getLogger(settings.APP_NAME)
