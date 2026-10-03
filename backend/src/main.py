@@ -33,6 +33,11 @@ def get_app() -> FastAPI:
 
     app.include_router(api_router)
 
+    from fastapi.staticfiles import StaticFiles
+    frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend"
+    if frontend_dir.exists():
+        app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
+
     return app
 
 
