@@ -69,3 +69,4 @@ openai==3.13.0
 azure-identity
 APScheduler==3.10.4
 markdown
+xhtml2pdf
