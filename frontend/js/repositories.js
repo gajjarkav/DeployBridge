@@ -1,4 +1,4 @@
-const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
+const BACKEND_API_URL = "/v1";
 
 // ============================================================================
 // REPOSITORY INFO MODAL STATE
@@ -47,7 +47,7 @@ async function fetchAndRenderRepos(token) {
     const tableBody = document.getElementById("repo-table-body");
 
     try {
-        const response = await fetch("http://127.0.0.1:8000/v1/github/user/repos?sort=updated&per_page=50", {
+        const response = await fetch("/v1/github/user/repos?sort=updated&per_page=50", {
             headers: {
                 "Authorization": `Bearer ${token}`,
             },

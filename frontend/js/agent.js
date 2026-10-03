@@ -21,7 +21,7 @@
 //   merges them at execution time. The LLM only ever saw the keys.
 // ------------------------------------------------------------------------------
 
-const BACKEND_API_URL = "http://127.0.0.1:8000/v1";
+const BACKEND_API_URL = "/v1";
 
 // State
 let sessionToken = null;

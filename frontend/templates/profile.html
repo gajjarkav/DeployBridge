@@ -687,7 +687,7 @@
             }
 
             try {
-                const res = await fetch("http://127.0.0.1:8000/v1/github/user", {
+                const res = await fetch("/v1/github/user", {
                     headers: { "Authorization": `Bearer ${dbToken}` }
                 });
                 

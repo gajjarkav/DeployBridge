@@ -1393,7 +1393,7 @@
         const modalBranchInput = document.getElementById("modal-branch-input");
         const modalBranchStatus = document.getElementById("modal-branch-status");
 
-        const backendApiUrl = "http://127.0.0.1:8000/v1";
+        const backendApiUrl = "/v1";
 
         // ADDED: Initialize the Theme Toggle switch to match the saved theme on load
         if (themeToggle) {
@@ -1622,7 +1622,7 @@
             }
 
             try {
-                const userRes = await fetch("http://127.0.0.1:8000/v1/github/user", {
+                const userRes = await fetch("/v1/github/user", {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
 

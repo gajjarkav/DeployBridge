@@ -970,7 +970,7 @@
 
             try {
                 // Fetch User Profile Data
-                const userRes = await fetch("http://127.0.0.1:8000/v1/github/user", {
+                const userRes = await fetch("/v1/github/user", {
                     headers: { "Authorization": `Bearer ${session.token}` }
                 });
                 
@@ -1001,7 +1001,7 @@
                 }
 
                 // Fetch Top 4 Recently Updated Repos
-                const reposRes = await fetch("http://127.0.0.1:8000/v1/github/user/repos?sort=updated&per_page=4", {
+                const reposRes = await fetch("/v1/github/user/repos?sort=updated&per_page=4", {
                     headers: { "Authorization": `Bearer ${session.token}` }
                 });
 
