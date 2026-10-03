@@ -42,3 +42,4 @@ azure-identity
 APScheduler==3.10.4
 markdown
 xhtml2pdf
+cloudinary
