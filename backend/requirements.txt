@@ -68,3 +68,4 @@ websockets==16.0
 openai==3.13.0
 azure-identity
 APScheduler==3.10.4
+markdown
