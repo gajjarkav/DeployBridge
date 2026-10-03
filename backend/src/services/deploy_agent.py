@@ -122,20 +122,11 @@ create_pull_request, add_render_custom_domain.
 
 ## Output contract
 
-When you want to call a SIDE-EFFECT tool, your final message MUST be a JSON
-object with this exact shape:
+For ALL tools (both READ-ONLY and SIDE-EFFECT), use normal OpenAI tool-calling.
 
-```
-{"plan": [{"tool": "deploy_render", "args": {...}, "summary": "what this will do"}]}
-```
+When you call a SIDE-EFFECT tool, the system will automatically intercept the tool call, pause execution, and surface an Approve/Cancel card to the user. You do NOT need to return JSON or format a plan yourself. Just call the tool normally like any other function.
 
-The system intercepts this before any tool actually runs, persists it as a
-plan, and surfaces an Approve/Cancel card to the user.
-
-For READ-ONLY tools, use normal OpenAI tool-calling — the system runs them
-automatically.
-
-Anything else you say is shown to the user as plain text.
+Anything you output as a regular message (not a tool call) is shown to the user as plain text.
 """
 
 

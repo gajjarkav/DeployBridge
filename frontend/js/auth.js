@@ -35,13 +35,25 @@ window.onload = async () => {
 };
 
 document.getElementById('login-btn').addEventListener('click', async () => {
-    try {
+    const loginBtn = document.getElementById('login-btn');
+    const span = loginBtn.querySelector('span');
+    const originalText = span.textContent;
+    
+    // Disable button and show connecting state
+    loginBtn.style.pointerEvents = "none";
+    loginBtn.style.opacity = "0.7";
+    span.textContent = "Connecting to server...";
 
+    try {
         const response = await fetch(`${BACKEND_API_URL}/auth/login`);
 
         if (!response.ok) {
             const errorText = await response.text();
             alert(`Backend Error: (${response.status}): ${errorText}`);
+            // Revert on error
+            loginBtn.style.pointerEvents = "auto";
+            loginBtn.style.opacity = "1";
+            span.textContent = originalText;
             return;
         }
 
@@ -49,13 +61,20 @@ document.getElementById('login-btn').addEventListener('click', async () => {
         console.log("Data received from backend: ", data);
 
         if (data.login_url && data.state) {
+            span.textContent = "Redirecting to GitHub...";
             sessionStorage.setItem("oauth_state", data.state);
             window.location.href = data.login_url;
         } else {
             alert("Backend succeeded but did not return 'login_url' or 'state'. check browser console log.");
+            loginBtn.style.pointerEvents = "auto";
+            loginBtn.style.opacity = "1";
+            span.textContent = originalText;
         }
     } catch (error) {
         alert(`Failed to connect to backend at ${BACKEND_API_URL}. Please ensure the backend server is running and accessible.`);
+        loginBtn.style.pointerEvents = "auto";
+        loginBtn.style.opacity = "1";
+        span.textContent = originalText;
     }
 });
 
